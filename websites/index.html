@@ -539,11 +539,11 @@
     <!-- Metrics Ribbon -->
     <div class="stats-ribbon">
       <div class="stat-card">
-        <div class="stat-val cyan">14 Studios</div>
+        <div class="stat-val cyan">15 Studios</div>
         <div class="stat-label">Interactive Web Applications</div>
       </div>
       <div class="stat-card">
-        <div class="stat-val emerald">9 Desktop</div>
+        <div class="stat-val emerald">10 Desktop</div>
         <div class="stat-label">Native Tkinter Desktop Software</div>
       </div>
       <div class="stat-card">
@@ -551,7 +551,7 @@
         <div class="stat-label">Zero-Dependency Python Systems</div>
       </div>
       <div class="stat-card">
-        <div class="stat-val amber">1,003 Tests</div>
+        <div class="stat-val amber">1,019 Tests</div>
         <div class="stat-label">Total Unit Tests Passing (100%)</div>
       </div>
     </div>
@@ -963,6 +963,36 @@
           </div>
         </div>
       </div>
+
+      <!-- 15. AstroHydro 3D Studio -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-astrohydro"></canvas>
+          <div class="preview-badge">60 FPS • SPH 3D</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Astrophysics & Fluid Hydrodynamics</div>
+          <h3 class="card-title">AstroHydro 3D Galactic Studio</h3>
+          <p class="card-text">
+            Standalone 3D Smoothed Particle Hydrodynamics (SPH) galaxy collision and fluid astrophysics laboratory in pure HTML5 Canvas.
+            Features Monaghan artificial viscosity for shock waves, Plummer gravitational softening, Hernquist galactic bulge potential,
+            polytropic equation of state, spatial hash grid neighbor queries, and live thermodynamic energy tracking with cosmic drone sonification.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">3D SPH</span>
+            <span class="tag-chip">Monaghan Viscosity</span>
+            <span class="tag-chip">Galaxy Mergers</span>
+            <span class="tag-chip">Hernquist Bulge</span>
+            <span class="tag-chip">Spatial Hash Grid</span>
+            <span class="tag-chip">Web Audio Drone</span>
+            <span class="tag-chip">Virial Ratio</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('astrohydro/index.html', 'AstroHydro 3D Studio')">Open Studio</button>
+            <a href="astrohydro/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -973,7 +1003,7 @@
         <h2 class="section-title">Standalone Desktop GUI Applications</h2>
         <p class="section-desc">Native desktop software featuring graphical windows, 3D canvases, and zero external dependencies (standard library Tkinter).</p>
       </div>
-      <div class="badge-pass">Native Python GUI • 142 / 142 Active Tests Pass (100%)</div>
+      <div class="badge-pass">Native Python GUI • 158 / 158 Active Tests Pass (100%)</div>
     </div>
 
     <div class="flagship-grid">
@@ -1279,6 +1309,40 @@
           <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #10B981;">
             <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
             <div>python3 programs/optiflow/optiflow.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 10: NeuroSim -->
+      <div class="flagship-card" style="border-color: rgba(168, 85, 247, 0.4);">
+        <div class="card-preview" style="background: #080C14;">
+          <canvas id="preview-neurosim"></canvas>
+          <div class="preview-badge">Desktop Tkinter • Biophysics</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #A855F7;">Biophysical Electrophysiology & Neural Circuits</div>
+          <h3 class="card-title">NeuroSim Biophysical Studio</h3>
+          <p class="card-text">
+            Standalone electrophysiology workstation simulating 4-variable Hodgkin-Huxley conductance biophysics with Rush-Larsen exponential integration,
+            Rall multi-compartment dendritic cables, back-propagating action potentials, AMPA/GABA/NMDA synaptic receptors,
+            40 Hz PING gamma cortical oscillations, locomotor central pattern generators, and dynamic phase-plane limit cycle attractors.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Hodgkin-Huxley</span>
+            <span class="tag-chip">Rush-Larsen Gating</span>
+            <span class="tag-chip">Rall Cable Theory</span>
+            <span class="tag-chip">Back-Propagating AP</span>
+            <span class="tag-chip">NMDA Mg2+ Block</span>
+            <span class="tag-chip">PING 40 Hz Gamma</span>
+            <span class="tag-chip">Phase-Plane Attractor</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #A855F7;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/neurosim/neurosim.py</div>
           </div>
           <div class="card-footer">
             <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
@@ -3161,6 +3225,215 @@
           requestAnimationFrame(drawOptiflowMini);
         }
         drawOptiflowMini();
+      }
+
+      // 24. AstroHydro 3D Mini Preview (3D SPH Galaxy Collision & Tidal Disruption)
+      const c24 = document.getElementById('preview-astrohydro');
+      if (c24) {
+        const ctx24 = c24.getContext('2d');
+        c24.width = c24.clientWidth; c24.height = c24.clientHeight;
+        let ahTime = 0;
+
+        // Generate static template disk particles
+        const numDiskParticles = 140;
+        const diskP = [];
+        for (let i = 0; i < numDiskParticles; i++) {
+          const galaxyId = i < numDiskParticles / 2 ? 0 : 1;
+          const radius = 8 + Math.random() * 45;
+          const armOffset = (i % 2 === 0 ? 0 : Math.PI);
+          const theta = radius * 0.12 + armOffset + (Math.random() - 0.5) * 0.4;
+          diskP.push({
+            g: galaxyId,
+            r: radius,
+            theta: theta,
+            z: (Math.random() - 0.5) * 6,
+            speed: 1.2 / Math.sqrt(radius + 5),
+            color: galaxyId === 0 ? 'rgba(0, 240, 255, ' : 'rgba(236, 72, 153, '
+          });
+        }
+
+        function drawAstrohydroMini() {
+          ctx24.clearRect(0, 0, c24.width, c24.height);
+          ahTime += 0.02;
+          const w = c24.width;
+          const h = c24.height;
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+
+          ctx24.fillStyle = '#050711';
+          ctx24.fillRect(0, 0, w, h);
+
+          // Starfield background
+          ctx24.fillStyle = 'rgba(255, 255, 255, 0.2)';
+          for (let s = 0; s < 25; s++) {
+            const sx = (s * 47 + 13) % w;
+            const sy = (s * 31 + 7) % h;
+            ctx24.fillRect(sx, sy, 1, 1);
+          }
+
+          // Galactic Nuclei Coordinates (in mutual eccentric orbit)
+          const dOrb = 35 + Math.sin(ahTime * 0.8) * 15;
+          const orbAngle = ahTime * 0.6;
+          const g0x = Math.cos(orbAngle) * dOrb * 0.5;
+          const g0y = Math.sin(orbAngle) * dOrb * 0.3;
+          const g1x = -g0x;
+          const g1y = -g0y;
+
+          // 3D rotation angles
+          const pitch = 0.55;
+          const cosP = Math.cos(pitch);
+          const sinP = Math.sin(pitch);
+
+          // Draw SPH fluid particles
+          for (let i = 0; i < diskP.length; i++) {
+            const p = diskP[i];
+            const currentTheta = p.theta + ahTime * p.speed * 2.0;
+            const lx = Math.cos(currentTheta) * p.r;
+            const ly = Math.sin(currentTheta) * p.r;
+            const lz = p.z;
+
+            const ox = (p.g === 0 ? g0x : g1x) + lx;
+            const oy = (p.g === 0 ? g0y : g1y) + ly;
+            const oz = lz;
+
+            // Project 3D to 2D
+            const px = cx + ox;
+            const py = cy + oy * cosP - oz * sinP;
+            const depthScale = 1.0 + (oy * sinP + oz * cosP) * 0.005;
+
+            const alpha = Math.max(0.2, Math.min(0.9, 0.8 - p.r * 0.01));
+            ctx24.fillStyle = p.color + alpha + ')';
+            ctx24.beginPath();
+            ctx24.arc(px, py, Math.max(1, 1.8 * depthScale), 0, Math.PI * 2);
+            ctx24.fill();
+          }
+
+          // Draw Galactic Bulge Cores
+          // Core 1 (Primary Cyan)
+          const p1x = cx + g0x;
+          const p1y = cy + g0y * cosP;
+          const rad1 = ctx24.createRadialGradient(p1x, p1y, 1, p1x, p1y, 12);
+          rad1.addColorStop(0, '#FFFFFF');
+          rad1.addColorStop(0.3, '#00F0FF');
+          rad1.addColorStop(1, 'rgba(0, 240, 255, 0)');
+          ctx24.fillStyle = rad1;
+          ctx24.beginPath(); ctx24.arc(p1x, p1y, 12, 0, Math.PI * 2); ctx24.fill();
+
+          // Core 2 (Secondary Magenta)
+          const p2x = cx + g1x;
+          const p2y = cy + g1y * cosP;
+          const rad2 = ctx24.createRadialGradient(p2x, p2y, 1, p2x, p2y, 10);
+          rad2.addColorStop(0, '#FFFFFF');
+          rad2.addColorStop(0.3, '#EC4899');
+          rad2.addColorStop(1, 'rgba(236, 72, 153, 0)');
+          ctx24.fillStyle = rad2;
+          ctx24.beginPath(); ctx24.arc(p2x, p2y, 10, 0, Math.PI * 2); ctx24.fill();
+
+          ctx24.fillStyle = '#00F0FF';
+          ctx24.font = '9px monospace';
+          ctx24.fillText('SPH 3D / GALAXY MERGER', w - 155, 20);
+
+          requestAnimationFrame(drawAstrohydroMini);
+        }
+        drawAstrohydroMini();
+      }
+
+      // 25. NeuroSim Mini Preview (Hodgkin-Huxley Oscilloscope & Phase Plane)
+      const c25 = document.getElementById('preview-neurosim');
+      if (c25) {
+        const ctx25 = c25.getContext('2d');
+        c25.width = c25.clientWidth; c25.height = c25.clientHeight;
+        let nsTime = 0;
+
+        function drawNeurosimMini() {
+          ctx25.clearRect(0, 0, c25.width, c25.height);
+          nsTime += 0.04;
+          const w = c25.width;
+          const h = c25.height;
+
+          // Scope background
+          ctx25.fillStyle = '#060A14';
+          ctx25.fillRect(0, 0, w, h);
+
+          // Grid lines
+          ctx25.strokeStyle = 'rgba(255, 255, 255, 0.07)';
+          ctx25.lineWidth = 1;
+          for (let y = 20; y < h; y += 30) {
+            ctx25.beginPath(); ctx25.moveTo(0, y); ctx25.lineTo(w, y); ctx25.stroke();
+          }
+
+          // Resting potential reference line (-65 mV)
+          const restY = h * 0.65;
+          ctx25.strokeStyle = 'rgba(168, 85, 247, 0.3)';
+          ctx25.setLineDash([4, 4]);
+          ctx25.beginPath(); ctx25.moveTo(0, restY); ctx25.lineTo(w, restY); ctx25.stroke();
+          ctx25.setLineDash([]);
+
+          // 0 mV threshold line
+          const zeroY = h * 0.38;
+          ctx25.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+          ctx25.beginPath(); ctx25.moveTo(0, zeroY); ctx25.lineTo(w, zeroY); ctx25.stroke();
+
+          // Action Potential Waveform V(t)
+          ctx25.strokeStyle = '#A855F7';
+          ctx25.lineWidth = 2.0;
+          ctx25.beginPath();
+
+          const period = 75; // pixels per spike period
+          for (let x = 0; x < w; x += 2) {
+            const phase = (x + nsTime * 60) % period;
+            let vOffset = 0;
+
+            if (phase < 12) {
+              // Upstroke toward spike peak (+25 mV)
+              const u = phase / 12;
+              vOffset = -Math.sin(u * Math.PI * 0.5) * (restY - 25);
+            } else if (phase < 26) {
+              // Rapid repolarization downstroke into after-hyperpolarization (-75 mV)
+              const d = (phase - 12) / 14;
+              vOffset = -(1 - d) * (restY - 25) + d * 14;
+            } else if (phase < 55) {
+              // Recovery from after-hyperpolarization to rest
+              const r = (phase - 26) / 29;
+              vOffset = (1 - r) * 14;
+            } else {
+              // Passive subthreshold inter-spike interval
+              vOffset = Math.sin((phase - 55) * 0.2) * 1.5;
+            }
+
+            const y = restY + vOffset;
+            if (x === 0) ctx25.moveTo(x, y);
+            else ctx25.lineTo(x, y);
+          }
+          ctx25.stroke();
+
+          // Gating variable wave at bottom (Potassium n-gate in emerald)
+          ctx25.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+          ctx25.lineWidth = 1.2;
+          ctx25.beginPath();
+          for (let x = 0; x < w; x += 3) {
+            const phase = (x + nsTime * 60) % period;
+            let nVal = 0.3;
+            if (phase >= 10 && phase < 45) {
+              nVal = 0.3 + 0.45 * Math.sin(((phase - 10) / 35) * Math.PI);
+            }
+            const ny = (h - 10) - nVal * 25;
+            if (x === 0) ctx25.moveTo(x, ny);
+            else ctx25.lineTo(x, ny);
+          }
+          ctx25.stroke();
+
+          ctx25.fillStyle = '#A855F7';
+          ctx25.font = '9px monospace';
+          ctx25.fillText('HODGKIN-HUXLEY / 4-VAR', w - 150, 20);
+
+          ctx25.fillStyle = 'rgba(16, 185, 129, 0.8)';
+          ctx25.font = '8px monospace';
+          ctx25.fillText('K+ n-gate', 10, h - 8);
+
+          requestAnimationFrame(drawNeurosimMini);
+        }
+        drawNeurosimMini();
       }
     }
 

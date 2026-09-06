@@ -2,48 +2,54 @@
 
 ## What Was Completed
 - Architected, implemented, verified, and documented two major flagship visual applications across both active categories (`websites/` and `programs/`):
-  - **Category 1: websites/ - GravWave Studio (2D Numerical Relativity & Gravitational Wave Laser Interferometer Observatory)**:
-    - Standalone browser-based 2D numerical relativity laboratory and gravitational wave observatory in pure HTML5 Canvas with zero external CDN dependencies (`websites/gravwave/index.html`).
-    - Post-Newtonian binary black hole inspiral trajectory via Peters (1964) gravitational radiation reaction: $da/dt = -\frac{64}{5} \frac{G^3 m_1 m_2 (m_1 + m_2)}{c^5 a^3} (1 + 3e^2)$.
-    - Gravitational chirp mass: $\mathcal{M} = \frac{(m_1 m_2)^{3/5}}{(m_1 + m_2)^{1/5}}$.
-    - Orbital chirp frequency and gravitational wave emission frequency: $f_{\text{GW}} = 2 f_{\text{orb}} = \frac{1}{\pi} \sqrt{\frac{G(m_1 + m_2)}{a^3}}$.
-    - Spacetime metric fabric perturbation in the transverse-traceless (TT) gauge: $\delta x = \frac{1}{2}(h_+ x - h_\times y), \delta y = \frac{1}{2}(-h_+ y - h_\times x)$.
-    - Outward propagating quadrupole radiation spiral ripples with relativistic retardation delay $t - r/c$.
-    - Freely falling test mass ring deformation illustrating quadrupolar tidal strains under observer orbital inclination angle $\iota$.
-    - Michelson laser interferometer optical arm deformation ($\Delta L = \frac{1}{2} L h_+$) and dark port photodiode interference fringe shift ($I = I_0 \cos^2(\Delta \Phi / 2)$ with optical phase shift $\Delta \Phi = \frac{4\pi}{\lambda} \Delta L$).
-    - Real-time Web Audio API gravitational chirp acoustic sonification dynamically modulating carrier frequency and gain.
-    - 5 Curated astrophysical presets: GW150914 (36 + 29 M_sun), GW170817 (Binary Neutron Star), Intermediate Mass BBH, Highly Eccentric Binary ($e=0.68$), and Extreme Mass Ratio Inspiral (EMRI).
-  - **Category 2: programs/ - OptiFlow 2D (Standalone Desktop Computational Fluid Dynamics & Aerodynamics Studio)**:
-    - Standalone desktop computational fluid dynamics (CFD) workstation and aerodynamics laboratory built in standard library Python `tkinter` with zero external dependencies (`programs/optiflow/`).
-    - First-principles 2D Navier-Stokes finite difference solver using the coupled vorticity-streamfunction ($\omega - \psi$) formulation (`programs/optiflow/cfd_engine.py`):
-      - Vorticity transport advection-diffusion with upwind differencing: $\frac{\partial \omega}{\partial t} + u \frac{\partial \omega}{\partial x} + v \frac{\partial \omega}{\partial y} = \nu \left( \frac{\partial^2 \omega}{\partial x^2} + \frac{\partial^2 \omega}{\partial y^2} \right)$.
-      - Streamfunction Poisson kinematics: $\nabla^2 \psi = -\omega$, with velocities $u = \partial\psi/\partial y, v = -\partial\psi/\partial x$.
-      - Incompressibility and continuity equation $\nabla \cdot \mathbf{u} = 0$ satisfied identically to machine precision ($< 10^{-14}$).
-      - Woods wall vorticity boundary condition on solid obstacle boundaries: $\omega_{\text{wall}} = -\frac{2(\psi_{\text{fluid}} - \psi_{\text{wall}})}{\Delta n^2}$.
-      - Successive over-relaxation (SOR) solve of the Poisson pressure equation: $\nabla^2 p = 2\rho (\frac{\partial u}{\partial x}\frac{\partial v}{\partial y} - \frac{\partial u}{\partial y}\frac{\partial v}{\partial x})$.
-      - Aerodynamic force contour integration of surface pressure $p$ and wall shear stress $\tau_w = \mu \omega_{\text{wall}}$ yielding lift $F_L$, drag $F_D$, pitching moment $C_M$, lift coefficient $C_L$, drag coefficient $C_D$, and efficiency $L/D$.
-      - Parametric NACA 4-digit airfoil generator (NACA 0012, NACA 2412, NACA 4412) with real-time Angle of Attack (AoA) adjustment from -18 deg to +22 deg.
-      - Karman vortex street shedding in circular cylinder wake.
-      - Runge-Kutta 2nd-order (RK2) midpoint smoke tracer particle advection.
-      - Virtual Pitot probe tool computing local velocity vector, dynamic pressure $q$, static pressure $p$, and pressure coefficient $C_p = 1 - (|V|/U_\infty)^2$.
-    - 6 Curated aerodynamic presets (`programs/optiflow/presets.py`): NACA 0012 Symmetric Airfoil, NACA 4412 High-Camber Wing, NACA 2412 Stall Investigation (+18 deg AoA), Circular Cylinder Vortex Shedding, Venturi Nozzle Contraction, and Backward-Facing Step Recirculation.
-    - Automated unit test suite (`programs/optiflow/test_optiflow.py`): 16/16 unit tests passing in 0.10s.
-  - **Showcase Integration & Master Cataloging**:
-    - Updated master showcase web portal (`websites/index.html`) with Flagship Card 14 (GravWave Studio) and Desktop App 9 (OptiFlow 2D), animated canvas previews (`preview-gravwave` and `preview-optiflow`), updated stats ribbon (14 Studios, 9 Desktop, 33 Engines, 1,003 Tests), and updated test badges.
+  - **Category 1: websites/ - AstroHydro 3D (Standalone 3D SPH Galaxy Collision & Astrophysical Hydrodynamics Studio)**:
+    - Standalone browser-based 3D Smoothed Particle Hydrodynamics (SPH) galaxy collision laboratory in pure HTML5 Canvas with zero external CDN dependencies (`websites/astrohydro/index.html`).
+    - First-principles 3D SPH fluid dynamics with $N$ Lagrangian particles, M4 cubic spline kernel $W(r, h)$, and analytical gradient $\nabla W(r, h)$ with normalization factor $\sigma = 1/\pi$.
+    - Spatial hash grid binning with linked-list buckets providing $O(N)$ neighbor queries across 27 compact support cells ($r \le 2h$).
+    - Monaghan (1992) artificial viscosity $\Pi_{ij}$ for shock wave capturing and numerical stability.
+    - Polytropic gas equation of state: $P_i = (\gamma - 1) \rho_i u_i$ with adiabatic index $\gamma = 5/3$.
+    - Plummer gravitational softening preventing unphysical close-encounter divergence.
+    - Hernquist (1990) galactic bulge potential modeling central dark matter and stellar mass distribution.
+    - Real-time thermodynamic energy partition: kinetic energy $E_k$, gravitational potential $U$, thermal internal energy $E_{\text{th}}$, and virial ratio $2K/|U|$.
+    - Real-time Web Audio API ambient cosmic soundscape modulated by gravitational potential well depth, kinetic motion, and shock dissipation.
+    - 6 Curated presets: Milky Way - Andromeda Collision, Antennae Galaxies (NGC 4038/4039), Sedov-Taylor Blast Wave, Evaporating Gaseous Globule, Isolated Rotating Disk, and Kelvin-Helmholtz Shear Instability.
+  - **Category 2: programs/ - NeuroSim (Standalone Desktop Biophysical Electrophysiology & Neural Circuit Studio)**:
+    - Standalone desktop electrophysiology workstation and neural circuit laboratory built in standard library Python `tkinter` with zero external dependencies (`programs/neurosim/`).
+    - First-principles numerical solution of the 4-variable Hodgkin-Huxley (1952) conductance model ($V, m, h, n$) (`programs/neurosim/biophys_engine.py`):
+      - Membrane potential integration: $C_m \frac{dV}{dt} = I_{\text{inj}} - I_{\text{Na}} - I_{\text{K}} - I_L - I_T - I_{\text{syn}} + I_{\text{axial}}$.
+      - Rush-Larsen (1978) exponential Euler integration for stiff gating variables ($m, h, n, m_T, h_T$), guaranteeing unconditional stability and strict $[0, 1]$ bounds.
+      - Multi-compartment cable model (Rall 1959) for Soma, Basal Dendrite, Apical Trunk, and Apical Tuft linked by axial resistance $R_a$.
+      - Active back-propagating action potentials (bAP) supported by dendritic sodium and potassium conductances (+29.6 mV in trunk, +17.5 mV in tuft).
+      - Chemical synapse kinetics: AMPA fast excitation ($E_{\text{rev}} = 0\text{ mV}$), GABA_A slow inhibition ($E_{\text{rev}} = -70\text{ mV}$), and NMDA with voltage-dependent magnesium block (Jahr & Stevens 1990).
+      - Low-threshold T-type calcium channels ($I_T = \bar{g}_T m_T^2 h_T (V - E_{\text{Ca}})$) governing thalamocortical burst-tonic transitions.
+      - PING (Pyramidal-Interneuron Network Gamma) 40 Hz cortical oscillations and Central Pattern Generator (CPG) reciprocal inhibition locomotion oscillators.
+    - Interactive desktop GUI (`programs/neurosim/neurosim.py`):
+      - Dual-beam digital oscilloscope displaying $V(t)$, injected current $I(t)$, and gating particle kinetics.
+      - Dynamic phase-plane limit cycle attractor canvas plotting membrane potential $V$ against potassium activation $n$.
+      - Gating particle canvas displaying real-time sodium activation $m$, sodium inactivation $h$, and potassium rectifier $n$.
+      - Interactive patch-clamp stimulation dock with mouse click-to-inject stimulation, current clamp sliders, and conductance adjustments.
+    - 6 Curated presets (`programs/neurosim/presets.py`): Giant Squid Axon, Anode Break Excitation, PING Gamma Oscillations, Half-Center CPG, Dendritic Back-Propagation, and Thalamic Bursting.
+    - Automated unit test suite (`programs/neurosim/test_neurosim.py`): 16/16 unit tests passing in 0.11s.
+  - **Showcase Integration & Master Documentation**:
+    - Updated master showcase web portal (`websites/index.html`):
+      - Flagship Card 15: AstroHydro 3D Galactic Studio.
+      - Desktop App Card 10: NeuroSim Biophysical Studio.
+      - Metrics ribbon: 15 Studios, 10 Desktop, 33 Engines, 1,019 Tests.
+      - Live animated canvas preview scripts: `drawAstrohydroMini()` (3D rotating galaxy merger with tidal filaments and core glows) and `drawNeurosimMini()` (oscilloscope membrane potential trace and gating wave).
     - Updated `projects.md` documenting technical architectures, mathematical formulations, launch commands, and verification tables.
-    - Updated `TASK_QUEUE.md` and `tracker/data.json` with new project metrics and completed todos.
-    - Surpassed the 1,000-test milestone: **1,003 / 1,003 automated tests passing** (861 CLI + 142 Desktop).
-    - Verified zero em dashes across all created and updated files.
+    - Updated `README.md`, `TASK_QUEUE.md`, and `tracker/data.json`.
+    - Achieved new milestone: **1,019 / 1,019 automated tests passing** (861 CLI + 158 Desktop) with 100% pass rate.
+    - Verified zero em dashes across all files.
 
 ## Current In-Progress State
 - Repository cleanly partitioned into three pillars:
   1. `cli/`: 33 first-principles terminal systems (861 passing tests, master `showcase.py`).
-  2. `websites/`: 14 standalone interactive web studios (`chromasplat/`, `neuralstudio/`, `opticalab/`, `aerotunnel/`, `tokamak/`, `blackhole/`, `biogenesis/`, `voxelspace/`, `quantum/`, `neuromorph/`, `synthwave/`, `plasmaflow/`, `waveoptics/`, `gravwave/`, and master `index.html`).
-  3. `programs/`: 9 native standard library Tkinter desktop software applications (`gravitas/`, `signalscope/`, `pycircuit/`, `retrocad/`, `aeroacoustics/`, `astroephemeris/`, `spectrochem/`, `structura2d/`, `optiflow/`).
-- Total automated tests: 1,003 / 1,003 passing (100% pass rate).
+  2. `websites/`: 15 standalone interactive web studios (`astrohydro/`, `gravwave/`, `waveoptics/`, `plasmaflow/`, `chromasplat/`, `neuralstudio/`, `opticalab/`, `aerotunnel/`, `tokamak/`, `blackhole/`, `biogenesis/`, `voxelspace/`, `quantum/`, `neuromorph/`, `synthwave/`, and master `index.html`).
+  3. `programs/`: 10 native standard library Tkinter desktop software applications (`neurosim/`, `optiflow/`, `structura2d/`, `spectrochem/`, `astroephemeris/`, `aeroacoustics/`, `retrocad/`, `pycircuit/`, `signalscope/`, `gravitas/`).
+- Total automated tests: 1,019 / 1,019 passing (100% pass rate).
 
 ## Next Action
-- Update git configuration, polish repo structure, and push to GitHub repository: https://github.com/AryaVora621/claude-agy.git
+- Commit all changes and push to GitHub repository: https://github.com/AryaVora621/claude-agy.git
 
 ## Human Decisions Needed
 - None. All software is fully tested, self-contained, interactive, and documented.

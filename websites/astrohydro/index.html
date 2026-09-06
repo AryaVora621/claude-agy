@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AstroHydro 3D: Smoothed Particle Hydrodynamics & Galaxy Merger Studio</title>
+  <style>
+    :root {
+      --bg: #030611;
+      --panel-bg: rgba(9, 14, 28, 0.85);
+      --panel-border: rgba(45, 65, 105, 0.55);
+      --accent-cyan: #00F0FF;
+      --accent-purple: #A855F7;
+      --accent-amber: #F59E0B;
+      --accent-emerald: #10B981;
+      --accent-rose: #F43F5E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      --font-mono: "SF Mono", Monaco, "Cascadia Code", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+      z-index: 1;
+    }
+
+    /* Top Title & Quick Actions Header */
+    header {
+      position: absolute;
+      top: 14px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .brand-cluster {
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #FFF;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .brand-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-tag {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(0, 240, 255, 0.18);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .quick-tools {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .hud-btn {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    .hud-btn:hover {
+      background: rgba(25, 38, 70, 0.95);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: translateY(-1px);
+    }
+
+    .hud-btn.active {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Left Control Panel */
+    .panel-left {
+      position: absolute;
+      top: 80px;
+      left: 18px;
+      bottom: 24px;
+      width: 320px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    .panel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 6px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .control-val {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-cyan);
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    select {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    /* Right Telemetry & Virial Monitor */
+    .panel-right {
+      position: absolute;
+      top: 80px;
+      right: 18px;
+      width: 290px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 10;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+      pointer-events: auto;
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .telemetry-card {
+      background: rgba(13, 20, 38, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .telemetry-key {
+      font-size: 9px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .telemetry-value {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .telemetry-value.cyan { color: var(--accent-cyan); }
+    .telemetry-value.purple { color: var(--accent-purple); }
+    .telemetry-value.amber { color: var(--accent-amber); }
+    .telemetry-value.emerald { color: var(--accent-emerald); }
+
+    .energy-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .energy-bar-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .energy-bar-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .energy-bar-fill-k {
+      height: 100%;
+      background: var(--accent-cyan);
+      width: 40%;
+      transition: width 0.1s ease;
+    }
+
+    .energy-bar-fill-u {
+      height: 100%;
+      background: var(--accent-purple);
+      width: 35%;
+      transition: width 0.1s ease;
+    }
+
+    .energy-bar-fill-th {
+      height: 100%;
+      background: var(--accent-amber);
+      width: 25%;
+      transition: width 0.1s ease;
+    }
+
+    .virial-indicator {
+      background: rgba(13, 20, 38, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .virial-meter {
+      position: relative;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .virial-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent-emerald);
+      border-radius: 2px;
+      box-shadow: 0 0 6px var(--accent-emerald);
+      transition: left 0.1s ease;
+    }
+
+    .virial-target {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.6);
+      transform: translateX(-50%);
+    }
+
+    /* Bottom Preset Carousel */
+    .bottom-bar {
+      position: absolute;
+      bottom: 18px;
+      left: 360px;
+      right: 330px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .preset-pill {
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+
+    .preset-pill:hover {
+      color: #FFF;
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    .preset-pill.active {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(168, 85, 247, 0.25));
+      border-color: var(--accent-cyan);
+      color: #FFF;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+    }
+
+    /* Interactive Instruction Overlay */
+    .hud-hint {
+      position: absolute;
+      bottom: 22px;
+      left: 24px;
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      z-index: 5;
+      pointer-events: none;
+      background: rgba(3, 6, 17, 0.7);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="viewport"></canvas>
+
+  <header>
+    <div class="brand-cluster">
+      <div class="brand-icon">&#x2728;</div>
+      <div class="brand-text">
+        <h1>AstroHydro 3D <span class="badge-tag">SPH Fluid Studio</span></h1>
+        <p>Smoothed Particle Hydrodynamics &amp; Galaxy Collision Laboratory</p>
+      </div>
+    </div>
+
+    <div class="quick-tools">
+      <button id="btnPlayPause" class="hud-btn" title="Toggle Simulation Play/Pause">
+        <span id="playIcon">&#x23F8;</span> <span id="playText">Pause</span>
+      </button>
+      <button id="btnStep" class="hud-btn" title="Advance Single Numerical Time Step">
+        <span>&#x23ED;</span> Step
+      </button>
+      <button id="btnReset" class="hud-btn" title="Reset Current Preset">
+        <span>&#x21BA;</span> Reset
+      </button>
+      <button id="btnPerturber" class="hud-btn" title="Toggle Interactive Black Hole Perturber">
+        <span>&#x1F300;</span> <span id="perturberText">Perturber: Off</span>
+      </button>
+      <button id="btnAudio" class="hud-btn" title="Toggle Cosmic Acoustic Sonification">
+        <span id="audioIcon">&#x1F507;</span> <span id="audioText">Audio</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Left Parameter Panel -->
+  <aside class="panel-left">
+    <div class="panel-section">
+      <div class="section-title">
+        <span>Hydrodynamics &amp; SPH</span>
+        <span style="font-size:9px;color:var(--text-dim);">Euler &amp; Monaghan</span>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Gas Pressure Constant (K)</span>
+          <span class="control-val" id="valK">1.20</span>
+        </div>
+        <input type="range" id="sliderK" min="0.1" max="4.0" step="0.05" value="1.20">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Artificial Viscosity (&alpha;)</span>
+          <span class="control-val" id="valAlpha">1.00</span>
+        </div>
+        <input type="range" id="sliderAlpha" min="0.0" max="3.0" step="0.05" value="1.00">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>SPH Smoothing Length (h)</span>
+          <span class="control-val" id="valH">2.80</span>
+        </div>
+        <input type="range" id="sliderH" min="1.0" max="6.0" step="0.1" value="2.80">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Radiative Cooling Rate</span>
+          <span class="control-val" id="valCooling">0.020</span>
+        </div>
+        <input type="range" id="sliderCooling" min="0.000" max="0.080" step="0.002" value="0.020">
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-title">
+        <span>Astrophysical Gravity</span>
+        <span style="font-size:9px;color:var(--text-dim);">Plummer Kernel</span>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Gravitational Constant (G)</span>
+          <span class="control-val" id="valG">1.50</span>
+        </div>
+        <input type="range" id="sliderG" min="0.0" max="5.0" step="0.1" value="1.50">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Plummer Softening (&epsilon;)</span>
+          <span class="control-val" id="valEps">1.20</span>
+        </div>
+        <input type="range" id="sliderEps" min="0.3" max="3.0" step="0.05" value="1.20">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Central Bulge Mass (M)</span>
+          <span class="control-val" id="valBulge">450</span>
+        </div>
+        <input type="range" id="sliderBulge" min="0" max="1500" step="25" value="450">
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-title">
+        <span>Visual &amp; Rendering Modes</span>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Particle Color Palette</span>
+        </div>
+        <select id="selectPalette">
+          <option value="plasma" selected>Plasma Nebula (Density Spectrum)</option>
+          <option value="thermal">Stellar Thermal (Temperature K)</option>
+          <option value="cyan">Superconducting Phosphor Cyan</option>
+          <option value="cosmic">Cosmic Dust &amp; Deep Gold</option>
+        </select>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Particle Render Style</span>
+        </div>
+        <select id="selectRenderStyle">
+          <option value="additive" selected>Additive Photometric Radiance</option>
+          <option value="points">Solid Point Disks</option>
+          <option value="vectors">Velocity Vectors &amp; Points</option>
+        </select>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Camera Auto-Rotation</span>
+          <span class="control-val" id="valSpin">0.25</span>
+        </div>
+        <input type="range" id="sliderSpin" min="0.0" max="1.5" step="0.05" value="0.25">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>Simulation Speed Factor</span>
+          <span class="control-val" id="valSpeed">1.0x</span>
+        </div>
+        <input type="range" id="sliderSpeed" min="0.1" max="2.5" step="0.1" value="1.0">
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Telemetry Panel -->
+  <aside class="panel-right">
+    <div class="section-title">
+      <span>Astrophysical Telemetry</span>
+      <span style="font-size:9px;color:var(--accent-emerald);">Live 60 FPS</span>
+    </div>
+
+    <div class="telemetry-grid">
+      <div class="telemetry-card">
+        <span class="telemetry-key">Fluid Particles</span>
+        <span class="telemetry-value cyan" id="hudCount">1,600</span>
+      </div>
+      <div class="telemetry-card">
+        <span class="telemetry-key">Time Step (&Delta;t)</span>
+        <span class="telemetry-value" id="hudDt">0.018 s</span>
+      </div>
+      <div class="telemetry-card">
+        <span class="telemetry-key">Kinetic Energy (K)</span>
+        <span class="telemetry-value cyan" id="hudEk">0.00</span>
+      </div>
+      <div class="telemetry-card">
+        <span class="telemetry-key">Potential Energy (U)</span>
+        <span class="telemetry-value purple" id="hudU">0.00</span>
+      </div>
+      <div class="telemetry-card">
+        <span class="telemetry-key">Thermal Energy (E_th)</span>
+        <span class="telemetry-value amber" id="hudEth">0.00</span>
+      </div>
+      <div class="telemetry-card">
+        <span class="telemetry-key">Mean Mach Number</span>
+        <span class="telemetry-value emerald" id="hudMach">0.00</span>
+      </div>
+    </div>
+
+    <div class="energy-bar-wrap">
+      <div class="energy-bar-label">
+        <span>Energy Partition</span>
+        <span id="hudEnergyPct">K: 40% | U: 35% | Th: 25%</span>
+      </div>
+      <div class="energy-bar-track">
+        <div class="energy-bar-fill-k" id="barFillK"></div>
+        <div class="energy-bar-fill-u" id="barFillU"></div>
+        <div class="energy-bar-fill-th" id="barFillTh"></div>
+      </div>
+    </div>
+
+    <div class="virial-indicator">
+      <div class="energy-bar-label">
+        <span>Virial Ratio (2K / |U|)</span>
+        <span id="hudVirial" style="font-family:var(--font-mono);font-weight:700;color:var(--accent-emerald);">1.02</span>
+      </div>
+      <div class="virial-meter">
+        <div class="virial-target" title="Virial Equilibrium (1.0)"></div>
+        <div class="virial-marker" id="virialMarker" style="left: 50%;"></div>
+      </div>
+      <span style="font-size:9px;color:var(--text-dim);text-align:center;">Virial state: 1.0 = Gravitational Equilibrium</span>
+    </div>
+  </aside>
+
+  <!-- Bottom Preset Carousel -->
+  <nav class="bottom-bar">
+    <button class="preset-pill active" data-preset="antennae">Antennae Galaxies Collision</button>
+    <button class="preset-pill" data-preset="collapse">Protostellar Cloud Collapse</button>
+    <button class="preset-pill" data-preset="supernova">Sedov Supernova Blast Wave</button>
+    <button class="preset-pill" data-preset="stream">Tidal Cannibalism Stream</button>
+    <button class="preset-pill" data-preset="jet">Kelvin-Helmholtz Plasma Jet</button>
+  </nav>
+
+  <div class="hud-hint">
+    Mouse: Left-drag Orbit | Right-drag Pan | Scroll Zoom | Click with Perturber on to spawn Supermassive Singularity
+  </div>
+
+  <script>
+    /* =========================================================================
+       AstroHydro 3D: SPH Fluid & Galaxy Collision Simulator
+       Pure JavaScript, HTML5 Canvas 3D Projection, Web Audio API Sonification
+       Zero External Dependencies
+       ========================================================================= */
+
+    const canvas = document.getElementById('viewport');
+    const ctx = canvas.getContext('2d');
+
+    // UI Element References
+    const sliderK = document.getElementById('sliderK');
+    const valK = document.getElementById('valK');
+    const sliderAlpha = document.getElementById('sliderAlpha');
+    const valAlpha = document.getElementById('valAlpha');
+    const sliderH = document.getElementById('sliderH');
+    const valH = document.getElementById('valH');
+    const sliderCooling = document.getElementById('sliderCooling');
+    const valCooling = document.getElementById('valCooling');
+    const sliderG = document.getElementById('sliderG');
+    const valG = document.getElementById('valG');
+    const sliderEps = document.getElementById('sliderEps');
+    const valEps = document.getElementById('valEps');
+    const sliderBulge = document.getElementById('sliderBulge');
+    const valBulge = document.getElementById('valBulge');
+    const selectPalette = document.getElementById('selectPalette');
+    const selectRenderStyle = document.getElementById('selectRenderStyle');
+    const sliderSpin = document.getElementById('sliderSpin');
+    const valSpin = document.getElementById('valSpin');
+    const sliderSpeed = document.getElementById('sliderSpeed');
+    const valSpeed = document.getElementById('valSpeed');
+
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const playIcon = document.getElementById('playIcon');
+    const playText = document.getElementById('playText');
+    const btnStep = document.getElementById('btnStep');
+    const btnReset = document.getElementById('btnReset');
+    const btnPerturber = document.getElementById('btnPerturber');
+    const perturberText = document.getElementById('perturberText');
+    const btnAudio = document.getElementById('btnAudio');
+    const audioIcon = document.getElementById('audioIcon');
+    const audioText = document.getElementById('audioText');
+
+    const hudCount = document.getElementById('hudCount');
+    const hudDt = document.getElementById('hudDt');
+    const hudEk = document.getElementById('hudEk');
+    const hudU = document.getElementById('hudU');
+    const hudEth = document.getElementById('hudEth');
+    const hudMach = document.getElementById('hudMach');
+    const hudVirial = document.getElementById('hudVirial');
+    const virialMarker = document.getElementById('virialMarker');
+    const barFillK = document.getElementById('barFillK');
+    const barFillU = document.getElementById('barFillU');
+    const barFillTh = document.getElementById('barFillTh');
+    const hudEnergyPct = document.getElementById('hudEnergyPct');
+    const presetPills = document.querySelectorAll('.preset-pill');
+
+    // Simulation Physics State
+    const sim = {
+      paused: false,
+      stepOnce: false,
+      speed: 1.0,
+      dt: 0.022,
+      K: 1.20,             // Gas pressure polytrope coefficient
+      gamma: 1.40,         // Polytropic adiabatic gas index
+      alpha: 1.00,         // Monaghan artificial viscosity coefficient
+      beta: 2.00,          // Monaghan quadratic viscosity coefficient
+      h: 2.80,             // SPH smoothing kernel radius
+      cooling: 0.020,      // Radiative thermal cooling rate
+      G: 1.50,             // Gravitational constant
+      eps: 1.20,           // Plummer gravitational softening length
+      bulgeMass: 450.0,    // Central bulge / supermassive black hole mass
+      preset: 'antennae',
+      palette: 'plasma',
+      renderStyle: 'additive',
+      spinRate: 0.25,
+      perturberActive: false,
+      perturberPos: { x: 0, y: 0, z: 0 },
+      perturberMass: 850.0,
+      audioEnabled: false,
+      telemetry: {
+        Ek: 0,
+        U: 0,
+        Eth: 0,
+        mach: 0,
+        virial: 1.0
+      }
+    };
+
+    // Camera 3D Navigation
+    const camera = {
+      theta: 0.75,         // Azimuthal rotation angle (radians)
+      phi: 0.45,           // Elevation angle (radians)
+      distance: 140.0,     // Distance from origin
+      panX: 0.0,
+      panY: 0.0,
+      fov: 480.0,          // Focal length for perspective projection
+      dragging: false,
+      panning: false,
+      lastMouseX: 0,
+      lastMouseY: 0
+    };
+
+    // SPH Particle Structure: Typed Arrays for High Performance
+    let MAX_PARTICLES = 2200;
+    let numParticles = 0;
+    const px = new Float32Array(MAX_PARTICLES);
+    const py = new Float32Array(MAX_PARTICLES);
+    const pz = new Float32Array(MAX_PARTICLES);
+    const vx = new Float32Array(MAX_PARTICLES);
+    const vy = new Float32Array(MAX_PARTICLES);
+    const vz = new Float32Array(MAX_PARTICLES);
+    const ax = new Float32Array(MAX_PARTICLES);
+    const ay = new Float32Array(MAX_PARTICLES);
+    const az = new Float32Array(MAX_PARTICLES);
+    const pmass = new Float32Array(MAX_PARTICLES);
+    const prho = new Float32Array(MAX_PARTICLES);
+    const ppress = new Float32Array(MAX_PARTICLES);
+    const pu = new Float32Array(MAX_PARTICLES);        // Specific internal thermal energy
+    const ptype = new Uint8Array(MAX_PARTICLES);      // 0 = gas, 1 = star / core
+
+    // Spatial Hash Grid for O(N) SPH Neighbor Querying
+    const HASH_SIZE = 4096;
+    const gridHead = new Int32Array(HASH_SIZE);
+    const gridNext = new Int32Array(MAX_PARTICLES);
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      camera.fov = Math.min(canvas.width, canvas.height) * 0.85;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // SPH Cubic Spline Kernel (Monaghan 1992)
+    const INV_PI = 1.0 / Math.PI;
+
+    function kernelW(r, h) {
+      const q = r / h;
+      if (q >= 2.0) return 0.0;
+      const sigma = INV_PI / (h * h * h);
+      if (q <= 1.0) {
+        return sigma * (1.0 - 1.5 * q * q + 0.75 * q * q * q);
+      } else {
+        const term = 2.0 - q;
+        return sigma * (0.25 * term * term * term);
+      }
+    }
+
+    function kernelGradW(r, h, rx, ry, rz) {
+      const q = r / h;
+      if (q <= 1e-6 || q >= 2.0) return { gx: 0, gy: 0, gz: 0 };
+      const sigma = INV_PI / (h * h * h * h);
+      let dWdr = 0.0;
+      if (q <= 1.0) {
+        dWdr = sigma * (-3.0 * q + 2.25 * q * q);
+      } else {
+        const term = 2.0 - q;
+        dWdr = -0.75 * sigma * term * term;
+      }
+      const invR = 1.0 / r;
+      return {
+        gx: (rx * invR) * dWdr,
+        gy: (ry * invR) * dWdr,
+        gz: (rz * invR) * dWdr
+      };
+    }
+
+    // Hash Function for 3D Coordinate Grid
+    function hashCell(cx, cy, cz) {
+      const h = ((cx * 73856093) ^ (cy * 19349663) ^ (cz * 83492791)) & (HASH_SIZE - 1);
+      return (h + HASH_SIZE) & (HASH_SIZE - 1);
+    }
+
+    function buildSpatialGrid(cellSize) {
+      gridHead.fill(-1);
+      const invCell = 1.0 / cellSize;
+      for (let i = 0; i < numParticles; i++) {
+        const cx = Math.floor(px[i] * invCell);
+        const cy = Math.floor(py[i] * invCell);
+        const cz = Math.floor(pz[i] * invCell);
+        const bin = hashCell(cx, cy, cz);
+        gridNext[i] = gridHead[bin];
+        gridHead[bin] = i;
+      }
+    }
+
+    /* =========================================================================
+       Preset Generators
+       ========================================================================= */
+
+    function createParticle(x, y, z, vx_val, vy_val, vz_val, m, u_val, type = 0) {
+      if (numParticles >= MAX_PARTICLES) return;
+      const i = numParticles++;
+      px[i] = x;
+      py[i] = y;
+      pz[i] = z;
+      vx[i] = vx_val;
+      vy[i] = vy_val;
+      vz[i] = vz_val;
+      ax[i] = 0;
+      ay[i] = 0;
+      az[i] = 0;
+      pmass[i] = m;
+      prho[i] = 1.0;
+      ppress[i] = 0.5;
+      pu[i] = u_val;
+      ptype[i] = type;
+    }
+
+    function initAntennaeGalaxies() {
+      numParticles = 0;
+      sim.bulgeMass = 500.0;
+      sim.G = 1.6;
+      sim.K = 1.3;
+      sim.h = 3.0;
+
+      const diskCount = 750;
+      // Galaxy 1: Center at (-28, 6, -4), velocity (+2.2, -0.6, +0.3)
+      const c1 = { x: -28, y: 6, z: -4, vx: 2.1, vy: -0.6, vz: 0.4 };
+      // Galaxy 2: Center at (+28, -6, +4), velocity (-2.1, +0.6, -0.4)
+      const c2 = { x: 28, y: -6, z: 4, vx: -2.1, vy: 0.6, vz: -0.4 };
+
+      // Galaxy 1: Inclined Prograde Disk
+      for (let i = 0; i < diskCount; i++) {
+        const r = 2.0 + Math.pow(Math.random(), 0.65) * 22.0;
+        const theta = Math.random() * Math.PI * 2.0;
+        const vCirc = Math.sqrt((sim.G * sim.bulgeMass) / Math.max(3.0, r));
+        const lx = r * Math.cos(theta);
+        const ly = r * Math.sin(theta);
+        const lz = (Math.random() - 0.5) * 1.8 * (1.0 - r / 26.0);
+
+        // Rotation matrix for inclination: tilt 25 deg around X, 20 deg around Z
+        const cosA = Math.cos(0.44), sinA = Math.sin(0.44);
+        const cosB = Math.cos(0.35), sinB = Math.sin(0.35);
+
+        const x1 = lx * cosB - ly * sinB;
+        const y1 = (lx * sinB + ly * cosB) * cosA - lz * sinA;
+        const z1 = (lx * sinB + ly * cosB) * sinA + lz * cosA;
+
+        // Circular orbital velocity
+        const lvx = -vCirc * Math.sin(theta);
+        const lvy = vCirc * Math.cos(theta);
+        const lvz = 0;
+
+        const vx1 = lvx * cosB - lvy * sinB + c1.vx;
+        const vy1 = (lvx * sinB + lvy * cosB) * cosA - lvz * sinA + c1.vy;
+        const vz1 = (lvx * sinB + lvy * cosB) * sinA + lvz * cosA + c1.vz;
+
+        createParticle(c1.x + x1, c1.y + y1, c1.z + z1, vx1, vy1, vz1, 1.0, 1.5, 0);
+      }
+
+      // Galaxy 2: Retrograde / High Inclination Disk
+      for (let i = 0; i < diskCount; i++) {
+        const r = 2.0 + Math.pow(Math.random(), 0.65) * 20.0;
+        const theta = Math.random() * Math.PI * 2.0;
+        const vCirc = Math.sqrt((sim.G * sim.bulgeMass) / Math.max(3.0, r));
+        const lx = r * Math.cos(theta);
+        const ly = r * Math.sin(theta);
+        const lz = (Math.random() - 0.5) * 1.6;
+
+        // Tilt 65 deg around X, -30 deg around Z
+        const cosA = Math.cos(1.13), sinA = Math.sin(1.13);
+        const cosB = Math.cos(-0.52), sinB = Math.sin(-0.52);
+
+        const x2 = lx * cosB - ly * sinB;
+        const y2 = (lx * sinB + ly * cosB) * cosA - lz * sinA;
+        const z2 = (lx * sinB + ly * cosB) * sinA + lz * cosA;
+
+        const lvx = -vCirc * Math.sin(theta);
+        const lvy = vCirc * Math.cos(theta);
+        const lvz = 0;
+
+        const vx2 = lvx * cosB - lvy * sinB + c2.vx;
+        const vy2 = (lvx * sinB + lvy * cosB) * cosA - lvz * sinA + c2.vy;
+        const vz2 = (lvx * sinB + lvy * cosB) * sinA + lvz * cosA + c2.vz;
+
+        createParticle(c2.x + x2, c2.y + y2, c2.z + z2, vx2, vy2, vz2, 1.0, 1.5, 0);
+      }
+
+      hudCount.textContent = numParticles.toLocaleString();
+    }
+
+    function initProtostellarCollapse() {
+      numParticles = 0;
+      sim.bulgeMass = 80.0;
+      sim.G = 2.4;
+      sim.K = 0.8;
+      sim.h = 2.5;
+
+      const count = 1400;
+      const R_cloud = 30.0;
+      for (let i = 0; i < count; i++) {
+        // Uniform sphere with angular rotation
+        const u = Math.random();
+        const r = R_cloud * Math.cbrt(u);
+        const costheta = 2.0 * Math.random() - 1.0;
+        const sintheta = Math.sqrt(Math.max(0, 1.0 - costheta * costheta));
+        const phi = Math.random() * Math.PI * 2.0;
+
+        const x = r * sintheta * Math.cos(phi);
+        const y = r * sintheta * Math.sin(phi);
+        const z = r * costheta * 0.45; // slightly oblate
+
+        // Solid-body rotation omega
+        const omega = 0.18;
+        const vx_val = -omega * y + (Math.random() - 0.5) * 0.2;
+        const vy_val = omega * x + (Math.random() - 0.5) * 0.2;
+        const vz_val = (Math.random() - 0.5) * 0.2;
+
+        createParticle(x, y, z, vx_val, vy_val, vz_val, 1.0, 0.6, 0);
+      }
+      hudCount.textContent = numParticles.toLocaleString();
+    }
+
+    function initSedovSupernova() {
+      numParticles = 0;
+      sim.bulgeMass = 0.0;
+      sim.G = 0.3;
+      sim.K = 1.8;
+      sim.h = 3.2;
+
+      const count = 1500;
+      const R_box = 34.0;
+      // Ambient interstellar medium
+      for (let i = 0; i < count; i++) {
+        const r = Math.pow(Math.random(), 0.5) * R_box;
+        const theta = Math.random() * Math.PI * 2.0;
+        const phi = (Math.random() - 0.5) * Math.PI * 0.7;
+
+        const x = r * Math.cos(phi) * Math.cos(theta);
+        const y = r * Math.cos(phi) * Math.sin(theta);
+        const z = r * Math.sin(phi);
+
+        // Core explosion vs ambient medium
+        if (r < 5.0) {
+          const vExp = 12.0 + Math.random() * 4.0;
+          const invR = 1.0 / Math.max(0.1, r);
+          createParticle(x, y, z, x * invR * vExp, y * invR * vExp, z * invR * vExp, 2.5, 25.0, 0);
+        } else {
+          createParticle(x, y, z, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3, 1.0, 0.4, 0);
+        }
+      }
+      hudCount.textContent = numParticles.toLocaleString();
+    }
+
+    function initTidalCannibalism() {
+      numParticles = 0;
+      sim.bulgeMass = 900.0; // Giant central host
+      sim.G = 1.8;
+      sim.K = 1.1;
+      sim.h = 2.6;
+
+      // Host galactic nucleus
+      const hostCount = 500;
+      for (let i = 0; i < hostCount; i++) {
+        const r = 1.5 + Math.pow(Math.random(), 0.6) * 14.0;
+        const theta = Math.random() * Math.PI * 2.0;
+        const vCirc = Math.sqrt((sim.G * sim.bulgeMass) / Math.max(2.0, r));
+        const x = r * Math.cos(theta);
+        const y = r * Math.sin(theta);
+        const z = (Math.random() - 0.5) * 1.5;
+        createParticle(x, y, z, -vCirc * Math.sin(theta), vCirc * Math.cos(theta), 0, 1.2, 1.0, 0);
+      }
+
+      // Infalling dwarf satellite galaxy on eccentric orbit
+      const dwarfCount = 900;
+      const dwarfCenter = { x: 38.0, y: -22.0, z: 12.0, vx: -3.8, vy: 4.8, vz: -1.2 };
+      for (let i = 0; i < dwarfCount; i++) {
+        const r = Math.pow(Math.random(), 0.7) * 7.5;
+        const theta = Math.random() * Math.PI * 2.0;
+        const vCirc = Math.sqrt((sim.G * 120.0) / Math.max(1.5, r));
+        const x = r * Math.cos(theta);
+        const y = r * Math.sin(theta);
+        const z = (Math.random() - 0.5) * 2.2;
+        createParticle(
+          dwarfCenter.x + x, dwarfCenter.y + y, dwarfCenter.z + z,
+          dwarfCenter.vx - vCirc * Math.sin(theta), dwarfCenter.vy + vCirc * Math.cos(theta), dwarfCenter.vz,
+          0.8, 1.2, 0
+        );
+      }
+      hudCount.textContent = numParticles.toLocaleString();
+    }
+
+    function initKelvinHelmholtzJet() {
+      numParticles = 0;
+      sim.bulgeMass = 0.0;
+      sim.G = 0.2;
+      sim.K = 1.4;
+      sim.h = 2.8;
+
+      const count = 1400;
+      for (let i = 0; i < count; i++) {
+        const x = (Math.random() - 0.5) * 60.0;
+        const y = (Math.random() - 0.5) * 36.0;
+        const z = (Math.random() - 0.5) * 10.0;
+
+        // Central jet streaming right, ambient sheath streaming left
+        let vx_val = 0;
+        let u_val = 1.0;
+        if (Math.abs(y) < 6.0) {
+          vx_val = 5.5 + (Math.random() - 0.5) * 0.4;
+          u_val = 3.5;
+        } else {
+          vx_val = -2.2 + (Math.random() - 0.5) * 0.4;
+          u_val = 0.8;
+        }
+        // Periodic perturbation to seed Kelvin-Helmholtz vortex rollers
+        const vy_val = 0.7 * Math.sin(x * 0.35) * Math.exp(-y * y * 0.08);
+
+        createParticle(x, y, z, vx_val, vy_val, (Math.random() - 0.5) * 0.3, 1.0, u_val, 0);
+      }
+      hudCount.textContent = numParticles.toLocaleString();
+    }
+
+    function loadPreset(name) {
+      sim.preset = name;
+      presetPills.forEach(p => p.classList.toggle('active', p.dataset.preset === name));
+      switch (name) {
+        case 'antennae': initAntennaeGalaxies(); break;
+        case 'collapse': initProtostellarCollapse(); break;
+        case 'supernova': initSedovSupernova(); break;
+        case 'stream': initTidalCannibalism(); break;
+        case 'jet': initKelvinHelmholtzJet(); break;
+      }
+      updateControlUI();
+    }
+
+    function updateControlUI() {
+      sliderK.value = sim.K; valK.textContent = sim.K.toFixed(2);
+      sliderAlpha.value = sim.alpha; valAlpha.textContent = sim.alpha.toFixed(2);
+      sliderH.value = sim.h; valH.textContent = sim.h.toFixed(1);
+      sliderCooling.value = sim.cooling; valCooling.textContent = sim.cooling.toFixed(3);
+      sliderG.value = sim.G; valG.textContent = sim.G.toFixed(1);
+      sliderEps.value = sim.eps; valEps.textContent = sim.eps.toFixed(2);
+      sliderBulge.value = sim.bulgeMass; valBulge.textContent = Math.round(sim.bulgeMass);
+    }
+
+    /* =========================================================================
+       SPH Numerical Solver Loop
+       ========================================================================= */
+
+    function stepSPH(dt) {
+      const h = sim.h;
+      const h2 = h * h;
+      const twoH = 2.0 * h;
+      const cellSize = twoH;
+      const invCell = 1.0 / cellSize;
+
+      buildSpatialGrid(cellSize);
+
+      // 1. SPH Density Summation: rho_i = sum_j m_j W_ij
+      for (let i = 0; i < numParticles; i++) {
+        let density = pmass[i] * kernelW(0.0, h);
+        const xi = px[i], yi = py[i], zi = pz[i];
+        const cx = Math.floor(xi * invCell);
+        const cy = Math.floor(yi * invCell);
+        const cz = Math.floor(zi * invCell);
+
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dz = -1; dz <= 1; dz++) {
+              const bin = hashCell(cx + dx, cy + dy, cz + dz);
+              let j = gridHead[bin];
+              while (j !== -1) {
+                if (j !== i) {
+                  const rx = xi - px[j];
+                  const ry = yi - py[j];
+                  const rz = zi - pz[j];
+                  const r2 = rx * rx + ry * ry + rz * rz;
+                  if (r2 < 4.0 * h2) {
+                    const r = Math.sqrt(r2);
+                    density += pmass[j] * kernelW(r, h);
+                  }
+                }
+                j = gridNext[j];
+              }
+            }
+          }
+        }
+        prho[i] = Math.max(0.1, density);
+        // Polytropic / Ideal Gas Equation of State: P = (gamma - 1) * rho * u
+        ppress[i] = (sim.gamma - 1.0) * prho[i] * pu[i] * sim.K;
+      }
+
+      // Reset Accelerations
+      ax.fill(0);
+      ay.fill(0);
+      az.fill(0);
+
+      const eps2 = sim.eps * sim.eps;
+      let totalEk = 0;
+      let totalU = 0;
+      let totalEth = 0;
+      let sumMach = 0;
+      let shockEnergyDissipated = 0;
+
+      // 2. SPH Hydrodynamics Momentum & Monaghan Viscosity + Gravity
+      for (let i = 0; i < numParticles; i++) {
+        const xi = px[i], yi = py[i], zi = pz[i];
+        const vxi = vx[i], vyi = vy[i], vzi = vz[i];
+        const rho_i = prho[i];
+        const press_i = ppress[i];
+        const p_over_rho2_i = press_i / (rho_i * rho_i);
+        const cs_i = Math.sqrt(Math.max(0.01, sim.gamma * press_i / rho_i));
+
+        const cx = Math.floor(xi * invCell);
+        const cy = Math.floor(yi * invCell);
+        const cz = Math.floor(zi * invCell);
+
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dz = -1; dz <= 1; dz++) {
+              const bin = hashCell(cx + dx, cy + dy, cz + dz);
+              let j = gridHead[bin];
+              while (j !== -1) {
+                if (j > i) {
+                  const rx = xi - px[j];
+                  const ry = yi - py[j];
+                  const rz = zi - pz[j];
+                  const r2 = rx * rx + ry * ry + rz * rz;
+
+                  if (r2 < 4.0 * h2) {
+                    const r = Math.sqrt(Math.max(1e-6, r2));
+                    const grad = kernelGradW(r, h, rx, ry, rz);
+
+                    // Monaghan Artificial Viscosity Pi_ij
+                    const dvx = vxi - vx[j];
+                    const dvy = vyi - vy[j];
+                    const dvz = vzi - vz[j];
+                    const v_dot_r = dvx * rx + dvy * ry + dvz * rz;
+
+                    let Pi_ij = 0.0;
+                    if (v_dot_r < 0) {
+                      const rho_j = prho[j];
+                      const press_j = ppress[j];
+                      const cs_j = Math.sqrt(Math.max(0.01, sim.gamma * press_j / rho_j));
+                      const mean_c = 0.5 * (cs_i + cs_j);
+                      const mean_rho = 0.5 * (rho_i + rho_j);
+                      const mu_ij = (h * v_dot_r) / (r2 + 0.01 * h2);
+                      Pi_ij = (-sim.alpha * mean_c * mu_ij + sim.beta * mu_ij * mu_ij) / mean_rho;
+                      shockEnergyDissipated += Math.abs(Pi_ij) * 0.005;
+                    }
+
+                    const factor = (p_over_rho2_i + (ppress[j] / (prho[j] * prho[j])) + Pi_ij);
+
+                    // Symmetric momentum exchange
+                    const fx = factor * grad.gx;
+                    const fy = factor * grad.gy;
+                    const fz = factor * grad.gz;
+
+                    ax[i] -= pmass[j] * fx;
+                    ay[i] -= pmass[j] * fy;
+                    az[i] -= pmass[j] * fz;
+
+                    ax[j] += pmass[i] * fx;
+                    ay[j] += pmass[i] * fy;
+                    az[j] += pmass[i] * fz;
+
+                    // Internal energy evolution (First Law): du/dt = 0.5 * factor * v_ij . grad_W
+                    const dUdt_pair = 0.5 * factor * (dvx * grad.gx + dvy * grad.gy + dvz * grad.gz);
+                    pu[i] += pmass[j] * dUdt_pair * dt;
+                    pu[j] += pmass[i] * dUdt_pair * dt;
+                  }
+                }
+                j = gridNext[j];
+              }
+            }
+          }
+        }
+
+        // Direct / Softened Gravitational Forces (sub-sampled for efficiency)
+        if (sim.G > 0.001) {
+          const stride = 3;
+          for (let k = 0; k < numParticles; k += stride) {
+            if (k !== i) {
+              const dxG = xi - px[k];
+              const dyG = yi - py[k];
+              const dzG = zi - pz[k];
+              const dist2 = dxG * dxG + dyG * dyG + dzG * dzG + eps2;
+              const dist = Math.sqrt(dist2);
+              const invDist3 = 1.0 / (dist2 * dist);
+              const gScale = sim.G * pmass[k] * stride * invDist3;
+
+              ax[i] -= dxG * gScale;
+              ay[i] -= dyG * gScale;
+              az[i] -= dzG * gScale;
+
+              if (k > i) {
+                totalU -= (sim.G * pmass[i] * pmass[k] * stride) / dist;
+              }
+            }
+          }
+        }
+
+        // Central Galactic Bulge Gravitational Hernquist Potential
+        if (sim.bulgeMass > 1.0) {
+          const rBulge2 = xi * xi + yi * yi + zi * zi;
+          const rBulge = Math.sqrt(rBulge2);
+          const aHernquist = 2.5;
+          const denom = rBulge + aHernquist;
+          const forceHern = (sim.G * sim.bulgeMass) / (denom * denom * Math.max(0.5, rBulge));
+          ax[i] -= xi * forceHern;
+          ay[i] -= yi * forceHern;
+          az[i] -= zi * forceHern;
+          totalU -= (sim.G * sim.bulgeMass * pmass[i]) / Math.max(1.0, denom);
+        }
+
+        // Interactive Supermassive Black Hole Perturber
+        if (sim.perturberActive) {
+          const dxP = xi - sim.perturberPos.x;
+          const dyP = yi - sim.perturberPos.y;
+          const dzP = zi - sim.perturberPos.z;
+          const distP2 = dxP * dxP + dyP * dyP + dzP * dzP + 4.0;
+          const distP = Math.sqrt(distP2);
+          const fP = (sim.G * sim.perturberMass) / (distP2 * distP);
+          ax[i] -= dxP * fP;
+          ay[i] -= dyP * fP;
+          az[i] -= dzP * fP;
+        }
+
+        // Radiative Thermal Cooling
+        pu[i] = Math.max(0.05, pu[i] * (1.0 - sim.cooling * dt));
+
+        // Energy Telemetry Accumulation
+        const v2 = vxi * vxi + vyi * vyi + vzi * vzi;
+        totalEk += 0.5 * pmass[i] * v2;
+        totalEth += pmass[i] * pu[i];
+        sumMach += Math.sqrt(v2) / Math.max(0.1, cs_i);
+      }
+
+      // 3. Symplectic Leapfrog Integration: Position & Velocity Update
+      for (let i = 0; i < numParticles; i++) {
+        vx[i] += ax[i] * dt;
+        vy[i] += ay[i] * dt;
+        vz[i] += az[i] * dt;
+
+        px[i] += vx[i] * dt;
+        py[i] += vy[i] * dt;
+        pz[i] += vz[i] * dt;
+      }
+
+      // Update Telemetry Metrics
+      sim.telemetry.Ek = totalEk;
+      sim.telemetry.U = totalU;
+      sim.telemetry.Eth = totalEth;
+      sim.telemetry.mach = sumMach / Math.max(1, numParticles);
+      const absU = Math.max(1e-4, Math.abs(totalU));
+      sim.telemetry.virial = (2.0 * totalEk) / absU;
+
+      // Update Web Audio modulation based on cosmic telemetry
+      if (sim.audioEnabled && audioCtx) {
+        updateAudio(totalEk, totalEth, shockEnergyDissipated);
+      }
+    }
+
+    /* =========================================================================
+       3D Camera & Perspective Projection
+       ========================================================================= */
+
+    function project3D(x, y, z) {
+      // Rotate by azimuth theta around Z, then elevation phi around X
+      const cosT = Math.cos(camera.theta);
+      const sinT = Math.sin(camera.theta);
+      const cosP = Math.cos(camera.phi);
+      const sinP = Math.sin(camera.phi);
+
+      // World to Camera space
+      const x1 = x * cosT - y * sinT;
+      const y1 = x * sinT + y * cosT;
+      const z1 = z;
+
+      const x2 = x1;
+      const y2 = y1 * cosP - z1 * sinP;
+      const z2 = y1 * sinP + z1 * cosP + camera.distance;
+
+      if (z2 <= 1.0) return null; // Behind camera
+
+      const scale = camera.fov / z2;
+      return {
+        sx: canvas.width * 0.5 + camera.panX + x2 * scale,
+        sy: canvas.height * 0.5 + camera.panY - y2 * scale,
+        depth: z2,
+        scale: scale
+      };
+    }
+
+    // False-Color Palettes
+    function getParticleColor(val, palette) {
+      // Normalize val in [0, 1]
+      const t = Math.max(0.0, Math.min(1.0, val));
+      switch (palette) {
+        case 'plasma': {
+          // Deep Indigo -> Violet -> Magenta -> Solar Yellow -> White
+          let r, g, b;
+          if (t < 0.25) {
+            const s = t / 0.25;
+            r = Math.floor(30 + 110 * s); g = Math.floor(10 + 20 * s); b = Math.floor(90 + 130 * s);
+          } else if (t < 0.6) {
+            const s = (t - 0.25) / 0.35;
+            r = Math.floor(140 + 105 * s); g = Math.floor(30 + 40 * s); b = Math.floor(220 - 60 * s);
+          } else if (t < 0.88) {
+            const s = (t - 0.6) / 0.28;
+            r = 245; g = Math.floor(70 + 150 * s); b = Math.floor(160 - 130 * s);
+          } else {
+            const s = (t - 0.88) / 0.12;
+            r = 255; g = Math.floor(220 + 35 * s); b = Math.floor(30 + 225 * s);
+          }
+          return `rgb(${r},${g},${b})`;
+        }
+        case 'thermal': {
+          // Blackbody radiation: Dark Red -> Fiery Orange -> Gold -> Cyan White
+          let r, g, b;
+          if (t < 0.33) {
+            const s = t / 0.33;
+            r = Math.floor(80 + 170 * s); g = Math.floor(20 * s); b = 0;
+          } else if (t < 0.72) {
+            const s = (t - 0.33) / 0.39;
+            r = 255; g = Math.floor(20 + 195 * s); b = Math.floor(20 * s);
+          } else {
+            const s = (t - 0.72) / 0.28;
+            r = 255; g = 255; b = Math.floor(20 + 235 * s);
+          }
+          return `rgb(${r},${g},${b})`;
+        }
+        case 'cyan': {
+          // Phosphor blue / cyan glow
+          const c = Math.floor(120 + 135 * t);
+          const b = Math.floor(180 + 75 * t);
+          return `rgb(${Math.floor(t * 140)},${c},${b})`;
+        }
+        case 'cosmic': {
+          // Deep Teal -> Emerald -> Goldenrod -> Platinum White
+          let r, g, b;
+          if (t < 0.4) {
+            const s = t / 0.4;
+            r = Math.floor(10 + 20 * s); g = Math.floor(80 + 120 * s); b = Math.floor(120 + 40 * s);
+          } else if (t < 0.8) {
+            const s = (t - 0.4) / 0.4;
+            r = Math.floor(30 + 215 * s); g = Math.floor(200 - 30 * s); b = Math.floor(160 - 130 * s);
+          } else {
+            const s = (t - 0.8) / 0.2;
+            r = 255; g = Math.floor(170 + 85 * s); b = Math.floor(30 + 225 * s);
+          }
+          return `rgb(${r},${g},${b})`;
+        }
+      }
+    }
+
+    /* =========================================================================
+       Rendering Loop
+       ========================================================================= */
+
+    // Particle depth-sort buffer
+    const sortIndices = new Int32Array(MAX_PARTICLES);
+    const depthKeys = new Float32Array(MAX_PARTICLES);
+
+    function render() {
+      ctx.fillStyle = '#030611';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Camera auto-rotation
+      if (sim.spinRate > 0.001 && !camera.dragging) {
+        camera.theta += 0.003 * sim.spinRate;
+      }
+
+      // Draw galactic bulge singularity / core glow
+      if (sim.bulgeMass > 1.0) {
+        const pBulge = project3D(0, 0, 0);
+        if (pBulge) {
+          const rad = Math.max(12, 45 * pBulge.scale);
+          const grad = ctx.createRadialGradient(pBulge.sx, pBulge.sy, 0, pBulge.sx, pBulge.sy, rad);
+          grad.addColorStop(0, 'rgba(255, 235, 180, 0.9)');
+          grad.addColorStop(0.25, 'rgba(245, 158, 11, 0.4)');
+          grad.addColorStop(0.65, 'rgba(168, 85, 247, 0.15)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(pBulge.sx, pBulge.sy, rad, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Draw Interactive Supermassive Perturber Singularity
+      if (sim.perturberActive) {
+        const pPert = project3D(sim.perturberPos.x, sim.perturberPos.y, sim.perturberPos.z);
+        if (pPert) {
+          const rP = Math.max(10, 32 * pPert.scale);
+          // Accretion disk photon ring
+          ctx.strokeStyle = 'rgba(0, 240, 255, 0.85)';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(pPert.sx, pPert.sy, rP * 1.4, 0, Math.PI * 2);
+          ctx.stroke();
+
+          const gradP = ctx.createRadialGradient(pPert.sx, pPert.sy, 0, pPert.sx, pPert.sy, rP);
+          gradP.addColorStop(0, '#000');
+          gradP.addColorStop(0.6, '#050711');
+          gradP.addColorStop(0.9, 'rgba(0, 240, 255, 0.8)');
+          gradP.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = gradP;
+          ctx.beginPath();
+          ctx.arc(pPert.sx, pPert.sy, rP, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Project all active particles & calculate camera depth
+      let visibleCount = 0;
+      for (let i = 0; i < numParticles; i++) {
+        const proj = project3D(px[i], py[i], pz[i]);
+        if (proj) {
+          depthKeys[i] = proj.depth;
+          sortIndices[visibleCount++] = i;
+        } else {
+          depthKeys[i] = -9999.0;
+        }
+      }
+
+      // Depth sort back to front
+      sortIndices.subarray(0, visibleCount).sort((a, b) => depthKeys[b] - depthKeys[a]);
+
+      // Set blend mode
+      ctx.globalCompositeOperation = (sim.renderStyle === 'additive') ? 'lighter' : 'source-over';
+
+      // Find max density & thermal energy for colormap normalization
+      let maxRho = 2.5;
+      let maxU = 4.0;
+      for (let k = 0; k < numParticles; k += 8) {
+        if (prho[k] > maxRho) maxRho = prho[k];
+        if (pu[k] > maxU) maxU = pu[k];
+      }
+
+      // Draw particles
+      for (let k = 0; k < visibleCount; k++) {
+        const i = sortIndices[k];
+        const proj = project3D(px[i], py[i], pz[i]);
+        if (!proj) continue;
+
+        // Metric for color evaluation
+        const colorMetric = (selectPalette.value === 'thermal')
+          ? Math.min(1.0, pu[i] / maxU)
+          : Math.min(1.0, prho[i] / maxRho);
+
+        const colorStr = getParticleColor(colorMetric, sim.palette);
+        const radius = Math.max(1.2, (1.8 + Math.min(2.5, prho[i] * 0.45)) * proj.scale);
+
+        if (sim.renderStyle === 'additive') {
+          const glowGrad = ctx.createRadialGradient(proj.sx, proj.sy, 0, proj.sx, proj.sy, radius * 2.2);
+          glowGrad.addColorStop(0, colorStr);
+          glowGrad.addColorStop(0.45, colorStr);
+          glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = glowGrad;
+          ctx.beginPath();
+          ctx.arc(proj.sx, proj.sy, radius * 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = colorStr;
+          ctx.beginPath();
+          ctx.arc(proj.sx, proj.sy, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (sim.renderStyle === 'vectors') {
+            const vLen = Math.sqrt(vx[i] * vx[i] + vy[i] * vy[i] + vz[i] * vz[i]);
+            if (vLen > 0.3) {
+              const pEnd = project3D(px[i] + vx[i] * 0.4, py[i] + vy[i] * 0.4, pz[i] + vz[i] * 0.4);
+              if (pEnd) {
+                ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+                ctx.lineWidth = 1.0;
+                ctx.beginPath();
+                ctx.moveTo(proj.sx, proj.sy);
+                ctx.lineTo(pEnd.sx, pEnd.sy);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    /* =========================================================================
+       Web Audio Deep-Space Cosmic Sonification
+       ========================================================================= */
+
+    let audioCtx = null;
+    let oscBass1 = null;
+    let oscBass2 = null;
+    let filterNode = null;
+    let masterGain = null;
+    let noiseNode = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+
+        filterNode = audioCtx.createBiquadFilter();
+        filterNode.type = 'lowpass';
+        filterNode.frequency.setValueAtTime(140.0, audioCtx.currentTime);
+        filterNode.Q.setValueAtTime(4.0, audioCtx.currentTime);
+        filterNode.connect(masterGain);
+
+        oscBass1 = audioCtx.createOscillator();
+        oscBass1.type = 'sawtooth';
+        oscBass1.frequency.setValueAtTime(55.0, audioCtx.currentTime); // A1 note
+        oscBass1.connect(filterNode);
+        oscBass1.start();
+
+        oscBass2 = audioCtx.createOscillator();
+        oscBass2.type = 'sine';
+        oscBass2.frequency.setValueAtTime(55.5, audioCtx.currentTime); // Chorus beating
+        oscBass2.connect(filterNode);
+        oscBass2.start();
+
+        sim.audioEnabled = true;
+        audioIcon.textContent = '\u{1F50A}';
+        audioText.textContent = 'Audio: On';
+        btnAudio.classList.add('active');
+      } catch (e) {
+        console.warn('Web Audio init blocked or not supported', e);
+      }
+    }
+
+    function toggleAudio() {
+      if (!audioCtx) {
+        initAudio();
+      } else {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+          sim.audioEnabled = true;
+          audioIcon.textContent = '\u{1F50A}';
+          audioText.textContent = 'Audio: On';
+          btnAudio.classList.add('active');
+        } else {
+          audioCtx.suspend();
+          sim.audioEnabled = false;
+          audioIcon.textContent = '\u{1F507}';
+          audioText.textContent = 'Audio: Off';
+          btnAudio.classList.remove('active');
+        }
+      }
+    }
+
+    function updateAudio(Ek, Eth, shockRate) {
+      if (!audioCtx || audioCtx.state !== 'running') return;
+      const now = audioCtx.currentTime;
+
+      // Base drone pitch modulated by gravitational kinetic energy
+      const targetFreq = 48.0 + Math.min(90.0, Math.sqrt(Ek) * 1.8);
+      oscBass1.frequency.setTargetAtTime(targetFreq, now, 0.1);
+      oscBass2.frequency.setTargetAtTime(targetFreq * 1.01, now, 0.1);
+
+      // Lowpass cutoff modulated by thermal internal energy and shocks
+      const targetCutoff = 100.0 + Math.min(800.0, Math.sqrt(Eth) * 12.0 + shockRate * 450.0);
+      filterNode.frequency.setTargetAtTime(targetCutoff, now, 0.08);
+    }
+
+    /* =========================================================================
+       UI & Mouse Interaction Handlers
+       ========================================================================= */
+
+    canvas.addEventListener('mousedown', (e) => {
+      camera.lastMouseX = e.clientX;
+      camera.lastMouseY = e.clientY;
+      if (e.button === 0) {
+        if (sim.perturberActive) {
+          // Place perturber in space near view focal plane
+          const normX = (e.clientX - canvas.width * 0.5 - camera.panX) / camera.fov;
+          const normY = -(e.clientY - canvas.height * 0.5 - camera.panY) / camera.fov;
+          const cosT = Math.cos(camera.theta), sinT = Math.sin(camera.theta);
+          const cosP = Math.cos(camera.phi), sinP = Math.sin(camera.phi);
+          const camZ = camera.distance * 0.75;
+
+          const camX = normX * camZ;
+          const camY = normY * camZ;
+
+          // Inverse camera rotation
+          const y1 = camY * cosP + camZ * sinP;
+          const z1 = -camY * sinP + camZ * cosP;
+          sim.perturberPos.x = camX * cosT + y1 * sinT;
+          sim.perturberPos.y = -camX * sinT + y1 * cosT;
+          sim.perturberPos.z = z1 - camera.distance;
+        } else {
+          camera.dragging = true;
+        }
+      } else if (e.button === 2) {
+        camera.panning = true;
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const dx = e.clientX - camera.lastMouseX;
+      const dy = e.clientY - camera.lastMouseY;
+      camera.lastMouseX = e.clientX;
+      camera.lastMouseY = e.clientY;
+
+      if (camera.dragging) {
+        camera.theta += dx * 0.008;
+        camera.phi = Math.max(-1.4, Math.min(1.4, camera.phi - dy * 0.008));
+      } else if (camera.panning) {
+        camera.panX += dx;
+        camera.panY += dy;
+      } else if (sim.perturberActive && e.buttons === 1) {
+        // Drag perturber in real time
+        sim.perturberPos.x += dx * 0.18;
+        sim.perturberPos.y -= dy * 0.18;
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      camera.dragging = false;
+      camera.panning = false;
+    });
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.distance = Math.max(30.0, Math.min(450.0, camera.distance + e.deltaY * 0.18));
+    }, { passive: false });
+
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Control Slider Listeners
+    sliderK.addEventListener('input', (e) => {
+      sim.K = parseFloat(e.target.value);
+      valK.textContent = sim.K.toFixed(2);
+    });
+    sliderAlpha.addEventListener('input', (e) => {
+      sim.alpha = parseFloat(e.target.value);
+      valAlpha.textContent = sim.alpha.toFixed(2);
+    });
+    sliderH.addEventListener('input', (e) => {
+      sim.h = parseFloat(e.target.value);
+      valH.textContent = sim.h.toFixed(1);
+    });
+    sliderCooling.addEventListener('input', (e) => {
+      sim.cooling = parseFloat(e.target.value);
+      valCooling.textContent = sim.cooling.toFixed(3);
+    });
+    sliderG.addEventListener('input', (e) => {
+      sim.G = parseFloat(e.target.value);
+      valG.textContent = sim.G.toFixed(1);
+    });
+    sliderEps.addEventListener('input', (e) => {
+      sim.eps = parseFloat(e.target.value);
+      valEps.textContent = sim.eps.toFixed(2);
+    });
+    sliderBulge.addEventListener('input', (e) => {
+      sim.bulgeMass = parseFloat(e.target.value);
+      valBulge.textContent = Math.round(sim.bulgeMass);
+    });
+    sliderSpin.addEventListener('input', (e) => {
+      sim.spinRate = parseFloat(e.target.value);
+      valSpin.textContent = sim.spinRate.toFixed(2);
+    });
+    sliderSpeed.addEventListener('input', (e) => {
+      sim.speed = parseFloat(e.target.value);
+      valSpeed.textContent = sim.speed.toFixed(1) + 'x';
+    });
+
+    selectPalette.addEventListener('change', (e) => {
+      sim.palette = e.target.value;
+    });
+    selectRenderStyle.addEventListener('change', (e) => {
+      sim.renderStyle = e.target.value;
+    });
+
+    btnPlayPause.addEventListener('click', () => {
+      sim.paused = !sim.paused;
+      playIcon.innerHTML = sim.paused ? '&#x25B6;' : '&#x23F8;';
+      playText.textContent = sim.paused ? 'Play' : 'Pause';
+      btnPlayPause.classList.toggle('active', sim.paused);
+    });
+
+    btnStep.addEventListener('click', () => {
+      sim.paused = true;
+      sim.stepOnce = true;
+      playIcon.innerHTML = '&#x25B6;';
+      playText.textContent = 'Play';
+      btnPlayPause.classList.add('active');
+    });
+
+    btnReset.addEventListener('click', () => {
+      loadPreset(sim.preset);
+    });
+
+    btnPerturber.addEventListener('click', () => {
+      sim.perturberActive = !sim.perturberActive;
+      btnPerturber.classList.toggle('active', sim.perturberActive);
+      perturberText.textContent = sim.perturberActive ? 'Perturber: Active' : 'Perturber: Off';
+    });
+
+    btnAudio.addEventListener('click', toggleAudio);
+
+    presetPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        loadPreset(pill.dataset.preset);
+      });
+    });
+
+    /* =========================================================================
+       Main Animation & Telemetry Loop
+       ========================================================================= */
+
+    let lastFrameTime = performance.now();
+    let telemetryTimer = 0;
+
+    function animate(currentTime) {
+      requestAnimationFrame(animate);
+
+      const realDelta = (currentTime - lastFrameTime) * 0.001;
+      lastFrameTime = currentTime;
+
+      if (!sim.paused || sim.stepOnce) {
+        const effectiveDt = sim.dt * sim.speed;
+        stepSPH(effectiveDt);
+        sim.stepOnce = false;
+      }
+
+      render();
+
+      // Telemetry HUD Refresh at 15 Hz
+      telemetryTimer += realDelta;
+      if (telemetryTimer > 0.065) {
+        telemetryTimer = 0;
+        hudEk.textContent = sim.telemetry.Ek.toFixed(1);
+        hudU.textContent = sim.telemetry.U.toFixed(1);
+        hudEth.textContent = sim.telemetry.Eth.toFixed(1);
+        hudMach.textContent = sim.telemetry.mach.toFixed(2);
+
+        const vRatio = sim.telemetry.virial;
+        hudVirial.textContent = vRatio.toFixed(2);
+
+        // Virial indicator marker: 1.0 maps to 50%
+        const markerPct = Math.max(5, Math.min(95, vRatio * 50.0));
+        virialMarker.style.left = `${markerPct}%`;
+
+        // Energy fraction partition bar
+        const totalE = sim.telemetry.Ek + Math.abs(sim.telemetry.U) + sim.telemetry.Eth;
+        if (totalE > 0.01) {
+          const pctK = Math.round((sim.telemetry.Ek / totalE) * 100);
+          const pctU = Math.round((Math.abs(sim.telemetry.U) / totalE) * 100);
+          const pctTh = Math.max(0, 100 - pctK - pctU);
+          barFillK.style.width = `${pctK}%`;
+          barFillU.style.width = `${pctU}%`;
+          barFillTh.style.width = `${pctTh}%`;
+          hudEnergyPct.textContent = `K: ${pctK}% | U: ${pctU}% | Th: ${pctTh}%`;
+        }
+      }
+    }
+
+    // Initialize initial default preset
+    loadPreset('antennae');
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

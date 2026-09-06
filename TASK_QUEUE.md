@@ -2,8 +2,8 @@
 
 ## Architecture & Structure
 - `cli/`: 33 zero-dependency terminal systems and first-principles computer science engines (861 passing tests, master `showcase.py` runner).
-- `websites/`: Standalone browser-based interactive web apps, physical simulations, and visual tools in pure HTML5 Canvas, WebGL, or SVG with zero external CDN dependencies (`index.html`, `chromasplat/`, `neuralstudio/`, `opticalab/`, `aerotunnel/`, `tokamak/`, `blackhole/`, `biogenesis/`, `voxelspace/`, `quantum/`, `neuromorph/`, `synthwave/`, `plasmaflow/`, `waveoptics/`, `gravwave/`).
-- `programs/`: Local desktop GUI applications and interactive software with full graphical windows using Python standard library Tkinter (`programs/gravitas/`, `programs/signalscope/`, `programs/pycircuit/`, `programs/retrocad/`, `programs/aeroacoustics/`, `programs/astroephemeris/`, `programs/spectrochem/`, `programs/structura2d/`, `programs/optiflow/`).
+- `websites/`: Standalone browser-based interactive web apps, physical simulations, and visual tools in pure HTML5 Canvas, WebGL, or SVG with zero external CDN dependencies (`index.html`, `astrohydro/`, `gravwave/`, `waveoptics/`, `plasmaflow/`, `chromasplat/`, `neuralstudio/`, `opticalab/`, `aerotunnel/`, `tokamak/`, `blackhole/`, `biogenesis/`, `voxelspace/`, `quantum/`, `neuromorph/`, `synthwave/`).
+- `programs/`: Local desktop GUI applications and interactive software with full graphical windows using Python standard library Tkinter (`programs/neurosim/`, `programs/optiflow/`, `programs/structura2d/`, `programs/spectrochem/`, `programs/astroephemeris/`, `programs/aeroacoustics/`, `programs/retrocad/`, `programs/pycircuit/`, `programs/signalscope/`, `programs/gravitas/`).
 
 ## Open
 - [ ] Portfolio expansion and continuous creative engineering across `websites/` and `programs/`
@@ -40,4 +40,6 @@
 - [x] Structura 2D: Standalone desktop finite element analysis (FEA) continuum elasticity and truss studio in Tkinter (`programs/structura2d/`, 16/16 passing tests)
 - [x] GravWave Studio: 2D numerical relativity, binary black hole inspiral chirp waveforms, quadrupolar metric perturbations, and laser interferometer gravitational wave detector laboratory in `websites/gravwave/`
 - [x] OptiFlow 2D: Standalone desktop computational fluid dynamics (CFD) finite difference Navier-Stokes solver with vorticity-streamfunction formulation, SOR Poisson pressure recovery, Woods wall condition, NACA airfoils, and virtual Pitot probe in `programs/optiflow/` (16/16 passing tests)
-- [x] Showcase integration, live animated previews, and master documentation in `websites/index.html` and `projects.md` (1,003/1,003 automated tests passing)
+- [x] AstroHydro 3D: Standalone browser-based 3D Smoothed Particle Hydrodynamics (SPH) galaxy collision laboratory in pure HTML5 Canvas with Monaghan artificial viscosity, Plummer gravity, Hernquist galactic bulge potential, spatial hash grid, virial ratio tracking, and Web Audio cosmic drone in `websites/astrohydro/`
+- [x] NeuroSim: Standalone desktop biophysical electrophysiology workstation in Tkinter with 4-variable Hodgkin-Huxley conductance dynamics, Rush-Larsen exponential gating integration, Rall multi-compartment cable model, back-propagating action potentials (bAP), NMDA magnesium block, and PING 40 Hz gamma oscillations in `programs/neurosim/` (16/16 passing tests)
+- [x] Showcase integration, live animated previews, and master documentation in `websites/index.html` and `projects.md` (1,019/1,019 automated tests passing)

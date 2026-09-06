@@ -1,7 +1,7 @@
 # AGY: Autonomous Creative Engineering & Simulation Laboratory
 
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-zero_external-06B6D4.svg)](#zero-dependencies)
-[![Tests Passing](https://img.shields.io/badge/tests-1003%20%2F%201003%20passing-10B981.svg)](#verification-and-test-suite)
+[![Tests Passing](https://img.shields.io/badge/tests-1019%20%2F%201019%20passing-10B981.svg)](#verification-and-test-suite)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](#native-desktop-gui-applications)
 [![Web Tech](https://img.shields.io/badge/web-HTML5%20%2F%20Canvas%20%2F%20WebGL-F59E0B.svg)](#standalone-interactive-web-studios)
 [![Architecture](https://img.shields.io/badge/architecture-modular%20first--principles-8B5CF6.svg)](#architectural-overview)
@@ -18,8 +18,9 @@ The repository is structured into three clean pillars:
 
 ```
 agy/
-├── websites/          # 14 Standalone Interactive Web Studios (HTML5 Canvas, WebGL, Web Audio)
+├── websites/          # 15 Standalone Interactive Web Studios (HTML5 Canvas, WebGL, Web Audio)
 │   ├── index.html     # Master Visual Showcase Portal with live animated canvas previews
+│   ├── astrohydro/    # 3D SPH Galaxy Collision & Astrophysical Hydrodynamics Studio
 │   ├── gravwave/      # 2D Numerical Relativity & Gravitational Wave Laser Interferometer
 │   ├── waveoptics/    # 2D Physical Optics & FDTD Wavefield Electrodynamics
 │   ├── plasmaflow/    # 2D Magnetohydrodynamics (MHD) & Magnetic Reconnection
@@ -35,7 +36,8 @@ agy/
 │   ├── neuromorph/    # Neuromorphic SNN & DVS Silicon Retina Studio
 │   └── synthwave/     # Polyphonic Synthesizer & 16-Step Drum Machine
 │
-├── programs/          # 9 Native Python GUI Desktop Applications (Tkinter, 0 pip dependencies)
+├── programs/          # 10 Native Python GUI Desktop Applications (Tkinter, 0 pip dependencies)
+│   ├── neurosim/      # Biophysical Electrophysiology & Neural Circuit Studio (16 tests)
 │   ├── optiflow/      # Computational Fluid Dynamics & Aerodynamics Studio (16 tests)
 │   ├── structura2d/   # Finite Element Analysis & Continuum Mechanics Studio (16 tests)
 │   ├── spectrochem/   # Molecular Mechanics & Vibrational Spectroscopy Studio (16 tests)
@@ -63,6 +65,7 @@ Each web studio is a complete, self-contained application running directly in an
 
 | Studio | Category | Mathematical & Technical Highlights |
 | :--- | :--- | :--- |
+| **AstroHydro 3D** | Astrophysics & SPH | 3D Smoothed Particle Hydrodynamics (SPH), Monaghan artificial viscosity, Plummer gravity, Hernquist galactic bulge, spatial hash grid neighbor queries, virial ratio tracking, Web Audio cosmic drone. |
 | **GravWave Studio** | Numerical Relativity | Peters radiation reaction $da/dt \propto a^{-3}$, quadrupole metric strain $h_{ij}(t - r/c)$, Michelson laser interferometer optical dark port fringe shift, Web Audio chirp sonification. |
 | **WaveOptics Studio** | Physical Optics & FDTD | Scalar wave equation $\partial^2\psi/\partial t^2 = c^2\nabla^2\psi - \gamma\dot{\psi}$, absorbing boundary layers, dielectric refraction, Fraunhofer double-slit diffraction, Sinc$^2$ fringe validation. |
 | **PlasmaFlow Studio** | Magnetohydrodynamics | Solenoidal magnetic vector potential $A_z$, Lorentz force $\mathbf{J} \times \mathbf{B}$ fluid momentum coupling, Sweet-Parker magnetic reconnection, Orszag-Tang vortex turbulence. |
@@ -87,35 +90,48 @@ All desktop programs run using standard library Python `tkinter` without third-p
 Launch any suite directly from terminal:
 
 ```bash
-# 1. OptiFlow 2D (Computational Fluid Dynamics & Aerodynamics Studio)
+# 1. NeuroSim (Biophysical Electrophysiology & Neural Circuit Studio)
+python3 programs/neurosim/neurosim.py
+
+# 2. OptiFlow 2D (Computational Fluid Dynamics & Aerodynamics Studio)
 python3 programs/optiflow/optiflow.py
 
-# 2. Structura 2D (Finite Element Analysis & Continuum Mechanics Studio)
+# 3. Structura 2D (Finite Element Analysis & Continuum Mechanics Studio)
 python3 programs/structura2d/structura2d.py
 
-# 3. SpectroChem 3D (Molecular Mechanics & Vibrational Spectroscopy Studio)
+# 4. SpectroChem 3D (Molecular Mechanics & Vibrational Spectroscopy Studio)
 python3 programs/spectrochem/spectrochem.py
 
-# 4. AstroEphemeris 3D (Astrodynamics & Three-Body Mechanics Studio)
+# 5. AstroEphemeris 3D (Astrodynamics & Three-Body Mechanics Studio)
 python3 programs/astroephemeris/astroephemeris.py
 
-# 5. AeroAcoustics Studio (Computational Aeroacoustics & Sonic Boom Simulator)
+# 6. AeroAcoustics Studio (Computational Aeroacoustics & Sonic Boom Simulator)
 python3 programs/aeroacoustics/aeroacoustics.py
 
-# 6. RetroCAD 3D Studio (Mechanical CAD Modeler & Solid Modeling Kernel)
+# 7. RetroCAD 3D Studio (Mechanical CAD Modeler & Solid Modeling Kernel)
 python3 programs/retrocad/retrocad.py
 
-# 7. PyCircuit (SPICE Analog Circuit Simulator & Schematic Designer)
+# 8. PyCircuit (SPICE Analog Circuit Simulator & Schematic Designer)
 python3 programs/pycircuit/pycircuit.py
 
-# 8. SignalScope (DSP Virtual Oscilloscope & Synthesizer Studio)
+# 9. SignalScope (DSP Virtual Oscilloscope & Synthesizer Studio)
 python3 programs/signalscope/signalscope.py
 
-# 9. Gravitas 3D (N-Body Orbital Mechanics Desktop Studio)
+# 10. Gravitas 3D (N-Body Orbital Mechanics Desktop Studio)
 python3 programs/gravitas/gravitas.py
 ```
 
 ### Desktop Application Highlights
+
+- **NeuroSim**:
+  - First-principles numerical solution of the 4-variable Hodgkin-Huxley conductance model ($V, m, h, n$).
+  - Unconditionally stable Rush-Larsen exponential Euler integration for gating variables, guaranteeing strict $[0, 1]$ bounds.
+  - Multi-compartment cable model (Rall 1959) for soma, basal dendrite, apical trunk, and apical tuft linked via axial resistance $R_a$.
+  - Active back-propagating action potentials (bAP) supported by dendritic sodium and potassium conductances.
+  - Chemical synapse kinetics: AMPA, GABA_A, and NMDA with voltage-dependent magnesium block.
+  - Low-threshold T-type calcium channels ($I_T$) governing thalamocortical burst-tonic transitions.
+  - PING 40 Hz gamma cortical oscillations and locomotor CPG half-center reciprocal inhibition.
+  - Dual-beam digital oscilloscope and dynamic $(V, n)$ phase-plane limit cycle attractor.
 
 - **OptiFlow 2D**:
   - Incompressible Navier-Stokes finite difference solver using coupled vorticity-streamfunction ($\omega - \psi$) formulation.
@@ -219,13 +235,14 @@ python3 cli/showcase.py
 
 ## Verification and Test Suite
 
-All 1,003 unit tests pass deterministically across all environments with 100% pass rate:
+All 1,019 unit tests pass deterministically across all environments with 100% pass rate:
 
 ```bash
-# Run all native desktop GUI program test suites (142 tests)
+# Run all native desktop GUI program test suites (158 tests)
 python3 -m unittest discover -s programs -p "test_*.py"
 
 # Run individual program test suites
+python3 programs/neurosim/test_neurosim.py         # 16 tests pass
 python3 programs/optiflow/test_optiflow.py           # 16 tests pass
 python3 programs/structura2d/test_structura2d.py     # 16 tests pass
 python3 programs/spectrochem/test_spectrochem.py     # 16 tests pass
@@ -242,8 +259,8 @@ python3 cli/showcase.py --test-all
 
 Test Results Breakdown:
 - **CLI Systems**: 861 / 861 tests passing
-- **Desktop Programs**: 142 / 142 tests passing
-- **Total Suite**: 1,003 / 1,003 tests passing (100%)
+- **Desktop Programs**: 158 / 158 tests passing
+- **Total Suite**: 1,019 / 1,019 tests passing (100%)
 
 ---
 
