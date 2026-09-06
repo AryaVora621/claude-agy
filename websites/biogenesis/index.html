@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BioGenesis - Artificial Life, Neural Evolution & Particle Life Studio</title>
+  <style>
+    :root {
+      --bg: #030712;
+      --panel-bg: rgba(11, 15, 25, 0.88);
+      --panel-border: #1F293D;
+      --accent: #10B981;
+      --accent-glow: rgba(16, 185, 129, 0.35);
+      --accent-cyan: #06B6D4;
+      --accent-purple: #8B5CF6;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #4B5563;
+      --card-bg: #111827;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 52px;
+      background: rgba(11, 15, 25, 0.95);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #10B981, #06B6D4);
+      color: #030712;
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .brand h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .brand span {
+      font-size: 11px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 12px;
+    }
+
+    .header-center {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: #162438;
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: #1F293D;
+      border-color: var(--accent-cyan);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #030712;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #059669;
+      color: #FFF;
+    }
+
+    #main-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      overflow: hidden;
+    }
+
+    #viewport-container {
+      flex: 1;
+      position: relative;
+      height: 100%;
+      background: radial-gradient(circle at 50% 50%, #081226 0%, #030712 100%);
+      cursor: crosshair;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Floating HUDs */
+    .hud-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      gap: 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hud-label {
+      color: var(--text-dim);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-val {
+      color: var(--accent-cyan);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* God Mode Floating Toolbar */
+    .god-toolbar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 30px;
+      padding: 6px 10px;
+      display: flex;
+      gap: 6px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 10;
+    }
+
+    .tool-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .tool-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tool-btn.active {
+      background: var(--card-bg);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Sidebar controls */
+    #sidebar {
+      width: 380px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      backdrop-filter: blur(16px);
+      z-index: 15;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .param-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .param-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .param-val {
+      font-family: var(--font-mono);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      background: #1F293D;
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Force Matrix 6x6 Grid */
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 24px repeat(6, 1fr);
+      gap: 3px;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+    }
+
+    .matrix-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 3px;
+      height: 24px;
+    }
+
+    .matrix-cell {
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0B0F19;
+      border: 1px solid #1F293D;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .matrix-cell:hover {
+      border-color: #FFF;
+      transform: scale(1.08);
+      z-index: 5;
+    }
+
+    /* Creature Inspector Modal */
+    #specimen-card {
+      background: #0A1322;
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      display: none;
+    }
+
+    .specimen-bar {
+      height: 6px;
+      background: #1F293D;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 3px;
+    }
+
+    .specimen-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B, #10B981);
+      width: 100%;
+    }
+
+    /* Preset selector grid */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .preset-btn {
+      background: #161F30;
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      background: #1F2E47;
+      border-color: var(--accent);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Ribbon -->
+  <header>
+    <div class="brand">
+      <div class="logo-badge">BIOGENESIS</div>
+      <h1>Artificial Life & Neuro-Evolution</h1>
+      <span>Emergent Particle Chemotaxis & Darwinian Organisms</span>
+    </div>
+
+    <div class="header-center">
+      <button class="tab-btn active" id="tab-particle" onclick="setSimMode('particle')">🔬 Particle Life</button>
+      <button class="tab-btn" id="tab-neuro" onclick="setSimMode('neuro')">🧬 Neuro-Evolution</button>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn" id="btn-pause" onclick="togglePause()">❚❚ Pause</button>
+      <button class="btn" onclick="resetEcosystem()">↺ Reset</button>
+      <button class="btn btn-primary" onclick="randomizeForces()">⚡ Mutate Forces</button>
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <div id="main-container">
+    <div id="viewport-container">
+      <canvas id="life-canvas"></canvas>
+
+      <!-- Live Telemetry HUD -->
+      <div class="hud-overlay">
+        <div class="hud-item">
+          <span class="hud-label">Population</span>
+          <span class="hud-val" id="hud-pop">1,800</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Shannon Entropy</span>
+          <span class="hud-val" id="hud-entropy">1.79 bits</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Generations</span>
+          <span class="hud-val" id="hud-gen">1</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Ecosystem Health</span>
+          <span class="hud-val" id="hud-health" style="color: #10B981;">Optimal</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Simulation FPS</span>
+          <span class="hud-val" id="hud-fps" style="color: #F59E0B;">60.0</span>
+        </div>
+      </div>
+
+      <!-- God Mode Floating Toolbar -->
+      <div class="god-toolbar">
+        <button class="tool-btn active" id="tool-vortex" onclick="setTool('vortex')">🌀 Vortex</button>
+        <button class="tool-btn" id="tool-repel" onclick="setTool('repel')">💥 Repulse</button>
+        <button class="tool-btn" id="tool-feed" onclick="setTool('feed')">🌱 Feed Nutrients</button>
+        <button class="tool-btn" id="tool-spawn" onclick="setTool('spawn')">✨ Spawn Cluster</button>
+        <button class="tool-btn" id="tool-cull" onclick="setTool('cull')">⚡ Phage / Cull</button>
+      </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-scroll">
+
+        <!-- Selected Specimen Neural Card -->
+        <div id="specimen-card">
+          <div class="card-title" style="color: var(--accent-cyan); margin-bottom: 6px;">
+            <span>SPECIMEN INSPECTOR</span>
+            <button style="background:none;border:none;color:#FFF;cursor:pointer;" onclick="closeSpecimen()">✕</button>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <span style="color:var(--text-muted)">Species:</span>
+            <span id="spec-species" style="color:#FFF; font-weight:bold;">Protozoan #482</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <span style="color:var(--text-muted)">Generation:</span>
+            <span id="spec-gen" style="color:var(--accent-amber)">Gen 14</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <span style="color:var(--text-muted)">Metabolic Energy:</span>
+            <span id="spec-energy" style="color:var(--accent)">84.2%</span>
+          </div>
+          <div class="specimen-bar">
+            <div class="specimen-fill" id="spec-bar"></div>
+          </div>
+          <div style="margin-top: 8px; font-size: 10px; color: var(--text-dim);">
+            Sensors: Food (0.82) • Mate (0.00) • Predator (-0.14)
+          </div>
+        </div>
+
+        <!-- Curated Presets -->
+        <div class="panel-card">
+          <div class="card-title">
+            <span>Ecosystem Presets</span>
+            <span style="font-size: 9px; color: var(--text-dim)">CURATED</span>
+          </div>
+          <div class="preset-grid">
+            <button class="preset-btn" onclick="applyPreset('mitosis')">🧫 Cellular Mitosis</button>
+            <button class="preset-btn" onclick="applyPreset('predator')">🦈 Predator Spirals</button>
+            <button class="preset-btn" onclick="applyPreset('slime')">🍄 Slime Mold Net</button>
+            <button class="preset-btn" onclick="applyPreset('crystals')">💎 Bio-Crystals</button>
+            <button class="preset-btn" onclick="applyPreset('worms')">🐛 Sinuous Serpents</button>
+            <button class="preset-btn" onclick="applyPreset('chaos')">🌌 Primordial Broth</button>
+          </div>
+        </div>
+
+        <!-- 6x6 Particle Force Interaction Matrix -->
+        <div class="panel-card" id="card-matrix">
+          <div class="card-title">
+            <span>Interaction Force Matrix</span>
+            <button class="btn" style="padding: 2px 8px; font-size: 9px;" onclick="symmetrizeMatrix()">Symmetrize</button>
+          </div>
+          <div style="font-size: 10px; color: var(--text-muted);">
+            Click any cell to cycle forces from strong attraction (+1.0) to repulsion (-1.0).
+          </div>
+          <div class="matrix-grid" id="matrix-container">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+
+        <!-- Physical Environmental Parameters -->
+        <div class="panel-card">
+          <div class="card-title">
+            <span>Fluid Physics & Thermodynamics</span>
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Medium Viscosity (Friction)</span>
+              <span class="param-val" id="lbl-friction">0.85</span>
+            </div>
+            <input type="range" id="param-friction" min="0.50" max="0.98" step="0.01" value="0.85" oninput="updateParam('friction', this.value)">
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Interaction Radius (rMax)</span>
+              <span class="param-val" id="lbl-rmax">90 px</span>
+            </div>
+            <input type="range" id="param-rmax" min="40" max="180" step="5" value="90" oninput="updateParam('rmax', this.value)">
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Core Repulsion (rMin)</span>
+              <span class="param-val" id="lbl-rmin">20 px</span>
+            </div>
+            <input type="range" id="param-rmin" min="5" max="40" step="1" value="20" oninput="updateParam('rmin', this.value)">
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Force Scaling Factor</span>
+              <span class="param-val" id="lbl-force">1.0x</span>
+            </div>
+            <input type="range" id="param-force" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateParam('forceScale', this.value)">
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Population Density</span>
+              <span class="param-val" id="lbl-count">1,800</span>
+            </div>
+            <input type="range" id="param-count" min="300" max="3000" step="100" value="1800" onchange="setParticleCount(this.value)">
+          </div>
+        </div>
+
+        <!-- Evolutionary Parameters -->
+        <div class="panel-card" id="card-evolution">
+          <div class="card-title">
+            <span>Natural Selection & Genetics</span>
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Mutation Rate</span>
+              <span class="param-val" id="lbl-mutation">8%</span>
+            </div>
+            <input type="range" id="param-mutation" min="1" max="25" step="1" value="8" oninput="updateParam('mutationRate', this.value)">
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Nutrient Spore Influx</span>
+              <span class="param-val" id="lbl-food">Medium</span>
+            </div>
+            <input type="range" id="param-food" min="1" max="5" step="1" value="3" oninput="updateParam('foodRate', this.value)">
+          </div>
+
+          <div class="param-row">
+            <div class="param-header">
+              <span>Metabolic Decay Rate</span>
+              <span class="param-val" id="lbl-metabolism">1.0x</span>
+            </div>
+            <input type="range" id="param-metabolism" min="0.2" max="2.5" step="0.1" value="1.0" oninput="updateParam('metabolism', this.value)">
+          </div>
+        </div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    /* BioGenesis - High-Performance Dual-Mode Artificial Life Studio */
+
+    // --- Species Definitions ---
+    const SPECIES = [
+      { name: "Flora", color: "#10B981", rgb: [16, 185, 129] },    // 0: Green Producers
+      { name: "Grazer", color: "#06B6D4", rgb: [6, 182, 212] },    // 1: Cyan Herbivores
+      { name: "Apex", color: "#F43F5E", rgb: [244, 63, 94] },      // 2: Crimson Predators
+      { name: "Scavenger", color: "#F59E0B", rgb: [245, 158, 11] },// 3: Amber Scavengers
+      { name: "Symbiont", color: "#8B5CF6", rgb: [139, 92, 246] }, // 4: Violet Symbionts
+      { name: "Mutagen", color: "#3B82F6", rgb: [59, 130, 246] }   // 5: Cobalt Catalysts
+    ];
+
+    const NUM_SPECIES = SPECIES.length;
+
+    // --- Global State ---
+    let simMode = "particle"; // "particle" or "neuro"
+    let isRunning = true;
+    let activeTool = "vortex";
+    let selectedSpecimen = null;
+
+    let canvas, ctx;
+    let width = 1200, height = 800;
+
+    // Simulation Parameters
+    let params = {
+      friction: 0.85,
+      rmax: 90,
+      rmin: 20,
+      forceScale: 1.0,
+      particleCount: 1800,
+      mutationRate: 0.08,
+      foodRate: 3,
+      metabolism: 1.0
+    };
+
+    // 6x6 Interaction Force Matrix [source][target]
+    let matrix = [];
+    for (let i = 0; i < NUM_SPECIES; i++) {
+      matrix[i] = new Float32Array(NUM_SPECIES);
+    }
+
+    // Particle Arrays (Flat typed arrays for ultra-fast cache-coherent simulation)
+    let p_x, p_y, p_vx, p_vy, p_type, p_count = 0;
+    let maxParticles = 3500;
+
+    // Spatial Hashing Grid
+    let cellSize = 90;
+    let gridCols = 0, gridRows = 0;
+    let gridHead = null;
+    let gridNext = null;
+
+    // Autonomous Neuro-Creatures & Food Pellets (for Mode B)
+    let creatures = [];
+    let foodPellets = [];
+    let generationCount = 1;
+
+    // Mouse Interaction
+    let mouse = { x: -1000, y: -1000, isDown: false, button: 0 };
+
+    // Telemetry Clock
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let currentFps = 60.0;
+
+    // --- Audio Synthesis (Web Audio API - zero external files) ---
+    let audioCtx = null;
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) audioCtx = new AudioClass();
+      }
+    }
+
+    function playAquaticChime(freq, gainVal = 0.05) {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.36);
+      } catch (e) {}
+    }
+
+    // --- Initialization ---
+    window.addEventListener("DOMContentLoaded", () => {
+      canvas = document.getElementById("life-canvas");
+      ctx = canvas.getContext("2d", { alpha: false });
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      initParticleBuffers();
+      applyPreset("mitosis");
+      buildMatrixUI();
+
+      setupMouseEvents();
+
+      requestAnimationFrame(animate);
+    });
+
+    function resizeCanvas() {
+      const container = document.getElementById("viewport-container");
+      width = canvas.width = container.clientWidth;
+      height = canvas.height = container.clientHeight;
+
+      cellSize = params.rmax;
+      gridCols = Math.ceil(width / cellSize);
+      gridRows = Math.ceil(height / cellSize);
+      const totalCells = gridCols * gridRows;
+      gridHead = new Int32Array(totalCells);
+      gridNext = new Int32Array(maxParticles);
+    }
+
+    function initParticleBuffers() {
+      p_x = new Float32Array(maxParticles);
+      p_y = new Float32Array(maxParticles);
+      p_vx = new Float32Array(maxParticles);
+      p_vy = new Float32Array(maxParticles);
+      p_type = new Uint8Array(maxParticles);
+
+      spawnRandomParticles(params.particleCount);
+    }
+
+    function spawnRandomParticles(count) {
+      p_count = Math.min(count, maxParticles);
+      for (let i = 0; i < p_count; i++) {
+        p_x[i] = Math.random() * width;
+        p_y[i] = Math.random() * height;
+        p_vx[i] = (Math.random() - 0.5) * 2;
+        p_vy[i] = (Math.random() - 0.5) * 2;
+        p_type[i] = Math.floor(Math.random() * NUM_SPECIES);
+      }
+      document.getElementById("hud-pop").innerText = p_count.toLocaleString();
+    }
+
+    // --- Presets ---
+    const PRESET_MATRICES = {
+      mitosis: [
+        [0.8, -0.4, -0.2, 0.1, 0.0, 0.0],
+        [0.5, 0.7, -0.6, 0.2, -0.1, 0.0],
+        [-0.7, 0.8, 0.6, -0.4, 0.1, 0.0],
+        [0.2, 0.1, 0.7, 0.5, -0.3, 0.0],
+        [-0.1, 0.3, -0.2, 0.6, 0.7, -0.5],
+        [0.0, 0.0, 0.2, -0.4, 0.6, 0.4]
+      ],
+      predator: [
+        [0.4, -0.8, -0.9, 0.1, 0.0, 0.0],
+        [0.9, 0.3, -0.9, 0.2, 0.0, 0.0],
+        [-0.2, 1.0, 0.2, -0.3, 0.0, 0.0],
+        [0.1, 0.1, 0.8, 0.1, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.5, -0.6],
+        [0.0, 0.0, 0.0, 0.0, 0.7, 0.3]
+      ],
+      slime: [
+        [0.9, 0.3, 0.1, 0.0, 0.0, 0.0],
+        [0.3, 0.8, 0.2, 0.1, 0.0, 0.0],
+        [0.1, 0.2, 0.7, 0.3, 0.1, 0.0],
+        [0.0, 0.1, 0.3, 0.8, 0.2, 0.1],
+        [0.0, 0.0, 0.1, 0.2, 0.9, 0.3],
+        [0.0, 0.0, 0.0, 0.1, 0.3, 0.8]
+      ],
+      crystals: [
+        [0.85, -0.8, -0.2, 0.0, 0.0, 0.0],
+        [-0.8, 0.85, -0.8, 0.0, 0.0, 0.0],
+        [-0.2, -0.8, 0.85, -0.8, 0.0, 0.0],
+        [0.0, 0.0, -0.8, 0.85, -0.8, 0.0],
+        [0.0, 0.0, 0.0, -0.8, 0.85, -0.8],
+        [0.0, 0.0, 0.0, 0.0, -0.8, 0.85]
+      ],
+      worms: [
+        [0.3, 0.7, -0.5, 0.0, 0.0, 0.0],
+        [-0.6, 0.4, 0.8, -0.4, 0.0, 0.0],
+        [0.0, -0.7, 0.5, 0.7, -0.3, 0.0],
+        [0.0, 0.0, -0.8, 0.3, 0.8, -0.5],
+        [0.0, 0.0, 0.0, -0.7, 0.4, 0.7],
+        [0.5, 0.0, 0.0, 0.0, -0.8, 0.3]
+      ],
+      chaos: [
+        [-0.5, 0.8, -0.9, 0.4, -0.2, 0.7],
+        [0.7, -0.4, 0.6, -0.8, 0.3, -0.1],
+        [-0.8, 0.5, -0.3, 0.9, -0.7, 0.4],
+        [0.3, -0.7, 0.8, -0.5, 0.6, -0.9],
+        [-0.4, 0.6, -0.6, 0.4, -0.2, 0.8],
+        [0.8, -0.3, 0.5, -0.7, 0.7, -0.4]
+      ]
+    };
+
+    function applyPreset(name) {
+      initAudio();
+      playAquaticChime(520, 0.08);
+
+      const pMat = PRESET_MATRICES[name];
+      if (pMat) {
+        for (let i = 0; i < NUM_SPECIES; i++) {
+          for (let j = 0; j < NUM_SPECIES; j++) {
+            matrix[i][j] = pMat[i][j];
+          }
+        }
+        buildMatrixUI();
+      }
+    }
+
+    function randomizeForces() {
+      initAudio();
+      playAquaticChime(640, 0.08);
+
+      for (let i = 0; i < NUM_SPECIES; i++) {
+        for (let j = 0; j < NUM_SPECIES; j++) {
+          matrix[i][j] = Math.round((Math.random() * 2 - 1) * 10) / 10;
+        }
+      }
+      buildMatrixUI();
+    }
+
+    function symmetrizeMatrix() {
+      for (let i = 0; i < NUM_SPECIES; i++) {
+        for (let j = i + 1; j < NUM_SPECIES; j++) {
+          const avg = (matrix[i][j] + matrix[j][i]) * 0.5;
+          matrix[i][j] = matrix[j][i] = Math.round(avg * 10) / 10;
+        }
+      }
+      buildMatrixUI();
+    }
+
+    // --- Matrix UI Builder ---
+    function buildMatrixUI() {
+      const container = document.getElementById("matrix-container");
+      container.innerHTML = "";
+
+      // Top corner empty cell
+      const corner = document.createElement("div");
+      container.appendChild(corner);
+
+      // Column headers
+      for (let j = 0; j < NUM_SPECIES; j++) {
+        const th = document.createElement("div");
+        th.className = "matrix-header";
+        th.style.background = SPECIES[j].color;
+        th.style.color = "#000";
+        th.innerText = SPECIES[j].name[0];
+        container.appendChild(th);
+      }
+
+      // Matrix rows
+      for (let i = 0; i < NUM_SPECIES; i++) {
+        const rowHeader = document.createElement("div");
+        rowHeader.className = "matrix-header";
+        rowHeader.style.background = SPECIES[i].color;
+        rowHeader.style.color = "#000";
+        rowHeader.innerText = SPECIES[i].name[0];
+        container.appendChild(rowHeader);
+
+        for (let j = 0; j < NUM_SPECIES; j++) {
+          const cell = document.createElement("div");
+          cell.className = "matrix-cell";
+          const val = matrix[i][j];
+
+          // Heatmap coloring: Green for attraction (+), Red for repulsion (-)
+          if (val > 0) {
+            cell.style.background = `rgba(16, 185, 129, ${val})`;
+            cell.style.color = val > 0.4 ? "#030712" : "#FFF";
+          } else if (val < 0) {
+            cell.style.background = `rgba(244, 63, 94, ${Math.abs(val)})`;
+            cell.style.color = Math.abs(val) > 0.4 ? "#030712" : "#FFF";
+          } else {
+            cell.style.background = "#111827";
+            cell.style.color = "#6B7280";
+          }
+
+          cell.innerText = val > 0 ? `+${val.toFixed(1)}` : val.toFixed(1);
+
+          cell.addEventListener("click", () => {
+            // Cycle value: -1.0 -> -0.5 -> 0.0 -> 0.5 -> 1.0 -> -1.0
+            let nextVal = Math.round((matrix[i][j] + 0.5) * 10) / 10;
+            if (nextVal > 1.0) nextVal = -1.0;
+            matrix[i][j] = nextVal;
+            buildMatrixUI();
+          });
+
+          container.appendChild(cell);
+        }
+      }
+    }
+
+    // --- Spatial Hash Acceleration Grid ---
+    function updateSpatialGrid() {
+      gridHead.fill(-1);
+      for (let i = 0; i < p_count; i++) {
+        const cx = Math.floor(p_x[i] / cellSize);
+        const cy = Math.floor(p_y[i] / cellSize);
+        if (cx >= 0 && cx < gridCols && cy >= 0 && cy < gridRows) {
+          const cellIndex = cy * gridCols + cx;
+          gridNext[i] = gridHead[cellIndex];
+          gridHead[cellIndex] = i;
+        } else {
+          gridNext[i] = -1;
+        }
+      }
+    }
+
+    // --- Physics Simulation Step (Mode A: Particle Life) ---
+    function updateParticles() {
+      updateSpatialGrid();
+
+      const rmax = params.rmax;
+      const rmaxSq = rmax * rmax;
+      const rmin = params.rmin;
+      const friction = params.friction;
+      const forceScale = params.forceScale * 0.45;
+
+      for (let i = 0; i < p_count; i++) {
+        const px = p_x[i];
+        const py = p_y[i];
+        const typeI = p_type[i];
+
+        let totalFx = 0;
+        let totalFy = 0;
+
+        const cellX = Math.floor(px / cellSize);
+        const cellY = Math.floor(py / cellSize);
+
+        // Search 3x3 neighbor cells
+        for (let ny = Math.max(0, cellY - 1); ny <= Math.min(gridRows - 1, cellY + 1); ny++) {
+          for (let nx = Math.max(0, cellX - 1); nx <= Math.min(gridCols - 1, cellX + 1); nx++) {
+            const cellIndex = ny * gridCols + nx;
+            let j = gridHead[cellIndex];
+
+            while (j !== -1) {
+              if (i !== j) {
+                let dx = p_x[j] - px;
+                let dy = p_y[j] - py;
+
+                // Periodic toroidal wrapping distance
+                if (dx > width * 0.5) dx -= width;
+                else if (dx < -width * 0.5) dx += width;
+                if (dy > height * 0.5) dy -= height;
+                else if (dy < -height * 0.5) dy += height;
+
+                const distSq = dx * dx + dy * dy;
+
+                if (distSq > 0.01 && distSq < rmaxSq) {
+                  const dist = Math.sqrt(distSq);
+                  const typeJ = p_type[j];
+
+                  let f = 0;
+                  if (dist < rmin) {
+                    // Soft-core repulsion prevents collapse
+                    f = (dist / rmin - 1.0);
+                  } else {
+                    // Mid-range smooth interaction spline
+                    const interaction = matrix[typeI][typeJ];
+                    f = interaction * (1.0 - Math.abs(2.0 * dist - rmin - rmax) / (rmax - rmin));
+                  }
+
+                  const factor = (f * forceScale) / dist;
+                  totalFx += dx * factor;
+                  totalFy += dy * factor;
+                }
+              }
+              j = gridNext[j];
+            }
+          }
+        }
+
+        // Apply God Mode Tool Forces
+        if (mouse.isDown) {
+          const mdx = mouse.x - px;
+          const mdy = mouse.y - py;
+          const mDistSq = mdx * mdx + mdy * mdy;
+
+          if (mDistSq < 40000) { // 200px radius
+            const mDist = Math.sqrt(mDistSq);
+            if (activeTool === "vortex") {
+              // Tangential rotational force + inward attraction
+              totalFx += (-mdy / mDist) * 3.5 + (mdx / mDist) * 1.5;
+              totalFy += (mdx / mDist) * 3.5 + (mdy / mDist) * 1.5;
+            } else if (activeTool === "repel") {
+              // Strong repulsive blast
+              totalFx -= (mdx / mDist) * 8.0;
+              totalFy -= (mdy / mDist) * 8.0;
+            } else if (activeTool === "cull") {
+              // Mark particle to teleport / respawn
+              p_x[i] = Math.random() * width;
+              p_y[i] = Math.random() * height;
+              p_vx[i] = 0;
+              p_vy[i] = 0;
+            }
+          }
+        }
+
+        // Integrate acceleration into velocity
+        p_vx[i] = (p_vx[i] + totalFx) * friction;
+        p_vy[i] = (p_vy[i] + totalFy) * friction;
+
+        // Position integration with toroidal wrap
+        let nextX = px + p_vx[i];
+        let nextY = py + p_vy[i];
+
+        if (nextX < 0) nextX += width;
+        else if (nextX >= width) nextX -= width;
+        if (nextY < 0) nextY += height;
+        else if (nextY >= height) nextY -= height;
+
+        p_x[i] = nextX;
+        p_y[i] = nextY;
+      }
+    }
+
+    // --- Mode B: Neuro-Evolution Creature Class ---
+    class Creature {
+      constructor(x, y, dna = null) {
+        this.x = x;
+        this.y = y;
+        this.heading = Math.random() * Math.PI * 2;
+        this.vx = 0;
+        this.vy = 0;
+        this.energy = 100.0;
+        this.age = 0;
+        this.alive = true;
+        this.generation = dna ? dna.generation + 1 : 1;
+
+        // Genome DNA
+        this.dna = dna || {
+          segmentCount: Math.floor(Math.random() * 4) + 4, // 4 to 7 segments
+          visionRadius: Math.random() * 80 + 70,          // 70 to 150 px
+          maxSpeed: Math.random() * 1.5 + 1.5,            // 1.5 to 3.0
+          turnRate: Math.random() * 0.15 + 0.1,           // turning agility
+          reproduceThreshold: Math.random() * 40 + 130,   // energy needed
+          hue: Math.random() * 60 + 130,                  // bioluminescent emerald/cyan
+          weights: Array.from({ length: 8 }, () => Math.random() * 2 - 1)
+        };
+
+        // Spinal Vertebral Chain for undulation
+        this.segments = [];
+        for (let s = 0; s < this.dna.segmentCount; s++) {
+          this.segments.push({ x: x - s * 6, y: y, radius: Math.max(2, 6 - s * 0.7) });
+        }
+      }
+
+      thinkAndMove() {
+        if (!this.alive) return;
+        this.age++;
+        this.energy -= 0.08 * params.metabolism * (1.0 + (this.vx * this.vx + this.vy * this.vy) * 0.1);
+
+        if (this.energy <= 0) {
+          this.alive = false;
+          return;
+        }
+
+        // Sensory Raycasting: find closest food pellet
+        let closestFood = null;
+        let minDist = this.dna.visionRadius;
+        for (const food of foodPellets) {
+          const dx = food.x - this.x;
+          const dy = food.y - this.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < minDist) {
+            minDist = d;
+            closestFood = food;
+          }
+        }
+
+        // Neural Steering
+        let steer = 0;
+        let thrust = 1.0;
+
+        if (closestFood) {
+          const targetAngle = Math.atan2(closestFood.y - this.y, closestFood.x - this.x);
+          let diffAngle = targetAngle - this.heading;
+          while (diffAngle < -Math.PI) diffAngle += Math.PI * 2;
+          while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
+
+          steer = Math.sign(diffAngle) * Math.min(Math.abs(diffAngle), this.dna.turnRate);
+          thrust = 1.8;
+
+          // Consume food when reaching it
+          if (minDist < 12) {
+            this.energy += 35.0;
+            closestFood.eaten = true;
+          }
+        } else {
+          // Autonomous wandering
+          steer = (Math.random() - 0.5) * 0.2;
+        }
+
+        this.heading += steer;
+        const targetVx = Math.cos(this.heading) * this.dna.maxSpeed * thrust;
+        const targetVy = Math.sin(this.heading) * this.dna.maxSpeed * thrust;
+
+        this.vx += (targetVx - this.vx) * 0.2;
+        this.vy += (targetVy - this.vy) * 0.2;
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Toroidal screen wrap
+        if (this.x < 0) this.x += width;
+        else if (this.x >= width) this.x -= width;
+        if (this.y < 0) this.y += height;
+        else if (this.y >= height) this.y -= height;
+
+        // Update soft-body vertebral chain physics
+        this.segments[0].x = this.x;
+        this.segments[0].y = this.y;
+        for (let s = 1; s < this.segments.length; s++) {
+          const prev = this.segments[s - 1];
+          const curr = this.segments[s];
+          const dx = curr.x - prev.x;
+          const dy = curr.y - prev.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const targetDist = 7.0;
+          if (dist > 0.001) {
+            curr.x = prev.x + (dx / dist) * targetDist;
+            curr.y = prev.y + (dy / dist) * targetDist;
+          }
+        }
+
+        // Mitosis / Reproduction
+        if (this.energy >= this.dna.reproduceThreshold && creatures.length < 150) {
+          this.energy *= 0.5;
+          const childDNA = this.mutateDNA();
+          creatures.push(new Creature(this.x + (Math.random() - 0.5) * 20, this.y + (Math.random() - 0.5) * 20, childDNA));
+          if (this.generation + 1 > generationCount) {
+            generationCount = this.generation + 1;
+            document.getElementById("hud-gen").innerText = generationCount;
+          }
+        }
+      }
+
+      mutateDNA() {
+        const d = JSON.parse(JSON.stringify(this.dna));
+        d.generation = this.generation;
+        if (Math.random() < params.mutationRate) d.visionRadius += (Math.random() - 0.5) * 20;
+        if (Math.random() < params.mutationRate) d.maxSpeed = Math.max(1.0, d.maxSpeed + (Math.random() - 0.5) * 0.4);
+        if (Math.random() < params.mutationRate) d.turnRate = Math.max(0.05, d.turnRate + (Math.random() - 0.5) * 0.05);
+        if (Math.random() < params.mutationRate) d.hue = (d.hue + (Math.random() - 0.5) * 30 + 360) % 360;
+        return d;
+      }
+    }
+
+    function initNeuroEcosystem() {
+      creatures = [];
+      foodPellets = [];
+      generationCount = 1;
+
+      for (let i = 0; i < 40; i++) {
+        creatures.push(new Creature(Math.random() * width, Math.random() * height));
+      }
+
+      for (let i = 0; i < 180; i++) {
+        foodPellets.push({ x: Math.random() * width, y: Math.random() * height, eaten: false });
+      }
+    }
+
+    // --- Render Loop ---
+    function animate(now) {
+      requestAnimationFrame(animate);
+
+      const dt = (now - lastTime) * 0.001;
+      lastTime = now;
+      frameCount++;
+      if (frameCount % 15 === 0 && dt > 0) {
+        currentFps = Math.round(1.0 / dt);
+        document.getElementById("hud-fps").innerText = `${currentFps}.0`;
+      }
+
+      if (!isRunning) return;
+
+      // Dark oceanic phosphorescent background clear with motion trail fade
+      ctx.fillStyle = "rgba(3, 7, 18, 0.35)";
+      ctx.fillRect(0, 0, width, height);
+
+      if (simMode === "particle") {
+        updateParticles();
+        renderParticles();
+      } else {
+        updateNeuroLife();
+        renderNeuroLife();
+      }
+
+      // Render God Mode interaction cursor effects
+      if (mouse.isDown) {
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, 60, 0, Math.PI * 2);
+        ctx.strokeStyle = activeTool === "repel" ? "rgba(244, 63, 94, 0.6)" : "rgba(6, 182, 212, 0.6)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    function renderParticles() {
+      for (let i = 0; i < p_count; i++) {
+        const spec = SPECIES[p_type[i]];
+        const x = p_x[i];
+        const y = p_y[i];
+        const vx = p_vx[i];
+        const vy = p_vy[i];
+        const speed = Math.sqrt(vx * vx + vy * vy);
+
+        ctx.fillStyle = spec.color;
+
+        if (speed > 1.2) {
+          // Speed streak drawing
+          ctx.beginPath();
+          ctx.moveTo(x - vx * 2, y - vy * 2);
+          ctx.lineTo(x, y);
+          ctx.strokeStyle = spec.color;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    function updateNeuroLife() {
+      // Spawn new food pellets over time
+      if (Math.random() < 0.15 * params.foodRate && foodPellets.length < 250) {
+        foodPellets.push({ x: Math.random() * width, y: Math.random() * height, eaten: false });
+      }
+
+      foodPellets = foodPellets.filter(f => !f.eaten);
+
+      // Update creatures
+      for (const c of creatures) {
+        c.thinkAndMove();
+      }
+
+      creatures = creatures.filter(c => c.alive);
+
+      // Extinction prevention
+      if (creatures.length < 8) {
+        for (let i = 0; i < 5; i++) {
+          creatures.push(new Creature(Math.random() * width, Math.random() * height));
+        }
+      }
+
+      document.getElementById("hud-pop").innerText = creatures.length.toString();
+
+      // Update Specimen Card if selected
+      if (selectedSpecimen && selectedSpecimen.alive) {
+        document.getElementById("spec-energy").innerText = `${Math.round(selectedSpecimen.energy)}%`;
+        document.getElementById("spec-bar").style.width = `${Math.min(100, selectedSpecimen.energy)}%`;
+        document.getElementById("spec-gen").innerText = `Gen ${selectedSpecimen.generation}`;
+      }
+    }
+
+    function renderNeuroLife() {
+      // Render food nutrients
+      ctx.fillStyle = "#10B981";
+      for (const food of foodPellets) {
+        ctx.beginPath();
+        ctx.arc(food.x, food.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Render creatures with segmented invertebrate bodies and sensory eyes
+      for (const c of creatures) {
+        const hue = c.dna.hue;
+
+        // Vertebral segments
+        for (let s = c.segments.length - 1; s >= 0; s--) {
+          const seg = c.segments[s];
+          ctx.beginPath();
+          ctx.arc(seg.x, seg.y, seg.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `hsl(${hue}, 80%, ${s === 0 ? "65%" : "45%"})`;
+          ctx.fill();
+        }
+
+        // Head sensory eyes
+        const eyeAngle1 = c.heading + 0.6;
+        const eyeAngle2 = c.heading - 0.6;
+        const eyeDist = 4;
+        ctx.fillStyle = "#FFF";
+        ctx.beginPath();
+        ctx.arc(c.x + Math.cos(eyeAngle1) * eyeDist, c.y + Math.sin(eyeAngle1) * eyeDist, 1.5, 0, Math.PI * 2);
+        ctx.arc(c.x + Math.cos(eyeAngle2) * eyeDist, c.y + Math.sin(eyeAngle2) * eyeDist, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Selected halo
+        if (c === selectedSpecimen) {
+          ctx.strokeStyle = "#06B6D4";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, 16, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Sensory vision cone
+          ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.dna.visionRadius, c.heading - 0.7, c.heading + 0.7);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // --- Mode Switching & Tool Selection ---
+    function setSimMode(mode) {
+      simMode = mode;
+      document.getElementById("tab-particle").classList.toggle("active", mode === "particle");
+      document.getElementById("tab-neuro").classList.toggle("active", mode === "neuro");
+
+      document.getElementById("card-matrix").style.display = mode === "particle" ? "flex" : "none";
+      document.getElementById("card-evolution").style.display = mode === "neuro" ? "flex" : "none";
+
+      if (mode === "neuro" && creatures.length === 0) {
+        initNeuroEcosystem();
+      }
+    }
+
+    function setTool(tool) {
+      activeTool = tool;
+      document.querySelectorAll(".tool-btn").forEach(btn => btn.classList.remove("active"));
+      const activeBtn = document.getElementById(`tool-${tool}`);
+      if (activeBtn) activeBtn.classList.add("active");
+    }
+
+    function togglePause() {
+      isRunning = !isRunning;
+      document.getElementById("btn-pause").innerText = isRunning ? "❚❚ Pause" : "▶ Resume";
+    }
+
+    function resetEcosystem() {
+      if (simMode === "particle") {
+        spawnRandomParticles(params.particleCount);
+      } else {
+        initNeuroEcosystem();
+      }
+    }
+
+    function updateParam(name, val) {
+      val = parseFloat(val);
+      params[name] = val;
+      const lbl = document.getElementById(`lbl-${name}`);
+      if (lbl) {
+        if (name === "friction") lbl.innerText = val.toFixed(2);
+        else if (name === "rmax" || name === "rmin") lbl.innerText = `${val} px`;
+        else if (name === "forceScale") lbl.innerText = `${val.toFixed(1)}x`;
+        else if (name === "mutationRate") lbl.innerText = `${Math.round(val * 100)}%`;
+      }
+      if (name === "rmax") resizeCanvas();
+    }
+
+    function setParticleCount(val) {
+      params.particleCount = parseInt(val);
+      document.getElementById("lbl-count").innerText = params.particleCount.toLocaleString();
+      spawnRandomParticles(params.particleCount);
+    }
+
+    function closeSpecimen() {
+      selectedSpecimen = null;
+      document.getElementById("specimen-card").style.display = "none";
+    }
+
+    // --- Mouse & Touch Input ---
+    function setupMouseEvents() {
+      canvas.addEventListener("mousedown", e => {
+        initAudio();
+        mouse.isDown = true;
+        mouse.button = e.button;
+        updateMousePos(e);
+
+        if (simMode === "neuro") {
+          // Inspect clicked creature
+          let found = null;
+          for (const c of creatures) {
+            const dx = c.x - mouse.x;
+            const dy = c.y - mouse.y;
+            if (dx * dx + dy * dy < 256) {
+              found = c;
+              break;
+            }
+          }
+          if (found) {
+            selectedSpecimen = found;
+            document.getElementById("specimen-card").style.display = "block";
+            document.getElementById("spec-species").innerText = `Organism #${Math.floor(found.dna.hue)}`;
+            playAquaticChime(600, 0.05);
+          }
+        }
+
+        if (activeTool === "feed") {
+          for (let k = 0; k < 12; k++) {
+            foodPellets.push({
+              x: mouse.x + (Math.random() - 0.5) * 50,
+              y: mouse.y + (Math.random() - 0.5) * 50,
+              eaten: false
+            });
+          }
+        }
+      });
+
+      window.addEventListener("mouseup", () => {
+        mouse.isDown = false;
+      });
+
+      canvas.addEventListener("mousemove", e => {
+        updateMousePos(e);
+      });
+
+      function updateMousePos(e) {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+      }
+    }
+  </script>
+</body>
+</html>

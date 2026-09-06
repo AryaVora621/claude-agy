@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroMorph Studio - Neuromorphic SNN & DVS Event Camera Laboratory</title>
+  <style>
+    :root {
+      --bg: #060911;
+      --surface: #0c1220;
+      --surface-border: #1a233a;
+      --text: #f0f4fc;
+      --text-muted: #8292b0;
+      --text-dim: #475569;
+      --accent-cyan: #00f0ff;
+      --accent-emerald: #10b981;
+      --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header & Navigation */
+    header {
+      height: 54px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+      color: #000;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      padding-left: 8px;
+      border-left: 1px solid var(--surface-border);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      background: rgba(6, 9, 17, 0.6);
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-border);
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-tab:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab.active {
+      color: #000;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: #000;
+      border-color: var(--accent-cyan);
+    }
+
+    .btn-primary:hover {
+      background: #33f3ff;
+      color: #000;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .view-panel {
+      flex: 1;
+      display: none;
+      flex-direction: row;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+
+    .view-panel.active {
+      display: flex;
+    }
+
+    /* Side Control Panel */
+    .controls-sidebar {
+      width: 320px;
+      background: var(--surface);
+      border-left: 1px solid var(--surface-border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+      z-index: 5;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent-cyan);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-group {
+      margin-bottom: 14px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .control-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--accent-cyan);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+      background: #141c2e;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-cyan);
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .select-dropdown {
+      width: 100%;
+      background: #090e18;
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-sans);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-dropdown:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* Central Canvas Area */
+    .canvas-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: #04060a;
+      overflow: hidden;
+    }
+
+    .stage-canvas {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Bottom Telemetry HUD */
+    .telemetry-strip {
+      height: 38px;
+      background: rgba(12, 18, 32, 0.95);
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .hud-metric {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-metric span {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .hud-metric.cyan span { color: var(--accent-cyan); }
+    .hud-metric.emerald span { color: var(--accent-emerald); }
+    .hud-metric.amber span { color: var(--accent-amber); }
+    .hud-metric.rose span { color: var(--accent-rose); }
+    .hud-metric.purple span { color: var(--accent-purple); }
+
+    /* Preset Chips */
+    .preset-chips {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .preset-chip {
+      background: #090e18;
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .preset-chip:hover {
+      border-color: var(--accent-cyan);
+      color: var(--text);
+    }
+
+    .preset-chip.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.12);
+      color: var(--accent-cyan);
+    }
+
+    /* Floating Legend Overlay */
+    .canvas-legend {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(12, 18, 32, 0.85);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 4;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Oscilloscope Dock (View 2 & 3) */
+    .dock-split {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+
+    .dock-top {
+      flex: 1;
+      position: relative;
+    }
+
+    .dock-bottom {
+      height: 240px;
+      background: #070a12;
+      border-top: 1px solid var(--surface-border);
+      position: relative;
+      display: flex;
+    }
+
+    .scope-pane {
+      flex: 1;
+      position: relative;
+      border-right: 1px solid var(--surface-border);
+    }
+
+    .scope-pane:last-child {
+      border-right: none;
+    }
+
+    .scope-title {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      z-index: 2;
+    }
+
+    /* Checkbox Switches */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 18px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider-toggle {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #1a233a;
+      transition: .2s;
+      border-radius: 18px;
+    }
+
+    .slider-toggle:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider-toggle {
+      background-color: var(--accent-cyan);
+    }
+
+    input:checked + .slider-toggle:before {
+      transform: translateX(14px);
+      background-color: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">&Sigma;</div>
+      <div>
+        <div class="brand-title">NeuroMorph Studio</div>
+      </div>
+      <div class="brand-subtitle">DVS Silicon Retina & Spiking Neural Dynamics</div>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-dvs">1. DVS & Optical Flow</button>
+      <button class="nav-tab" data-tab="tab-neuron">2. Spiking Neuron Dynamics</button>
+      <button class="nav-tab" data-tab="tab-stdp">3. STDP Plasticity</button>
+      <button class="nav-tab" data-tab="tab-reservoir">4. 3D Cortical Column</button>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="btn" id="btn-sound">Sound: OFF</button>
+      <button class="btn" id="btn-reset">Reset</button>
+      <button class="btn btn-primary" id="btn-play">Pause</button>
+    </div>
+  </header>
+
+  <!-- Main Multi-Panel Workspace -->
+  <div class="workspace">
+
+    <!-- TAB 1: DVS Event Camera & Optical Flow -->
+    <div class="view-panel active" id="tab-dvs">
+      <div class="canvas-stage">
+        <canvas class="stage-canvas" id="canvas-dvs"></canvas>
+
+        <div class="canvas-legend">
+          <div class="legend-row">
+            <div class="legend-dot" style="background: #10B981;"></div>
+            <span>ON Event (&Delta; ln I &ge; +&theta;) Brightness Increase</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background: #F43F5E;"></div>
+            <span>OFF Event (&Delta; ln I &le; -&theta;) Brightness Decrease</span>
+          </div>
+          <div class="legend-row">
+            <div class="legend-dot" style="background: #00F0FF;"></div>
+            <span>Local Optical Flow Normal Velocity Vector</span>
+          </div>
+        </div>
+
+        <div class="telemetry-strip">
+          <div class="hud-metric cyan">AER Rate: <span id="hud-dvs-rate">0.0 kEPS</span></div>
+          <div class="hud-metric emerald">ON Events: <span id="hud-dvs-on">0</span></div>
+          <div class="hud-metric rose">OFF Events: <span id="hud-dvs-off">0</span></div>
+          <div class="hud-metric amber">Decay Time: <span id="hud-dvs-tau">35 ms</span></div>
+          <div class="hud-metric purple">FPS: <span id="hud-dvs-fps">60</span></div>
+        </div>
+      </div>
+
+      <div class="controls-sidebar">
+        <div class="sidebar-section">
+          <div class="section-title">Visual Stimulus Mode</div>
+          <select class="select-dropdown" id="dvs-stimulus-select">
+            <option value="cursor">Mouse Pointer Light Source</option>
+            <option value="disc" selected>Rotating High-Speed Disc</option>
+            <option value="bars">Translating Spatial Bar Grating</option>
+            <option value="shapes">Orbiting Polygonal Objects</option>
+            <option value="pendulum">Chaotic Double Pendulum</option>
+          </select>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">DVS Sensor Parameters</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Event Threshold (&theta;)</span>
+              <span class="control-val" id="val-dvs-thresh">0.18</span>
+            </div>
+            <input type="range" id="slider-dvs-thresh" min="0.05" max="0.50" step="0.01" value="0.18">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Time-Surface Decay (&tau;)</span>
+              <span class="control-val" id="val-dvs-tau">45 ms</span>
+            </div>
+            <input type="range" id="slider-dvs-tau" min="10" max="150" step="5" value="45">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Sensor Refractory Filter</span>
+              <span class="control-val" id="val-dvs-refract">2.0 ms</span>
+            </div>
+            <input type="range" id="slider-dvs-refract" min="0.5" max="10" step="0.5" value="2.0">
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Visual Overlays</div>
+          <label class="toggle-row">
+            <span>Show Optical Flow Vectors</span>
+            <div class="switch">
+              <input type="checkbox" id="toggle-dvs-flow" checked>
+              <span class="slider-toggle"></span>
+            </div>
+          </label>
+          <label class="toggle-row">
+            <span>Show Time-Surface Heatmap</span>
+            <div class="switch">
+              <input type="checkbox" id="toggle-dvs-surface" checked>
+              <span class="slider-toggle"></span>
+            </div>
+          </label>
+          <label class="toggle-row">
+            <span>Render Raw Stimulus Layer</span>
+            <div class="switch">
+              <input type="checkbox" id="toggle-dvs-stimulus" checked>
+              <span class="slider-toggle"></span>
+            </div>
+          </label>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Speed / Frequency</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Stimulus Speed</span>
+              <span class="control-val" id="val-dvs-speed">1.0x</span>
+            </div>
+            <input type="range" id="slider-dvs-speed" min="0.2" max="3.0" step="0.1" value="1.0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Spiking Neuron Dynamics (LIF, Izhikevich, Hodgkin-Huxley) -->
+    <div class="view-panel" id="tab-neuron">
+      <div class="canvas-stage dock-split">
+        <div class="dock-top">
+          <canvas class="stage-canvas" id="canvas-neuron-morph"></canvas>
+          <div class="canvas-legend">
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #00F0FF;"></div>
+              <span>Membrane Potential V(t)</span>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #F59E0B;"></div>
+              <span>Adaptive Spike Threshold Vth(t)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dock-bottom">
+          <!-- Oscilloscope Left: V(t) Time Domain -->
+          <div class="scope-pane">
+            <div class="scope-title">Oscilloscope: Membrane Potential V(t)</div>
+            <canvas class="stage-canvas" id="canvas-neuron-scope"></canvas>
+          </div>
+          <!-- Phase Plane Right: V vs Recovery u or dV/dt -->
+          <div class="scope-pane">
+            <div class="scope-title">Phase Plane Portrait (V vs u)</div>
+            <canvas class="stage-canvas" id="canvas-neuron-phase"></canvas>
+          </div>
+        </div>
+
+        <div class="telemetry-strip">
+          <div class="hud-metric cyan">V(t): <span id="hud-nrn-v">-65.0 mV</span></div>
+          <div class="hud-metric amber">Spike Rate: <span id="hud-nrn-rate">0.0 Hz</span></div>
+          <div class="hud-metric emerald">Spike Count: <span id="hud-nrn-count">0</span></div>
+          <div class="hud-metric purple">ISI Mean: <span id="hud-nrn-isi">0.0 ms</span></div>
+        </div>
+      </div>
+
+      <div class="controls-sidebar">
+        <div class="sidebar-section">
+          <div class="section-title">Neuron Model Formulation</div>
+          <select class="select-dropdown" id="neuron-model-select">
+            <option value="izhikevich" selected>Izhikevich 2D Dynamical System</option>
+            <option value="lif">Leaky Integrate-and-Fire (LIF + Adapt)</option>
+            <option value="hodgkin">Hodgkin-Huxley Conductance (Na/K/Leak)</option>
+          </select>
+        </div>
+
+        <div class="sidebar-section" id="section-izh-presets">
+          <div class="section-title">Biological Presets</div>
+          <div class="preset-chips">
+            <div class="preset-chip active" data-preset="RS">Regular Spiking (RS)</div>
+            <div class="preset-chip" data-preset="FS">Fast Spiking (FS)</div>
+            <div class="preset-chip" data-preset="IB">Intrinsic Burst (IB)</div>
+            <div class="preset-chip" data-preset="CH">Chattering (CH)</div>
+            <div class="preset-chip" data-preset="TC">Thalamo-Cortical</div>
+            <div class="preset-chip" data-preset="RZ">Resonator (RZ)</div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Electrical Injections</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Injected Current (I_inj)</span>
+              <span class="control-val" id="val-nrn-inj">10.0 pA</span>
+            </div>
+            <input type="range" id="slider-nrn-inj" min="0.0" max="30.0" step="0.5" value="10.0">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Synaptic Noise Level</span>
+              <span class="control-val" id="val-nrn-noise">1.5 pA</span>
+            </div>
+            <input type="range" id="slider-nrn-noise" min="0.0" max="8.0" step="0.2" value="1.5">
+          </div>
+
+          <div style="margin-top: 10px;">
+            <button class="btn btn-primary" id="btn-manual-spike" style="width: 100%; justify-content: center;">
+              Inject Single Pulse (10 ms)
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Dynamical Parameters</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Recovery Scale (a)</span>
+              <span class="control-val" id="val-nrn-a">0.02</span>
+            </div>
+            <input type="range" id="slider-nrn-a" min="0.005" max="0.15" step="0.005" value="0.02">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Recovery Sensitivity (b)</span>
+              <span class="control-val" id="val-nrn-b">0.20</span>
+            </div>
+            <input type="range" id="slider-nrn-b" min="0.10" max="0.35" step="0.01" value="0.20">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Reset Voltage (c)</span>
+              <span class="control-val" id="val-nrn-c">-65 mV</span>
+            </div>
+            <input type="range" id="slider-nrn-c" min="-75" max="-45" step="1" value="-65">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Reset Recovery Jump (d)</span>
+              <span class="control-val" id="val-nrn-d">8.0</span>
+            </div>
+            <input type="range" id="slider-nrn-d" min="0.5" max="12.0" step="0.5" value="8.0">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: STDP Hebbian Plasticity -->
+    <div class="view-panel" id="tab-stdp">
+      <div class="canvas-stage dock-split">
+        <div class="dock-top">
+          <canvas class="stage-canvas" id="canvas-stdp-synapse"></canvas>
+          <div class="canvas-legend">
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #10B981;"></div>
+              <span>Long-Term Potentiation (LTP: &Delta;t > 0, Pre before Post)</span>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #F43F5E;"></div>
+              <span>Long-Term Depression (LTD: &Delta;t < 0, Post before Pre)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dock-bottom">
+          <!-- Left: STDP Exponential Learning Window Curve -->
+          <div class="scope-pane">
+            <div class="scope-title">STDP Plasticity Window &Delta;w(&Delta;t)</div>
+            <canvas class="stage-canvas" id="canvas-stdp-curve"></canvas>
+          </div>
+          <!-- Right: Synaptic Weight History Timeline -->
+          <div class="scope-pane">
+            <div class="scope-title">Synaptic Weight Evolution w(t)</div>
+            <canvas class="stage-canvas" id="canvas-stdp-weight"></canvas>
+          </div>
+        </div>
+
+        <div class="telemetry-strip">
+          <div class="hud-metric cyan">Synaptic Weight w: <span id="hud-stdp-w">0.500</span></div>
+          <div class="hud-metric emerald">Last &Delta;t: <span id="hud-stdp-dt">+12.4 ms</span></div>
+          <div class="hud-metric amber">Net &Delta;w: <span id="hud-stdp-dw">+0.034</span></div>
+          <div class="hud-metric purple">Pre Spikes: <span id="hud-stdp-pre">0</span></div>
+          <div class="hud-metric rose">Post Spikes: <span id="hud-stdp-post">0</span></div>
+        </div>
+      </div>
+
+      <div class="controls-sidebar">
+        <div class="sidebar-section">
+          <div class="section-title">Spike Stimulation Controls</div>
+          <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <button class="btn btn-primary" id="btn-fire-pre" style="flex: 1; justify-content: center;">
+              Fire Pre-Syn
+            </button>
+            <button class="btn" id="btn-fire-post" style="flex: 1; justify-content: center; border-color: var(--accent-purple); color: var(--accent-purple);">
+              Fire Post-Syn
+            </button>
+          </div>
+          <button class="btn" id="btn-fire-pair" style="width: 100%; justify-content: center;">
+            Fire Paired (&Delta;t Delay)
+          </button>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Automated Stimulation Protocol</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Paired Timing Delay (&Delta;t)</span>
+              <span class="control-val" id="val-stdp-delay">+15 ms</span>
+            </div>
+            <input type="range" id="slider-stdp-delay" min="-50" max="50" step="1" value="15">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Continuous Spike Rate</span>
+              <span class="control-val" id="val-stdp-rate">10 Hz</span>
+            </div>
+            <input type="range" id="slider-stdp-rate" min="1" max="40" step="1" value="10">
+          </div>
+
+          <label class="toggle-row" style="margin-top: 12px;">
+            <span>Continuous Train Auto-Fire</span>
+            <div class="switch">
+              <input type="checkbox" id="toggle-stdp-auto">
+              <span class="slider-toggle"></span>
+            </div>
+          </label>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Biophysical STDP Constants</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>LTP Amplitude (A+)</span>
+              <span class="control-val" id="val-stdp-ap">0.08</span>
+            </div>
+            <input type="range" id="slider-stdp-ap" min="0.01" max="0.20" step="0.01" value="0.08">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>LTD Amplitude (A-)</span>
+              <span class="control-val" id="val-stdp-am">0.09</span>
+            </div>
+            <input type="range" id="slider-stdp-am" min="0.01" max="0.20" step="0.01" value="0.09">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Time Constant (&tau;+)</span>
+              <span class="control-val" id="val-stdp-taup">20 ms</span>
+            </div>
+            <input type="range" id="slider-stdp-taup" min="5" max="50" step="1" value="20">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Time Constant (&tau;-)</span>
+              <span class="control-val" id="val-stdp-taum">20 ms</span>
+            </div>
+            <input type="range" id="slider-stdp-taum" min="5" max="50" step="1" value="20">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: 3D Spiking Cortical Column Reservoir (Liquid State Machine) -->
+    <div class="view-panel" id="tab-reservoir">
+      <div class="canvas-stage dock-split">
+        <div class="dock-top">
+          <canvas class="stage-canvas" id="canvas-res-3d"></canvas>
+          <div class="canvas-legend">
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #00F0FF;"></div>
+              <span>Excitatory Neurons (80%)</span>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #F43F5E;"></div>
+              <span>Inhibitory Interneurons (20%)</span>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #F59E0B;"></div>
+              <span>Propagating Axonal Action Potentials</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dock-bottom">
+          <!-- Left: Multi-Channel Spike Raster Plot -->
+          <div class="scope-pane" style="flex: 2;">
+            <div class="scope-title">Spike Raster Plot (64 Neurons)</div>
+            <canvas class="stage-canvas" id="canvas-res-raster"></canvas>
+          </div>
+          <!-- Right: Peristimulus Time Histogram (PSTH) Firing Rate -->
+          <div class="scope-pane" style="flex: 1;">
+            <div class="scope-title">PSTH Population Rate (Hz)</div>
+            <canvas class="stage-canvas" id="canvas-res-psth"></canvas>
+          </div>
+        </div>
+
+        <div class="telemetry-strip">
+          <div class="hud-metric cyan">Active Spikes: <span id="hud-res-spikes">0</span></div>
+          <div class="hud-metric emerald">Network Mean Rate: <span id="hud-res-rate">0.0 Hz</span></div>
+          <div class="hud-metric amber">Synapses: <span id="hud-res-synapses">512</span></div>
+          <div class="hud-metric purple">Excit / Inhib: <span>80% / 20%</span></div>
+        </div>
+      </div>
+
+      <div class="controls-sidebar">
+        <div class="sidebar-section">
+          <div class="section-title">Cortical Reservoir Drive</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Input Sensory Drive</span>
+              <span class="control-val" id="val-res-drive">12.0 pA</span>
+            </div>
+            <input type="range" id="slider-res-drive" min="0" max="30" step="1" value="12">
+          </div>
+
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Recurrent Connection Weight</span>
+              <span class="control-val" id="val-res-weight">1.2x</span>
+            </div>
+            <input type="range" id="slider-res-weight" min="0.2" max="3.0" step="0.1" value="1.2">
+          </div>
+
+          <div style="margin-top: 10px; display: flex; gap: 6px;">
+            <button class="btn btn-primary" id="btn-res-burst" style="flex: 1; justify-content: center;">
+              Inject Burst
+            </button>
+            <button class="btn" id="btn-res-rewire" style="flex: 1; justify-content: center;">
+              Rewire
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">3D Camera Controls</div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Camera Orbit Yaw</span>
+              <span class="control-val" id="val-res-yaw">0 deg</span>
+            </div>
+            <input type="range" id="slider-res-yaw" min="-180" max="180" step="1" value="0">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span>Camera Pitch</span>
+              <span class="control-val" id="val-res-pitch">25 deg</span>
+            </div>
+            <input type="range" id="slider-res-pitch" min="-60" max="80" step="1" value="25">
+          </div>
+          <label class="toggle-row" style="margin-top: 8px;">
+            <span>Auto-Rotate Turntable</span>
+            <div class="switch">
+              <input type="checkbox" id="toggle-res-rotate" checked>
+              <span class="slider-toggle"></span>
+            </div>
+          </label>
+        </div>
+
+        <div class="sidebar-section">
+          <div class="section-title">Topological Architecture</div>
+          <div style="font-size: 11px; line-height: 1.6; color: var(--text-muted); font-family: var(--font-mono);">
+            Column Diameter: 400 &mu;m<br>
+            Cortical Depth: 1200 &mu;m<br>
+            Neuron Density: 64 Somas<br>
+            Topology: Small-World Watts-Strogatz<br>
+            Dale's Principle: Strictly Obeyed
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Audio Context and Interactive Logic -->
+  <script>
+    /* ==========================================================================
+       NeuroMorph Studio - Core Neuromorphic Engine & Visualizer
+       Zero External Dependencies - Pure HTML5 Canvas & Web Audio API
+       ========================================================================== */
+
+    // Global audio context for auditory neurophysiology spike sounds
+    let audioCtx = null;
+    let soundEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) audioCtx = new AudioClass();
+      }
+    }
+
+    function playSpikeClick(pitchMultiplier = 1.0) {
+      if (!soundEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800 * pitchMultiplier, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.015);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.015);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.016);
+      } catch (e) {}
+    }
+
+    // Global application execution state
+    let isRunning = true;
+    let activeTab = 'tab-dvs';
+
+    // Tab switcher logic
+    const navTabs = document.querySelectorAll('.nav-tab');
+    const viewPanels = document.querySelectorAll('.view-panel');
+
+    navTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        navTabs.forEach(t => t.classList.remove('active'));
+        viewPanels.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        activeTab = tab.getAttribute('data-tab');
+        document.getElementById(activeTab).classList.add('active');
+        handleResize();
+      });
+    });
+
+    // Play/Pause button
+    const btnPlay = document.getElementById('btn-play');
+    btnPlay.addEventListener('click', () => {
+      isRunning = !isRunning;
+      btnPlay.textContent = isRunning ? 'Pause' : 'Resume';
+      btnPlay.classList.toggle('btn-primary', isRunning);
+    });
+
+    // Sound toggle
+    const btnSound = document.getElementById('btn-sound');
+    btnSound.addEventListener('click', () => {
+      initAudio();
+      soundEnabled = !soundEnabled;
+      btnSound.textContent = `Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
+      btnSound.classList.toggle('btn-primary', soundEnabled);
+    });
+
+    // Reset button
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      resetCurrentTab();
+    });
+
+    function resetCurrentTab() {
+      if (activeTab === 'tab-dvs') dvsEngine.reset();
+      else if (activeTab === 'tab-neuron') neuronEngine.reset();
+      else if (activeTab === 'tab-stdp') stdpEngine.reset();
+      else if (activeTab === 'tab-reservoir') reservoirEngine.reset();
+    }
+
+    /* ==========================================================================
+       MODULE 1: DVS Silicon Retina & Time-Surface Optical Flow Engine
+       ========================================================================== */
+    class DVSEngine {
+      constructor() {
+        this.canvas = document.getElementById('canvas-dvs');
+        this.ctx = this.canvas.getContext('2d');
+        this.width = 640;
+        this.height = 400;
+
+        // Grid resolution for pixel intensity buffer
+        this.gw = 160;
+        this.gh = 100;
+        this.lastLogI = new Float32Array(this.gw * this.gh);
+        this.timeSurface = new Float32Array(this.gw * this.gh);
+        this.lastEventTime = new Float32Array(this.gw * this.gh);
+        this.events = []; // Ring buffer of recent (x, y, t, pol) events
+
+        // Parameters
+        this.threshold = 0.18;
+        this.tauMs = 45.0;
+        this.refractoryMs = 2.0;
+        this.speed = 1.0;
+        this.stimulusType = 'disc';
+        this.showFlow = true;
+        this.showSurface = true;
+        this.showStimulus = true;
+
+        // Telemetry counters
+        this.onEventsCount = 0;
+        this.offEventsCount = 0;
+        this.eventRateHistory = [];
+        this.lastTelemetryUpdate = performance.now();
+
+        // Interactive mouse stimulus state
+        this.mousePos = { x: 320, y: 200, active: false };
+        this.simTime = 0;
+
+        this.initCanvasEvents();
+      }
+
+      initCanvasEvents() {
+        this.canvas.addEventListener('mousemove', e => {
+          const rect = this.canvas.getBoundingClientRect();
+          this.mousePos.x = (e.clientX - rect.left) * (this.width / rect.width);
+          this.mousePos.y = (e.clientY - rect.top) * (this.height / rect.height);
+          this.mousePos.active = true;
+        });
+
+        this.canvas.addEventListener('mouseleave', () => {
+          this.mousePos.active = false;
+        });
+      }
+
+      reset() {
+        this.lastLogI.fill(0);
+        this.timeSurface.fill(0);
+        this.lastEventTime.fill(-1000);
+        this.events = [];
+        this.onEventsCount = 0;
+        this.offEventsCount = 0;
+        this.simTime = 0;
+      }
+
+      step(dtMs) {
+        if (!isRunning) return;
+        this.simTime += dtMs * 0.001 * this.speed;
+
+        const currentLogI = new Float32Array(this.gw * this.gh);
+        const tNow = this.simTime * 1000; // in milliseconds
+
+        // 1. Synthesize ground-truth visual stimulus intensity map I(x, y)
+        for (let gy = 0; gy < this.gh; gy++) {
+          const py = (gy / this.gh) * this.height;
+          for (let gx = 0; gx < this.gw; gx++) {
+            const px = (gx / this.gw) * this.width;
+            let val = 0.05; // Ambient background
+
+            if (this.stimulusType === 'cursor' && this.mousePos.active) {
+              const dx = px - this.mousePos.x;
+              const dy = py - this.mousePos.y;
+              const dist2 = dx * dx + dy * dy;
+              val += Math.exp(-dist2 / (35 * 35));
+            } else if (this.stimulusType === 'disc') {
+              // Rotating disc with radial sectors
+              const cx = this.width * 0.5;
+              const cy = this.height * 0.5;
+              const dx = px - cx;
+              const dy = py - cy;
+              const r = Math.sqrt(dx * dx + dy * dy);
+              if (r < 110) {
+                const ang = Math.atan2(dy, dx) + this.simTime * 4.0;
+                val += 0.5 + 0.45 * Math.sin(ang * 4.0);
+              }
+            } else if (this.stimulusType === 'bars') {
+              // Translating high-contrast bar grating
+              const phase = px * 0.04 - this.simTime * 8.0;
+              val += 0.5 + 0.48 * Math.sin(phase);
+            } else if (this.stimulusType === 'shapes') {
+              // Orbiting circle and triangle
+              const cx1 = this.width * 0.5 + Math.cos(this.simTime * 2.5) * 120;
+              const cy1 = this.height * 0.5 + Math.sin(this.simTime * 2.5) * 80;
+              const d1 = Math.hypot(px - cx1, py - cy1);
+              if (d1 < 38) val += 0.85;
+
+              const cx2 = this.width * 0.5 - Math.cos(this.simTime * 3.2) * 110;
+              const cy2 = this.height * 0.5 - Math.sin(this.simTime * 3.2) * 70;
+              const d2 = Math.hypot(px - cx2, py - cy2);
+              if (d2 < 28) val += 0.75;
+            } else if (this.stimulusType === 'pendulum') {
+              // Double pendulum head
+              const p1x = this.width * 0.5 + Math.sin(this.simTime * 3.0) * 80;
+              const p1y = 70 + Math.cos(this.simTime * 3.0) * 60;
+              const p2x = p1x + Math.sin(this.simTime * 5.2) * 65;
+              const p2y = p1y + Math.cos(this.simTime * 5.2) * 55;
+              if (Math.hypot(px - p1x, py - p1y) < 22) val += 0.9;
+              if (Math.hypot(px - p2x, py - p2y) < 18) val += 0.95;
+            }
+
+            // Clamped log intensity
+            currentLogI[gy * this.gw + gx] = Math.log(Math.max(0.01, Math.min(1.0, val)));
+          }
+        }
+
+        // 2. Asynchronous Temporal Contrast DVS Thresholding
+        const newEvents = [];
+        for (let gy = 0; gy < this.gh; gy++) {
+          for (let gx = 0; gx < this.gw; gx++) {
+            const idx = gy * this.gw + gx;
+            const deltaLogI = currentLogI[idx] - this.lastLogI[idx];
+            const timeSinceLast = tNow - this.lastEventTime[idx];
+
+            if (timeSinceLast >= this.refractoryMs) {
+              if (deltaLogI >= this.threshold) {
+                // ON Event (+1)
+                newEvents.push({ gx, gy, t: tNow, pol: 1 });
+                this.lastLogI[idx] = currentLogI[idx];
+                this.lastEventTime[idx] = tNow;
+                this.timeSurface[idx] = 1.0;
+                this.onEventsCount++;
+              } else if (deltaLogI <= -this.threshold) {
+                // OFF Event (-1)
+                newEvents.push({ gx, gy, t: tNow, pol: -1 });
+                this.lastLogI[idx] = currentLogI[idx];
+                this.lastEventTime[idx] = tNow;
+                this.timeSurface[idx] = 1.0;
+                this.offEventsCount++;
+              }
+            }
+
+            // Exponential Time Surface decay: S = exp(-(t - t_last)/tau)
+            const dtSur = (tNow - this.lastEventTime[idx]);
+            this.timeSurface[idx] = Math.exp(-dtSur / this.tauMs);
+          }
+        }
+
+        // Keep ring buffer of last 400 events for rendering
+        if (newEvents.length > 0) {
+          this.events.push(...newEvents);
+          if (this.events.length > 600) {
+            this.events.splice(0, this.events.length - 600);
+          }
+          if (soundEnabled && newEvents.length > 10) {
+            playSpikeClick(1.2);
+          }
+        }
+
+        // Telemetry rate calculation (kEPS = kilo-events per second)
+        const now = performance.now();
+        if (now - this.lastTelemetryUpdate > 250) {
+          const totalNew = newEvents.length;
+          const kEPS = (totalNew / (dtMs * 0.001)) / 1000.0;
+          document.getElementById('hud-dvs-rate').textContent = `${kEPS.toFixed(1)} kEPS`;
+          document.getElementById('hud-dvs-on').textContent = this.onEventsCount;
+          document.getElementById('hud-dvs-off').textContent = this.offEventsCount;
+          this.lastTelemetryUpdate = now;
+        }
+      }
+
+      render() {
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const ctx = this.ctx;
+
+        // Dark substrate background
+        ctx.fillStyle = '#04060A';
+        ctx.fillRect(0, 0, w, h);
+
+        const cellW = w / this.gw;
+        const cellH = h / this.gh;
+
+        // 1. Render Time-Surface Heatmap
+        if (this.showSurface) {
+          for (let gy = 0; gy < this.gh; gy += 2) {
+            for (let gx = 0; gx < this.gw; gx += 2) {
+              const val = this.timeSurface[gy * this.gw + gx];
+              if (val > 0.06) {
+                const alpha = val * 0.35;
+                ctx.fillStyle = `rgba(0, 240, 255, ${alpha.toFixed(3)})`;
+                ctx.fillRect(gx * cellW, gy * cellH, cellW * 2, cellH * 2);
+              }
+            }
+          }
+        }
+
+        // 2. Render Asynchronous AER Events
+        for (let ev of this.events) {
+          const age = (this.simTime * 1000 - ev.t) / this.tauMs;
+          if (age >= 1.0) continue;
+          const alpha = 1.0 - age;
+
+          const px = ev.gx * cellW;
+          const py = ev.gy * cellH;
+
+          if (ev.pol === 1) {
+            ctx.fillStyle = `rgba(16, 185, 129, ${alpha.toFixed(3)})`; // Green/cyan ON
+          } else {
+            ctx.fillStyle = `rgba(244, 63, 94, ${alpha.toFixed(3)})`;  // Red/rose OFF
+          }
+          ctx.fillRect(px, py, cellW * 1.5, cellH * 1.5);
+        }
+
+        // 3. Render Optical Flow Velocity Vectors
+        if (this.showFlow) {
+          ctx.lineWidth = 1.5;
+          const stride = 6;
+
+          for (let gy = stride; gy < this.gh - stride; gy += stride) {
+            for (let gx = stride; gx < this.gw - stride; gx += stride) {
+              const idx = gy * this.gw + gx;
+              const sC = this.timeSurface[idx];
+              if (sC < 0.25) continue;
+
+              // Spatial gradient of time surface via central differences
+              const dSdx = (this.timeSurface[idx + 1] - this.timeSurface[idx - 1]) * 0.5;
+              const dSdy = (this.timeSurface[idx + this.gw] - this.timeSurface[idx - this.gw]) * 0.5;
+              const gradMag2 = dSdx * dSdx + dSdy * dSdy;
+
+              if (gradMag2 > 0.005) {
+                // Normal optical flow vector: v = -grad(S) / ||grad(S)||^2
+                const vx = -dSdx / gradMag2;
+                const vy = -dSdy / gradMag2;
+                const speed = Math.sqrt(vx * vx + vy * vy);
+                const maxLen = 24.0;
+                const len = Math.min(maxLen, speed * 0.6);
+
+                const px = gx * cellW;
+                const py = gy * cellH;
+
+                ctx.strokeStyle = '#00F0FF';
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(px + (vx / speed) * len, py + (vy / speed) * len);
+                ctx.stroke();
+
+                // Arrow head dot
+                ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(px + (vx / speed) * len, py + (vy / speed) * len, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* ==========================================================================
+       MODULE 2: Spiking Neuron Dynamics Simulator (LIF / Izhikevich / HH)
+       ========================================================================== */
+    class NeuronDynamicsEngine {
+      constructor() {
+        this.canvasMorph = document.getElementById('canvas-neuron-morph');
+        this.ctxMorph = this.canvasMorph.getContext('2d');
+        this.canvasScope = document.getElementById('canvas-neuron-scope');
+        this.ctxScope = this.canvasScope.getContext('2d');
+        this.canvasPhase = document.getElementById('canvas-neuron-phase');
+        this.ctxPhase = this.canvasPhase.getContext('2d');
+
+        this.model = 'izhikevich';
+        this.preset = 'RS';
+
+        // Izhikevich parameters
+        this.a = 0.02;
+        this.b = 0.20;
+        this.c = -65.0;
+        this.d = 8.0;
+
+        // Dynamical state
+        this.v = -65.0; // Membrane potential in mV
+        this.u = this.b * this.v; // Recovery variable
+        this.iInj = 10.0;
+        this.noise = 1.5;
+        this.vThresh = 30.0;
+
+        // Oscilloscope history ring buffer (300 ms timeline)
+        this.historySize = 400;
+        this.vHistory = new Float32Array(this.historySize);
+        this.uHistory = new Float32Array(this.historySize);
+        this.vHistory.fill(-65.0);
+        this.uHistory.fill(this.b * -65.0);
+        this.head = 0;
+
+        // Spike metrics
+        this.spikeCount = 0;
+        this.spikeTimes = [];
+        this.lastSpikeTime = 0;
+        this.simTime = 0;
+
+        // Visual soma animation state
+        this.somaFlash = 0.0;
+      }
+
+      reset() {
+        this.v = -65.0;
+        this.u = this.b * this.v;
+        this.vHistory.fill(-65.0);
+        this.uHistory.fill(this.u);
+        this.spikeCount = 0;
+        this.spikeTimes = [];
+        this.simTime = 0;
+        this.somaFlash = 0.0;
+      }
+
+      setPreset(key) {
+        this.preset = key;
+        if (key === 'RS') { this.a = 0.02; this.b = 0.20; this.c = -65; this.d = 8.0; }
+        else if (key === 'FS') { this.a = 0.10; this.b = 0.20; this.c = -65; this.d = 2.0; }
+        else if (key === 'IB') { this.a = 0.02; this.b = 0.20; this.c = -55; this.d = 4.0; }
+        else if (key === 'CH') { this.a = 0.02; this.b = 0.20; this.c = -50; this.d = 2.0; }
+        else if (key === 'TC') { this.a = 0.02; this.b = 0.25; this.c = -65; this.d = 0.05; }
+        else if (key === 'RZ') { this.a = 0.10; this.b = 0.26; this.c = -65; this.d = 2.0; }
+
+        document.getElementById('slider-nrn-a').value = this.a;
+        document.getElementById('val-nrn-a').textContent = this.a.toFixed(3);
+        document.getElementById('slider-nrn-b').value = this.b;
+        document.getElementById('val-nrn-b').textContent = this.b.toFixed(2);
+        document.getElementById('slider-nrn-c').value = this.c;
+        document.getElementById('val-nrn-c').textContent = `${this.c} mV`;
+        document.getElementById('slider-nrn-d').value = this.d;
+        document.getElementById('val-nrn-d').textContent = this.d.toFixed(1);
+        this.reset();
+      }
+
+      step(dtMs) {
+        if (!isRunning) return;
+        const dt = 0.5; // sub-stepping at 0.5 ms for numerical stability
+        const steps = Math.max(1, Math.round(dtMs / dt));
+
+        for (let s = 0; s < steps; s++) {
+          this.simTime += dt;
+          const noiseTerm = (Math.random() - 0.5) * 2.0 * this.noise;
+          const current = this.iInj + noiseTerm;
+
+          if (this.model === 'izhikevich') {
+            // Izhikevich 2D non-linear system
+            const dv = 0.04 * this.v * this.v + 5.0 * this.v + 140.0 - this.u + current;
+            const du = this.a * (this.b * this.v - this.u);
+            this.v += dv * dt;
+            this.u += du * dt;
+
+            // Spike threshold condition
+            if (this.v >= this.vThresh) {
+              this.v = this.c;
+              this.u += this.d;
+              this.onSpike();
+            }
+          } else if (this.model === 'lif') {
+            // Leaky Integrate-and-Fire with adaptive threshold
+            const tauM = 20.0;
+            const vRest = -65.0;
+            const dv = (-(this.v - vRest) + current * 1.5) / tauM;
+            this.v += dv * dt;
+
+            if (this.v >= -50.0) {
+              this.v = -70.0;
+              this.onSpike();
+            }
+          }
+
+          // Record history
+          this.vHistory[this.head] = this.v;
+          this.uHistory[this.head] = this.u;
+          this.head = (this.head + 1) % this.historySize;
+        }
+
+        this.somaFlash = Math.max(0.0, this.somaFlash - dtMs * 0.005);
+
+        // Update telemetry
+        document.getElementById('hud-nrn-v').textContent = `${this.v.toFixed(1)} mV`;
+        document.getElementById('hud-nrn-count').textContent = this.spikeCount;
+
+        // Firing rate calculation
+        const recentSpikes = this.spikeTimes.filter(t => this.simTime - t < 1000);
+        document.getElementById('hud-nrn-rate').textContent = `${recentSpikes.length} Hz`;
+
+        if (this.spikeTimes.length >= 2) {
+          const lastISI = this.spikeTimes[this.spikeTimes.length - 1] - this.spikeTimes[this.spikeTimes.length - 2];
+          document.getElementById('hud-nrn-isi').textContent = `${lastISI.toFixed(1)} ms`;
+        }
+      }
+
+      onSpike() {
+        this.spikeCount++;
+        this.spikeTimes.push(this.simTime);
+        if (this.spikeTimes.length > 50) this.spikeTimes.shift();
+        this.somaFlash = 1.0;
+        if (soundEnabled) playSpikeClick(1.0);
+      }
+
+      render() {
+        this.renderMorph();
+        this.renderScope();
+        this.renderPhase();
+      }
+
+      renderMorph() {
+        const w = this.canvasMorph.width;
+        const h = this.canvasMorph.height;
+        const ctx = this.ctxMorph;
+
+        ctx.fillStyle = '#05080E';
+        ctx.fillRect(0, 0, w, h);
+
+        const cx = w * 0.45;
+        const cy = h * 0.5;
+
+        // Render branching dendrite arbor
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+        ctx.lineWidth = 2;
+
+        const drawBranch = (x, y, angle, length, depth) => {
+          if (depth <= 0) return;
+          const x2 = x + Math.cos(angle) * length;
+          const y2 = y + Math.sin(angle) * length;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+
+          drawBranch(x2, y2, angle - 0.35, length * 0.75, depth - 1);
+          drawBranch(x2, y2, angle + 0.35, length * 0.75, depth - 1);
+        };
+
+        // Left dendrite branches
+        drawBranch(cx - 30, cy, Math.PI * 0.85, 45, 3);
+        drawBranch(cx - 30, cy, Math.PI * 1.15, 45, 3);
+
+        // Right long axon with myelin sheaths
+        const axonLen = w * 0.42;
+        ctx.strokeStyle = '#1E293B';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx + 30, cy);
+        ctx.lineTo(cx + 30 + axonLen, cy);
+        ctx.stroke();
+
+        // Myelin sheaths
+        for (let ax = cx + 50; ax < cx + 25 + axonLen; ax += 35) {
+          ctx.fillStyle = '#0E1726';
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 1.5;
+          ctx.fillRect(ax, cy - 6, 26, 12);
+          ctx.strokeRect(ax, cy - 6, 26, 12);
+        }
+
+        // Active propagating action potential along axon
+        if (this.somaFlash > 0.05) {
+          const apPos = cx + 30 + (1.0 - this.somaFlash) * axonLen;
+          ctx.fillStyle = '#00F0FF';
+          ctx.shadowColor = '#00F0FF';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(apPos, cy, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        // Central biological soma body
+        const somaRadius = 26 + this.somaFlash * 8;
+        const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, somaRadius * 1.4);
+        if (this.somaFlash > 0.1) {
+          grad.addColorStop(0, '#FFFFFF');
+          grad.addColorStop(0.5, '#00F0FF');
+          grad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+        } else {
+          grad.addColorStop(0, '#10B981');
+          grad.addColorStop(0.7, '#064E3B');
+          grad.addColorStop(1, 'rgba(6, 78, 59, 0)');
+        }
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, somaRadius * 1.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = this.somaFlash > 0.1 ? '#00F0FF' : '#10B981';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, somaRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Nucleus label
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText('SOMA', cx - 14, cy + 4);
+      }
+
+      renderScope() {
+        const w = this.canvasScope.width;
+        const h = this.canvasScope.height;
+        const ctx = this.ctxScope;
+
+        ctx.fillStyle = '#05070D';
+        ctx.fillRect(0, 0, w, h);
+
+        // Scope graticule
+        ctx.strokeStyle = '#0E1726';
+        ctx.lineWidth = 1;
+        for (let y = 0; y < h; y += 30) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        }
+        for (let x = 0; x < w; x += 40) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+        }
+
+        // Map voltage -85 mV to +40 mV to canvas Y
+        const vMin = -90.0, vMax = 40.0;
+        const mapY = val => h - ((val - vMin) / (vMax - vMin)) * h;
+
+        // Draw -65 mV rest line and +30 mV threshold line
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+        ctx.setLineDash([4, 4]);
+        const yThresh = mapY(this.vThresh);
+        ctx.beginPath(); ctx.moveTo(0, yThresh); ctx.lineTo(w, yThresh); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw trace
+        ctx.strokeStyle = '#00F0FF';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+
+        for (let i = 0; i < this.historySize; i++) {
+          const idx = (this.head + i) % this.historySize;
+          const x = (i / this.historySize) * w;
+          const y = mapY(this.vHistory[idx]);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      renderPhase() {
+        const w = this.canvasPhase.width;
+        const h = this.canvasPhase.height;
+        const ctx = this.ctxPhase;
+
+        ctx.fillStyle = '#05070D';
+        ctx.fillRect(0, 0, w, h);
+
+        // Map V (-90 to +40 mV) on X, and u (-20 to +20) on Y
+        const vMin = -90.0, vMax = 40.0;
+        const uMin = -20.0, uMax = 20.0;
+        const mapX = val => ((val - vMin) / (vMax - vMin)) * w;
+        const mapY = val => h - ((val - uMin) / (uMax - uMin)) * h;
+
+        // Axis crosshair
+        ctx.strokeStyle = '#141C2E';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mapX(-65), 0); ctx.lineTo(mapX(-65), h);
+        ctx.moveTo(0, mapY(0)); ctx.lineTo(w, mapY(0));
+        ctx.stroke();
+
+        // Phase portrait trajectory curve
+        ctx.strokeStyle = '#A855F7';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+
+        for (let i = 0; i < this.historySize; i++) {
+          const idx = (this.head + i) % this.historySize;
+          const x = mapX(this.vHistory[idx]);
+          const y = mapY(this.uHistory[idx]);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Current phase state marker
+        const curX = mapX(this.v);
+        const curY = mapY(this.u);
+        ctx.fillStyle = '#00F0FF';
+        ctx.beginPath();
+        ctx.arc(curX, curY, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    /* ==========================================================================
+       MODULE 3: STDP Hebbian Synaptic Plasticity Laboratory
+       ========================================================================== */
+    class STDPEngine {
+      constructor() {
+        this.canvasSynapse = document.getElementById('canvas-stdp-synapse');
+        this.ctxSynapse = this.canvasSynapse.getContext('2d');
+        this.canvasCurve = document.getElementById('canvas-stdp-curve');
+        this.ctxCurve = this.canvasCurve.getContext('2d');
+        this.canvasWeight = document.getElementById('canvas-stdp-weight');
+        this.ctxWeight = this.canvasWeight.getContext('2d');
+
+        // Biophysical constants
+        this.aPlus = 0.08;
+        this.aMinus = 0.09;
+        this.tauPlus = 20.0;
+        this.tauMinus = 20.0;
+        this.weight = 0.50; // Initial normalized synaptic weight (0.0 to 1.0)
+
+        // Paired stimulation timing
+        this.pairDeltaT = 15.0; // in milliseconds
+        this.autoTrain = false;
+        this.trainRate = 10.0;
+
+        // Telemetry state
+        this.preSpikeTimes = [];
+        this.postSpikeTimes = [];
+        this.weightHistory = [];
+        this.lastDeltaT = 0;
+        this.lastDeltaW = 0;
+        this.simTime = 0;
+        this.lastAutoFire = 0;
+
+        // Animation flashes
+        this.flashPre = 0;
+        this.flashPost = 0;
+      }
+
+      reset() {
+        this.weight = 0.50;
+        this.preSpikeTimes = [];
+        this.postSpikeTimes = [];
+        this.weightHistory = [];
+        this.lastDeltaT = 0;
+        this.lastDeltaW = 0;
+        this.simTime = 0;
+        this.flashPre = 0;
+        this.flashPost = 0;
+      }
+
+      firePre() {
+        this.preSpikeTimes.push(this.simTime);
+        this.flashPre = 1.0;
+        if (soundEnabled) playSpikeClick(1.2);
+
+        // Check recent post spikes for Long-Term Depression (LTD: Post before Pre, dt < 0)
+        if (this.postSpikeTimes.length > 0) {
+          const tPost = this.postSpikeTimes[this.postSpikeTimes.length - 1];
+          const dt = tPost - this.simTime; // negative
+          if (dt < 0 && dt > -100) {
+            const dw = -this.aMinus * Math.exp(dt / this.tauMinus);
+            this.applyWeightChange(dw, dt);
+          }
+        }
+      }
+
+      firePost() {
+        this.postSpikeTimes.push(this.simTime);
+        this.flashPost = 1.0;
+        if (soundEnabled) playSpikeClick(0.9);
+
+        // Check recent pre spikes for Long-Term Potentiation (LTP: Pre before Post, dt > 0)
+        if (this.preSpikeTimes.length > 0) {
+          const tPre = this.preSpikeTimes[this.preSpikeTimes.length - 1];
+          const dt = this.simTime - tPre; // positive
+          if (dt > 0 && dt < 100) {
+            const dw = this.aPlus * Math.exp(-dt / this.tauPlus);
+            this.applyWeightChange(dw, dt);
+          }
+        }
+      }
+
+      firePaired() {
+        // Schedule pre and post separated by this.pairDeltaT
+        if (this.pairDeltaT >= 0) {
+          this.firePre();
+          setTimeout(() => this.firePost(), Math.max(1, this.pairDeltaT));
+        } else {
+          this.firePost();
+          setTimeout(() => this.firePre(), Math.max(1, Math.abs(this.pairDeltaT)));
+        }
+      }
+
+      applyWeightChange(dw, dt) {
+        this.lastDeltaW = dw;
+        this.lastDeltaT = dt;
+        this.weight = Math.max(0.01, Math.min(1.0, this.weight + dw));
+        this.weightHistory.push({ t: this.simTime, w: this.weight, dw: dw });
+        if (this.weightHistory.length > 200) this.weightHistory.shift();
+
+        document.getElementById('hud-stdp-w').textContent = this.weight.toFixed(3);
+        document.getElementById('hud-stdp-dt').textContent = `${dt >= 0 ? '+' : ''}${dt.toFixed(1)} ms`;
+        document.getElementById('hud-stdp-dw').textContent = `${dw >= 0 ? '+' : ''}${dw.toFixed(3)}`;
+      }
+
+      step(dtMs) {
+        if (!isRunning) return;
+        this.simTime += dtMs;
+        this.flashPre = Math.max(0, this.flashPre - dtMs * 0.006);
+        this.flashPost = Math.max(0, this.flashPost - dtMs * 0.006);
+
+        if (this.autoTrain) {
+          const interval = 1000.0 / this.trainRate;
+          if (this.simTime - this.lastAutoFire >= interval) {
+            this.firePaired();
+            this.lastAutoFire = this.simTime;
+          }
+        }
+
+        document.getElementById('hud-stdp-pre').textContent = this.preSpikeTimes.length;
+        document.getElementById('hud-stdp-post').textContent = this.postSpikeTimes.length;
+      }
+
+      render() {
+        this.renderSynapse();
+        this.renderCurve();
+        this.renderWeight();
+      }
+
+      renderSynapse() {
+        const w = this.canvasSynapse.width;
+        const h = this.canvasSynapse.height;
+        const ctx = this.ctxSynapse;
+
+        ctx.fillStyle = '#05080E';
+        ctx.fillRect(0, 0, w, h);
+
+        const cx = w * 0.5;
+        const cy = h * 0.48;
+
+        // Pre-synaptic axon terminal (left bulb)
+        ctx.fillStyle = this.flashPre > 0.1 ? '#10B981' : '#064E3B';
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(cx - 70, cy, 38, 48, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('PRE', cx - 82, cy + 4);
+
+        // Post-synaptic dendritic spine (right cup)
+        ctx.fillStyle = this.flashPost > 0.1 ? '#A855F7' : '#581C87';
+        ctx.strokeStyle = '#A855F7';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(cx + 70, cy, 38, 48, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillText('POST', cx + 55, cy + 4);
+
+        // Synaptic cleft gap and neurotransmitter vesicle pool
+        const cleftW = 40;
+        const numVesicles = Math.round(this.weight * 28);
+        ctx.fillStyle = '#F59E0B';
+
+        for (let i = 0; i < numVesicles; i++) {
+          const vx = cx - 20 + Math.sin(i * 3.7) * 16;
+          const vy = cy + Math.cos(i * 2.1) * 32;
+          ctx.beginPath();
+          ctx.arc(vx, vy, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Synaptic weight gauge bar
+        const bw = 160, bh = 14;
+        const bx = cx - bw * 0.5, by = h - 35;
+        ctx.fillStyle = '#0B1220';
+        ctx.fillRect(bx, by, bw, bh);
+        ctx.strokeStyle = '#1A233A';
+        ctx.strokeRect(bx, by, bw, bh);
+
+        ctx.fillStyle = '#00F0FF';
+        ctx.fillRect(bx, by, bw * this.weight, bh);
+
+        ctx.fillStyle = '#8292B0';
+        ctx.font = '10px monospace';
+        ctx.fillText(`SYNAPTIC EFFICACY: ${(this.weight * 100).toFixed(1)}%`, bx + 12, by - 6);
+      }
+
+      renderCurve() {
+        const w = this.canvasCurve.width;
+        const h = this.canvasCurve.height;
+        const ctx = this.ctxCurve;
+
+        ctx.fillStyle = '#05070D';
+        ctx.fillRect(0, 0, w, h);
+
+        const midX = w * 0.5;
+        const midY = h * 0.5;
+
+        // Zero axes
+        ctx.strokeStyle = '#141C2E';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, midY); ctx.lineTo(w, midY);
+        ctx.moveTo(midX, 0); ctx.lineTo(midX, h);
+        ctx.stroke();
+
+        // Draw analytical STDP exponential window curve
+        // Right side (LTP): dw = A+ * exp(-dt/tau+)
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let x = midX; x < w; x++) {
+          const dt = ((x - midX) / (w * 0.5)) * 60.0; // 0 to +60 ms
+          const dw = this.aPlus * Math.exp(-dt / this.tauPlus);
+          const y = midY - (dw / 0.15) * (h * 0.45);
+          if (x === midX) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Left side (LTD): dw = -A- * exp(dt/tau-)
+        ctx.strokeStyle = '#F43F5E';
+        ctx.beginPath();
+        for (let x = 0; x <= midX; x++) {
+          const dt = ((x - midX) / (w * 0.5)) * 60.0; // -60 to 0 ms
+          const dw = -this.aMinus * Math.exp(dt / this.tauMinus);
+          const y = midY - (dw / 0.15) * (h * 0.45);
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Marker for currently selected pair delay
+        const markerX = midX + (this.pairDeltaT / 60.0) * (w * 0.5);
+        ctx.strokeStyle = '#00F0FF';
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(markerX, 0); ctx.lineTo(markerX, h); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      renderWeight() {
+        const w = this.canvasWeight.width;
+        const h = this.canvasWeight.height;
+        const ctx = this.ctxWeight;
+
+        ctx.fillStyle = '#05070D';
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = '#141C2E';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, h * 0.5); ctx.lineTo(w, h * 0.5); ctx.stroke();
+
+        if (this.weightHistory.length < 2) return;
+
+        ctx.strokeStyle = '#00F0FF';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        for (let i = 0; i < this.weightHistory.length; i++) {
+          const entry = this.weightHistory[i];
+          const x = (i / (this.weightHistory.length - 1)) * w;
+          const y = h - entry.w * h;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+    }
+
+    /* ==========================================================================
+       MODULE 4: 3D Spiking Cortical Column Reservoir (Liquid State Machine)
+       ========================================================================== */
+    class CorticalReservoirEngine {
+      constructor() {
+        this.canvas3D = document.getElementById('canvas-res-3d');
+        this.ctx3D = this.canvas3D.getContext('2d');
+        this.canvasRaster = document.getElementById('canvas-res-raster');
+        this.ctxRaster = this.canvasRaster.getContext('2d');
+        this.canvasPSTH = document.getElementById('canvas-res-psth');
+        this.ctxPSTH = this.canvasPSTH.getContext('2d');
+
+        this.numNeurons = 64;
+        this.neurons = [];
+        this.synapses = [];
+        this.actionPotentials = []; // Moving pulse wave packets along axons
+
+        // 3D camera angles
+        this.yaw = 0.0;
+        this.pitch = 0.45;
+        this.autoRotate = true;
+
+        // Simulation parameters
+        this.inputDrive = 12.0;
+        this.weightScale = 1.2;
+        this.simTime = 0;
+
+        // Raster plot history ring buffer
+        this.rasterHistory = []; // { t, neuronId, type }
+        this.psthHistory = new Float32Array(80); // 80 time bins
+
+        this.buildCorticalTopology();
+      }
+
+      buildCorticalTopology() {
+        this.neurons = [];
+        this.synapses = [];
+        this.actionPotentials = [];
+
+        // Distribute 64 neurons in a 3D cortical cylinder:
+        // Radius R = 140 um, Depth Z = -160 to +160 um
+        for (let i = 0; i < this.numNeurons; i++) {
+          const isExcitatory = i < Math.round(this.numNeurons * 0.80); // 80% Dale principle
+          const r = Math.sqrt(Math.random()) * 130;
+          const theta = Math.random() * Math.PI * 2;
+          const x = r * Math.cos(theta);
+          const y = r * Math.sin(theta);
+          const z = (Math.random() - 0.5) * 280;
+
+          this.neurons.push({
+            id: i,
+            x, y, z,
+            isExc: isExcitatory,
+            v: -65.0 + Math.random() * 5.0,
+            u: 0.2 * -65.0,
+            a: isExcitatory ? 0.02 : 0.10,
+            b: 0.20,
+            c: -65.0,
+            d: isExcitatory ? 8.0 : 2.0,
+            flash: 0.0
+          });
+        }
+
+        // Small-world Watts-Strogatz connectivity:
+        // Probability P(d) = C * exp(-(d/lambda)^2)
+        const lambda = 90.0;
+        for (let i = 0; i < this.numNeurons; i++) {
+          for (let j = 0; j < this.numNeurons; j++) {
+            if (i === j) continue;
+            const ni = this.neurons[i];
+            const nj = this.neurons[j];
+            const dist = Math.hypot(ni.x - nj.x, ni.y - nj.y, ni.z - nj.z);
+            const prob = 0.25 * Math.exp(-(dist * dist) / (lambda * lambda));
+
+            if (Math.random() < prob) {
+              const weight = (ni.isExc ? 1.0 : -1.8) * (0.8 + Math.random() * 0.4);
+              this.synapses.push({ pre: i, post: j, w: weight, dist: dist });
+            }
+          }
+        }
+
+        document.getElementById('hud-res-synapses').textContent = this.synapses.length;
+      }
+
+      reset() {
+        this.buildCorticalTopology();
+        this.rasterHistory = [];
+        this.psthHistory.fill(0);
+        this.simTime = 0;
+      }
+
+      injectBurst() {
+        // Inject high current into random subset of neurons
+        for (let n of this.neurons) {
+          if (Math.random() < 0.4) {
+            n.v += 25.0;
+          }
+        }
+      }
+
+      step(dtMs) {
+        if (!isRunning) return;
+        this.simTime += dtMs;
+
+        if (this.autoRotate) {
+          this.yaw += dtMs * 0.0006;
+        }
+
+        // 1. Update propagating action potentials along axons
+        const speed = 250.0; // um per millisecond
+        for (let k = this.actionPotentials.length - 1; k >= 0; k--) {
+          const ap = this.actionPotentials[k];
+          ap.prog += (speed * dtMs * 0.001) / ap.dist;
+
+          if (ap.prog >= 1.0) {
+            // Pulse arrived at post-synaptic soma
+            const postNeuron = this.neurons[ap.post];
+            postNeuron.v += ap.w * 3.5 * this.weightScale;
+            this.actionPotentials.splice(k, 1);
+          }
+        }
+
+        let spikeCountThisTick = 0;
+
+        // 2. Integrate spiking dynamics (Izhikevich) for all 64 neurons
+        for (let n of this.neurons) {
+          const noise = (Math.random() - 0.5) * 4.0;
+          const drive = (Math.random() < 0.3) ? this.inputDrive : 0.0;
+          const I = drive + noise;
+
+          const dv = 0.04 * n.v * n.v + 5.0 * n.v + 140.0 - n.u + I;
+          const du = n.a * (n.b * n.v - n.u);
+          n.v += dv * 0.5;
+          n.u += du * 0.5;
+          n.flash = Math.max(0.0, n.flash - dtMs * 0.008);
+
+          // Spike triggered
+          if (n.v >= 30.0) {
+            n.v = n.c;
+            n.u += n.d;
+            n.flash = 1.0;
+            spikeCountThisTick++;
+
+            // Record to raster plot
+            this.rasterHistory.push({ t: this.simTime, id: n.id, isExc: n.isExc });
+
+            // Launch axonal pulses across outbound synapses
+            for (let syn of this.synapses) {
+              if (syn.pre === n.id) {
+                this.actionPotentials.push({
+                  pre: syn.pre,
+                  post: syn.post,
+                  dist: syn.dist,
+                  w: syn.w,
+                  prog: 0.0
+                });
+              }
+            }
+          }
+        }
+
+        // Keep raster history to last 500 spikes
+        if (this.rasterHistory.length > 500) {
+          this.rasterHistory.splice(0, this.rasterHistory.length - 500);
+        }
+
+        if (spikeCountThisTick > 0 && soundEnabled) {
+          playSpikeClick(0.7 + Math.random() * 0.6);
+        }
+
+        // Update PSTH histogram bins
+        const binIdx = Math.floor((this.simTime * 0.02) % this.psthHistory.length);
+        this.psthHistory[binIdx] = spikeCountThisTick;
+
+        // Update telemetry
+        document.getElementById('hud-res-spikes').textContent = this.actionPotentials.length;
+        const recentSpikes = this.rasterHistory.filter(s => this.simTime - s.t < 500);
+        const meanRate = (recentSpikes.length / 0.5) / this.numNeurons;
+        document.getElementById('hud-res-rate').textContent = `${meanRate.toFixed(1)} Hz`;
+      }
+
+      render() {
+        this.render3D();
+        this.renderRaster();
+        this.renderPSTH();
+      }
+
+      render3D() {
+        const w = this.canvas3D.width;
+        const h = this.canvas3D.height;
+        const ctx = this.ctx3D;
+
+        ctx.fillStyle = '#05070E';
+        ctx.fillRect(0, 0, w, h);
+
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+
+        // 3D perspective camera transformation
+        const cosY = Math.cos(this.yaw), sinY = Math.sin(this.yaw);
+        const cosP = Math.cos(this.pitch), sinP = Math.sin(this.pitch);
+
+        const project = (x, y, z) => {
+          // Rotate yaw around Z
+          const rx = x * cosY - y * sinY;
+          const ry = x * sinY + y * cosY;
+          const rz = z;
+
+          // Pitch around X
+          const px = rx;
+          const py = ry * cosP - rz * sinP;
+          const pz = ry * sinP + rz * cosP + 450.0; // Distance
+
+          const scale = 500.0 / pz;
+          return { sx: cx + px * scale, sy: cy - py * scale, pz, scale };
+        };
+
+        // 1. Draw cortical bounding cylinder rings
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+        ctx.lineWidth = 1;
+        const ringZ = [-140, 0, 140];
+        for (let rz of ringZ) {
+          ctx.beginPath();
+          for (let a = 0; a <= Math.PI * 2; a += 0.2) {
+            const pt = project(Math.cos(a) * 140, Math.sin(a) * 140, rz);
+            if (a === 0) ctx.moveTo(pt.sx, pt.sy);
+            else ctx.lineTo(pt.sx, pt.sy);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+
+        // 2. Draw synaptic connection lines
+        ctx.lineWidth = 0.8;
+        for (let syn of this.synapses) {
+          const n1 = this.neurons[syn.pre];
+          const n2 = this.neurons[syn.post];
+          const p1 = project(n1.x, n1.y, n1.z);
+          const p2 = project(n2.x, n2.y, n2.z);
+
+          if (n1.isExc) {
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
+          } else {
+            ctx.strokeStyle = 'rgba(244, 63, 94, 0.08)';
+          }
+          ctx.beginPath();
+          ctx.moveTo(p1.sx, p1.sy);
+          ctx.lineTo(p2.sx, p2.sy);
+          ctx.stroke();
+        }
+
+        // 3. Draw moving action potential wave packets
+        ctx.fillStyle = '#F59E0B';
+        for (let ap of this.actionPotentials) {
+          const n1 = this.neurons[ap.pre];
+          const n2 = this.neurons[ap.post];
+          const curX = n1.x + (n2.x - n1.x) * ap.prog;
+          const curY = n1.y + (n2.y - n1.y) * ap.prog;
+          const curZ = n1.z + (n2.z - n1.z) * ap.prog;
+          const pt = project(curX, curY, curZ);
+
+          ctx.beginPath();
+          ctx.arc(pt.sx, pt.sy, 2.5 * pt.scale, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // 4. Draw neuron somas sorted by depth
+        const sortedNeurons = [...this.neurons].map(n => {
+          const proj = project(n.x, n.y, n.z);
+          return { ...n, proj };
+        }).sort((a, b) => b.proj.pz - a.proj.pz);
+
+        for (let n of sortedNeurons) {
+          const rad = (n.isExc ? 4.5 : 3.8) * n.proj.scale;
+          const p = n.proj;
+
+          if (n.flash > 0.05) {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.shadowColor = n.isExc ? '#00F0FF' : '#F43F5E';
+            ctx.shadowBlur = 10;
+          } else if (n.isExc) {
+            ctx.fillStyle = '#00F0FF';
+            ctx.shadowBlur = 0;
+          } else {
+            ctx.fillStyle = '#F43F5E';
+            ctx.shadowBlur = 0;
+          }
+
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, rad, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      renderRaster() {
+        const w = this.canvasRaster.width;
+        const h = this.canvasRaster.height;
+        const ctx = this.ctxRaster;
+
+        ctx.fillStyle = '#05070D';
+        ctx.fillRect(0, 0, w, h);
+
+        const windowMs = 1500.0;
+        const now = this.simTime;
+
+        // Draw spikes as tick marks
+        for (let s of this.rasterHistory) {
+          const age = now - s.t;
+          if (age < 0 || age > windowMs) continue;
+
+          const x = w - (age / windowMs) * w;
+          const y = (s.id / this.numNeurons) * h;
+
+          ctx.fillStyle = s.isExc ? '#00F0FF' : '#F43F5E';
+          ctx.fillRect(x, y, 2, h / this.numNeurons);
+        }
+      }
+
+      renderPSTH() {
+        const w = this.canvasPSTH.width;
+        const h = this.canvasPSTH.height;
+        const ctx = this.ctxPSTH;
+
+        ctx.fillStyle = '#05070D';
+        ctx.fillRect(0, 0, w, h);
+
+        const numBins = this.psthHistory.length;
+        const barW = w / numBins;
+
+        ctx.fillStyle = '#10B981';
+        for (let i = 0; i < numBins; i++) {
+          const val = this.psthHistory[i];
+          const barH = Math.min(h, val * 12.0);
+          ctx.fillRect(i * barW, h - barH, barW - 1, barH);
+        }
+      }
+    }
+
+    // Instantiation
+    const dvsEngine = new DVSEngine();
+    const neuronEngine = new NeuronDynamicsEngine();
+    const stdpEngine = new STDPEngine();
+    const reservoirEngine = new CorticalReservoirEngine();
+
+    // Canvas size responsiveness
+    function handleResize() {
+      const canvases = [
+        dvsEngine.canvas,
+        neuronEngine.canvasMorph,
+        neuronEngine.canvasScope,
+        neuronEngine.canvasPhase,
+        stdpEngine.canvasSynapse,
+        stdpEngine.canvasCurve,
+        stdpEngine.canvasWeight,
+        reservoirEngine.canvas3D,
+        reservoirEngine.canvasRaster,
+        reservoirEngine.canvasPSTH
+      ];
+
+      canvases.forEach(c => {
+        if (c && c.parentElement) {
+          c.width = c.clientWidth;
+          c.height = c.clientHeight;
+        }
+      });
+
+      if (dvsEngine.canvas) {
+        dvsEngine.width = dvsEngine.canvas.width;
+        dvsEngine.height = dvsEngine.canvas.height;
+      }
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    // UI Sliders & Controls Binding
+    // DVS tab bindings
+    document.getElementById('dvs-stimulus-select').addEventListener('change', e => {
+      dvsEngine.stimulusType = e.target.value;
+    });
+    document.getElementById('slider-dvs-thresh').addEventListener('input', e => {
+      dvsEngine.threshold = parseFloat(e.target.value);
+      document.getElementById('val-dvs-thresh').textContent = dvsEngine.threshold.toFixed(2);
+    });
+    document.getElementById('slider-dvs-tau').addEventListener('input', e => {
+      dvsEngine.tauMs = parseFloat(e.target.value);
+      document.getElementById('val-dvs-tau').textContent = `${dvsEngine.tauMs} ms`;
+      document.getElementById('hud-dvs-tau').textContent = `${dvsEngine.tauMs} ms`;
+    });
+    document.getElementById('slider-dvs-refract').addEventListener('input', e => {
+      dvsEngine.refractoryMs = parseFloat(e.target.value);
+      document.getElementById('val-dvs-refract').textContent = `${dvsEngine.refractoryMs.toFixed(1)} ms`;
+    });
+    document.getElementById('slider-dvs-speed').addEventListener('input', e => {
+      dvsEngine.speed = parseFloat(e.target.value);
+      document.getElementById('val-dvs-speed').textContent = `${dvsEngine.speed.toFixed(1)}x`;
+    });
+    document.getElementById('toggle-dvs-flow').addEventListener('change', e => {
+      dvsEngine.showFlow = e.target.checked;
+    });
+    document.getElementById('toggle-dvs-surface').addEventListener('change', e => {
+      dvsEngine.showSurface = e.target.checked;
+    });
+
+    // Neuron tab bindings
+    document.getElementById('neuron-model-select').addEventListener('change', e => {
+      neuronEngine.model = e.target.value;
+      const izhSection = document.getElementById('section-izh-presets');
+      izhSection.style.display = (neuronEngine.model === 'izhikevich') ? 'block' : 'none';
+      neuronEngine.reset();
+    });
+
+    document.querySelectorAll('#section-izh-presets .preset-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('#section-izh-presets .preset-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        neuronEngine.setPreset(chip.getAttribute('data-preset'));
+      });
+    });
+
+    document.getElementById('slider-nrn-inj').addEventListener('input', e => {
+      neuronEngine.iInj = parseFloat(e.target.value);
+      document.getElementById('val-nrn-inj').textContent = `${neuronEngine.iInj.toFixed(1)} pA`;
+    });
+    document.getElementById('slider-nrn-noise').addEventListener('input', e => {
+      neuronEngine.noise = parseFloat(e.target.value);
+      document.getElementById('val-nrn-noise').textContent = `${neuronEngine.noise.toFixed(1)} pA`;
+    });
+    document.getElementById('btn-manual-spike').addEventListener('click', () => {
+      neuronEngine.v += 30.0;
+    });
+
+    // STDP tab bindings
+    document.getElementById('btn-fire-pre').addEventListener('click', () => stdpEngine.firePre());
+    document.getElementById('btn-fire-post').addEventListener('click', () => stdpEngine.firePost());
+    document.getElementById('btn-fire-pair').addEventListener('click', () => stdpEngine.firePaired());
+    document.getElementById('slider-stdp-delay').addEventListener('input', e => {
+      stdpEngine.pairDeltaT = parseFloat(e.target.value);
+      document.getElementById('val-stdp-delay').textContent = `${stdpEngine.pairDeltaT >= 0 ? '+' : ''}${stdpEngine.pairDeltaT} ms`;
+    });
+    document.getElementById('slider-stdp-rate').addEventListener('input', e => {
+      stdpEngine.trainRate = parseFloat(e.target.value);
+      document.getElementById('val-stdp-rate').textContent = `${stdpEngine.trainRate} Hz`;
+    });
+    document.getElementById('toggle-stdp-auto').addEventListener('change', e => {
+      stdpEngine.autoTrain = e.target.checked;
+    });
+
+    // Reservoir tab bindings
+    document.getElementById('slider-res-drive').addEventListener('input', e => {
+      reservoirEngine.inputDrive = parseFloat(e.target.value);
+      document.getElementById('val-res-drive').textContent = `${reservoirEngine.inputDrive.toFixed(0)} pA`;
+    });
+    document.getElementById('slider-res-weight').addEventListener('input', e => {
+      reservoirEngine.weightScale = parseFloat(e.target.value);
+      document.getElementById('val-res-weight').textContent = `${reservoirEngine.weightScale.toFixed(1)}x`;
+    });
+    document.getElementById('btn-res-burst').addEventListener('click', () => reservoirEngine.injectBurst());
+    document.getElementById('btn-res-rewire').addEventListener('click', () => reservoirEngine.reset());
+    document.getElementById('slider-res-yaw').addEventListener('input', e => {
+      reservoirEngine.yaw = parseFloat(e.target.value) * (Math.PI / 180);
+      document.getElementById('val-res-yaw').textContent = `${e.target.value} deg`;
+    });
+    document.getElementById('slider-res-pitch').addEventListener('input', e => {
+      reservoirEngine.pitch = parseFloat(e.target.value) * (Math.PI / 180);
+      document.getElementById('val-res-pitch').textContent = `${e.target.value} deg`;
+    });
+    document.getElementById('toggle-res-rotate').addEventListener('change', e => {
+      reservoirEngine.autoRotate = e.target.checked;
+    });
+
+    // Main real-time continuous animation loop
+    let lastFrameTime = performance.now();
+
+    function mainLoop(now) {
+      const dtMs = Math.min(50.0, now - lastFrameTime);
+      lastFrameTime = now;
+
+      if (activeTab === 'tab-dvs') {
+        dvsEngine.step(dtMs);
+        dvsEngine.render();
+      } else if (activeTab === 'tab-neuron') {
+        neuronEngine.step(dtMs);
+        neuronEngine.render();
+      } else if (activeTab === 'tab-stdp') {
+        stdpEngine.step(dtMs);
+        stdpEngine.render();
+      } else if (activeTab === 'tab-reservoir') {
+        reservoirEngine.step(dtMs);
+        reservoirEngine.render();
+      }
+
+      requestAnimationFrame(mainLoop);
+    }
+
+    requestAnimationFrame(mainLoop);
+  </script>
+</body>
+</html>

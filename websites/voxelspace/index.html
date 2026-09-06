@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoxelSpace 3D - Volumetric Flight Simulator & Terrain Raycaster</title>
+  <style>
+    :root {
+      --bg: #060913;
+      --panel: #0D1527;
+      --panel-border: #1E293B;
+      --accent: #06B6D4;
+      --accent-glow: rgba(6, 182, 212, 0.4);
+      --amber: #F59E0B;
+      --green: #10B981;
+      --red: #EF4444;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Flight Ribbon */
+    header {
+      height: 52px;
+      background: rgba(13, 21, 39, 0.95);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+      color: #030712;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .title-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .quick-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      background: #162032;
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1F2E47;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn.active {
+      background: var(--accent);
+      color: #060913;
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    /* Main Viewport Workspace */
+    .workspace {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* 3D Render Canvas */
+    #renderCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      cursor: crosshair;
+    }
+
+    /* Vector HUD Overlay */
+    #hudCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* Floating Cockpit Instrument Dials */
+    .hud-telemetry {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .hud-card {
+      background: rgba(13, 21, 39, 0.75);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 4px;
+      padding: 8px 12px;
+      min-width: 140px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hud-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .hud-val {
+      font-family: "SF Mono", Menlo, Consolas, monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .hud-val.alert {
+      color: var(--red);
+      animation: pulseAlert 0.4s infinite alternate;
+    }
+
+    @keyframes pulseAlert {
+      from { opacity: 0.6; text-shadow: 0 0 4px var(--red); }
+      to { opacity: 1.0; text-shadow: 0 0 14px var(--red); }
+    }
+
+    /* Tactical Radar / Mini-map */
+    .radar-container {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 160px;
+      height: 160px;
+      background: rgba(13, 21, 39, 0.85);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      border-radius: 50%;
+      overflow: hidden;
+      z-index: 15;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.2);
+    }
+
+    #radarCanvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Flight Controls Ribbon at Bottom */
+    .flight-controls-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 21, 39, 0.8);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 6px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      z-index: 15;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .key-cap {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: var(--text);
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    /* Collapsible Side Control Drawer */
+    .side-drawer {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 320px;
+      max-height: calc(100% - 200px);
+      background: rgba(13, 21, 39, 0.92);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      z-index: 18;
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .side-drawer.collapsed {
+      transform: translateX(340px);
+    }
+
+    .drawer-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(22, 32, 50, 0.5);
+    }
+
+    .drawer-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .drawer-body {
+      padding: 14px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .control-name {
+      color: var(--text-muted);
+    }
+
+    .control-val {
+      font-family: monospace;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: #1E293B;
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    .biome-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .biome-btn {
+      background: #162032;
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .biome-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .biome-btn.selected {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Warning Overlay Message */
+    .stall-warning {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(239, 68, 68, 0.25);
+      border: 2px solid var(--red);
+      color: #FFF;
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      padding: 12px 32px;
+      border-radius: 4px;
+      z-index: 16;
+      pointer-events: none;
+      display: none;
+      text-align: center;
+      box-shadow: 0 0 24px rgba(239, 68, 68, 0.6);
+      animation: stallFlash 0.3s infinite alternate;
+    }
+
+    @keyframes stallFlash {
+      from { opacity: 0.4; }
+      to { opacity: 1.0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation Ribbon -->
+  <header>
+    <div class="brand-group">
+      <div class="logo-badge">VOXELSPACE</div>
+      <div>
+        <span class="title-text">3D Flight Simulator</span>
+        <span class="subtitle-text">Pure Volumetric Raycasting Terrain Engine</span>
+      </div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="btn" id="btnSound">
+        <span>🔊 Audio: OFF</span>
+      </button>
+      <button class="btn" id="btnCamMode">
+        <span>🎥 Cockpit View</span>
+      </button>
+      <button class="btn" id="btnAutopilot">
+        <span>✈ Auto-Cruise: OFF</span>
+      </button>
+      <button class="btn" id="btnToggleDrawer">
+        <span>⚙ Settings</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Simulation Workspace -->
+  <div class="workspace" id="workspace">
+    <!-- Raycaster Render Surface -->
+    <canvas id="renderCanvas"></canvas>
+
+    <!-- Vector HUD Surface -->
+    <canvas id="hudCanvas"></canvas>
+
+    <!-- Stall / Terrain Proximity Warning -->
+    <div class="stall-warning" id="stallBanner">
+      PULL UP ! TERRAIN
+    </div>
+
+    <!-- HUD Telemetry Gauges -->
+    <div class="hud-telemetry">
+      <div class="hud-card">
+        <div class="hud-label">Airspeed</div>
+        <div class="hud-val" id="hudSpeed">145 KTS</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">Altitude (MSL)</div>
+        <div class="hud-val" id="hudAlt">2,850 FT</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">Radar Alt (AGL)</div>
+        <div class="hud-val" id="hudAgl">620 FT</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">Throttle</div>
+        <div class="hud-val" id="hudThrottle">65%</div>
+      </div>
+    </div>
+
+    <!-- Tactical Radar -->
+    <div class="radar-container">
+      <canvas id="radarCanvas" width="160" height="160"></canvas>
+    </div>
+
+    <!-- Flight Controls Shortcut Bar -->
+    <div class="flight-controls-hint">
+      <span><span class="key-cap">W</span>/<span class="key-cap">S</span> Pitch</span>
+      <span><span class="key-cap">A</span>/<span class="key-cap">D</span> Roll</span>
+      <span><span class="key-cap">Q</span>/<span class="key-cap">E</span> Yaw</span>
+      <span><span class="key-cap">SHIFT</span>/<span class="key-cap">SPACE</span> Throttle</span>
+      <span><span class="key-cap">DRAG MOUSE</span> Flight Stick</span>
+    </div>
+
+    <!-- Settings Drawer -->
+    <div class="side-drawer" id="sideDrawer">
+      <div class="drawer-header">
+        <div class="drawer-title">Flight & Terrain Config</div>
+        <button class="btn" id="btnCloseDrawer" style="padding: 2px 6px;">✕</button>
+      </div>
+      <div class="drawer-body">
+        <!-- Terrain Biome Selection -->
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-name">Landscape Biome</span>
+          </div>
+          <div class="biome-grid">
+            <button class="biome-btn selected" data-biome="alpine">Alpine Glaciers</button>
+            <button class="biome-btn" data-biome="canyon">Grand Canyon</button>
+            <button class="biome-btn" data-biome="volcano">Volcanic Caldera</button>
+            <button class="biome-btn" data-biome="outrun">Cyber Neon</button>
+          </div>
+        </div>
+
+        <!-- Render Distance (Z-Far) -->
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-name">Render Distance</span>
+            <span class="control-val" id="lblDist">800 m</span>
+          </div>
+          <input type="range" id="slDist" min="300" max="1400" step="50" value="800">
+        </div>
+
+        <!-- Vertical Height Scale -->
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-name">Vertical Elevation Scale</span>
+            <span class="control-val" id="lblVScale">240</span>
+          </div>
+          <input type="range" id="slVScale" min="80" max="450" step="10" value="240">
+        </div>
+
+        <!-- Atmospheric Fog Density -->
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-name">Atmospheric Fog</span>
+            <span class="control-val" id="lblFog">0.65</span>
+          </div>
+          <input type="range" id="slFog" min="0.1" max="1.5" step="0.05" value="0.65">
+        </div>
+
+        <!-- Time of Day / Sun Lighting Angle -->
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-name">Sun Azimuth Angle</span>
+            <span class="control-val" id="lblSun">45°</span>
+          </div>
+          <input type="range" id="slSun" min="0" max="360" step="5" value="45">
+        </div>
+
+        <!-- Resolution Scale (Performance) -->
+        <div class="control-row">
+          <div class="control-header">
+            <span class="control-name">Internal Render Scale</span>
+            <span class="control-val" id="lblRes">1.0x</span>
+          </div>
+          <input type="range" id="slRes" min="0.5" max="1.5" step="0.25" value="1.0">
+        </div>
+
+        <!-- Regenerate Terrain Button -->
+        <button class="btn" id="btnRegen" style="width: 100%; justify-content: center; padding: 8px;">
+          <span>🎲 Regenerate Random Procedural Map</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * VoxelSpace 3D Flight Simulator
+     * High-Performance Volumetric Raycasting Terrain Engine
+     * Pure HTML5 Canvas / Software Raycaster with Zero External Dependencies
+     */
+
+    // --- Configuration & Constants ---
+    const MAP_SIZE = 1024;
+    const MAP_MASK = MAP_SIZE - 1;
+
+    // Simulation & Camera State
+    const state = {
+      // Position on 2D terrain map
+      x: 512.0,
+      y: 512.0,
+      altitude: 350.0, // Aircraft altitude above sea level
+
+      // Viewing & Flight Orientation
+      heading: 0.0,    // Yaw / Compass angle in radians
+      pitch: 0.0,      // Pitch angle (horizon shift)
+      roll: 0.0,       // Bank angle (horizon tilt)
+
+      // Flight Dynamics
+      speed: 120.0,    // Ground / Air speed in m/s
+      throttle: 0.65,  // 0.0 to 1.0
+      climbRate: 0.0,  // Vertical velocity m/s
+      turnRate: 0.0,   // Heading change rad/s
+      rollRate: 0.0,   // Roll change rad/s
+
+      // Camera Mode: "cockpit" or "chase"
+      camMode: "cockpit",
+      autopilot: false,
+
+      // Terrain Settings
+      biome: "alpine",
+      maxDistance: 800,
+      verticalScale: 240.0,
+      fogDensity: 0.65,
+      sunAngle: 45.0 * (Math.PI / 180.0),
+      renderScale: 1.0,
+
+      // Performance & Telemetry
+      fps: 60,
+      terrainUnder: 0,
+      agl: 0
+    };
+
+    // Terrain Buffers (1024x1024)
+    const heightMap = new Uint8Array(MAP_SIZE * MAP_SIZE);
+    const colorMap = new Uint32Array(MAP_SIZE * MAP_SIZE); // RGBA in 32-bit format
+
+    // Canvas & Offscreen Buffer References
+    const renderCanvas = document.getElementById("renderCanvas");
+    const renderCtx = renderCanvas.getContext("2d");
+    const hudCanvas = document.getElementById("hudCanvas");
+    const hudCtx = hudCanvas.getContext("2d");
+    const radarCanvas = document.getElementById("radarCanvas");
+    const radarCtx = radarCanvas.getContext("2d");
+
+    let screenW = 640;
+    let screenH = 360;
+    let imgData = null;
+    let pixels = null;
+    let maxHeights = new Int32Array(1920);
+
+    // Keyboard & Mouse Input
+    const keys = {};
+    let isMouseDown = false;
+    let mouseStartX = 0;
+    let mouseStartY = 0;
+
+    // --- Web Audio Synthetic Sound Engine ---
+    let audioCtx = null;
+    let soundEnabled = false;
+    let engineOsc1 = null;
+    let engineOsc2 = null;
+    let engineGain = null;
+    let windGain = null;
+    let warningGain = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+
+        // 1. Jet Engine Turbofan Tone (Low Sawtooth + Triangle)
+        engineOsc1 = audioCtx.createOscillator();
+        engineOsc2 = audioCtx.createOscillator();
+        engineOsc1.type = "sawtooth";
+        engineOsc2.type = "triangle";
+
+        engineGain = audioCtx.createGain();
+        engineGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(320, audioCtx.currentTime);
+
+        engineOsc1.connect(filter);
+        engineOsc2.connect(filter);
+        filter.connect(engineGain);
+        engineGain.connect(audioCtx.destination);
+
+        engineOsc1.start();
+        engineOsc2.start();
+
+        // 2. Wind Rush White Noise
+        const bufferSize = audioCtx.sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        const whiteNoise = audioCtx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
+
+        const windFilter = audioCtx.createBiquadFilter();
+        windFilter.type = "bandpass";
+        windFilter.frequency.setValueAtTime(400, audioCtx.currentTime);
+        windFilter.Q.setValueAtTime(1.0, audioCtx.currentTime);
+
+        windGain = audioCtx.createGain();
+        windGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+        whiteNoise.connect(windFilter);
+        windFilter.connect(windGain);
+        windGain.connect(audioCtx.destination);
+        whiteNoise.start();
+
+        soundEnabled = true;
+        document.getElementById("btnSound").innerHTML = "<span>🔊 Audio: ON</span>";
+        document.getElementById("btnSound").classList.add("active");
+      } catch (e) {
+        console.warn("Audio Context initialization failed:", e);
+      }
+    }
+
+    function toggleAudio() {
+      if (!audioCtx) {
+        initAudio();
+      } else if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+        soundEnabled = true;
+        document.getElementById("btnSound").innerHTML = "<span>🔊 Audio: ON</span>";
+        document.getElementById("btnSound").classList.add("active");
+      } else {
+        audioCtx.suspend();
+        soundEnabled = false;
+        document.getElementById("btnSound").innerHTML = "<span>🔈 Audio: OFF</span>";
+        document.getElementById("btnSound").classList.remove("active");
+      }
+    }
+
+    function updateAudio() {
+      if (!soundEnabled || !audioCtx || audioCtx.state !== "running") return;
+      const baseFreq = 50 + state.throttle * 90;
+      engineOsc1.frequency.setTargetAtTime(baseFreq, audioCtx.currentTime, 0.1);
+      engineOsc2.frequency.setTargetAtTime(baseFreq * 1.5, audioCtx.currentTime, 0.1);
+
+      const windVolume = 0.02 + (state.speed / 250.0) * 0.08;
+      windGain.gain.setTargetAtTime(windVolume, audioCtx.currentTime, 0.1);
+    }
+
+    // --- Procedural Map Generator (Perlin / Fractal Brownian Motion) ---
+    class FastNoise {
+      constructor(seed = 1337) {
+        this.p = new Uint8Array(512);
+        const permutation = new Uint8Array(256);
+        for (let i = 0; i < 256; i++) permutation[i] = i;
+        // Fisher-Yates shuffle
+        let s = seed;
+        for (let i = 255; i > 0; i--) {
+          s = (s * 1664525 + 1013904223) >>> 0;
+          const j = s % (i + 1);
+          const tmp = permutation[i];
+          permutation[i] = permutation[j];
+          permutation[j] = tmp;
+        }
+        for (let i = 0; i < 512; i++) {
+          this.p[i] = permutation[i & 255];
+        }
+      }
+
+      fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+      lerp(t, a, b) { return a + t * (b - a); }
+      grad(hash, x, y) {
+        const h = hash & 7;
+        const u = h < 4 ? x : y;
+        const v = h < 4 ? y : x;
+        return ((h & 1) ? -u : u) + ((h & 2) ? -2.0 * v : 2.0 * v);
+      }
+
+      noise2D(x, y) {
+        const X = Math.floor(x) & 255;
+        const Y = Math.floor(y) & 255;
+        x -= Math.floor(x);
+        y -= Math.floor(y);
+        const u = this.fade(x);
+        const v = this.fade(y);
+        const A = this.p[X] + Y;
+        const B = this.p[X + 1] + Y;
+        return this.lerp(v,
+          this.lerp(u, this.grad(this.p[A], x, y), this.grad(this.p[B], x - 1, y)),
+          this.lerp(u, this.grad(this.p[A + 1], x, y - 1), this.grad(this.p[B + 1], x - 1, y - 1))
+        );
+      }
+
+      fbm(x, y, octaves = 6, lacunarity = 2.0, gain = 0.5) {
+        let total = 0.0;
+        let frequency = 1.0;
+        let amplitude = 1.0;
+        let maxVal = 0.0;
+        for (let i = 0; i < octaves; i++) {
+          total += this.noise2D(x * frequency, y * frequency) * amplitude;
+          maxVal += amplitude;
+          frequency *= lacunarity;
+          amplitude *= gain;
+        }
+        return total / maxVal;
+      }
+    }
+
+    function generateTerrainMaps(biomeName) {
+      const noise = new FastNoise(Math.floor(Math.random() * 100000));
+      const sunDx = Math.cos(state.sunAngle);
+      const sunDy = Math.sin(state.sunAngle);
+
+      // Color palettes per biome: [Water, Sand, Grass/Valley, Rock, Snow]
+      for (let y = 0; y < MAP_SIZE; y++) {
+        for (let x = 0; x < MAP_SIZE; x++) {
+          const nx = (x / MAP_SIZE) * 4.0;
+          const ny = (y / MAP_SIZE) * 4.0;
+
+          let rawH = 0;
+          if (biomeName === "alpine") {
+            // Mountain spires + valleys
+            let base = noise.fbm(nx, ny, 6, 2.05, 0.48);
+            base = Math.pow(Math.abs(base), 1.25);
+            // Billow peaks
+            let peaks = Math.abs(noise.noise2D(nx * 2, ny * 2));
+            rawH = Math.min(255, Math.max(0, (base * 0.7 + peaks * 0.3) * 255));
+          } else if (biomeName === "canyon") {
+            // Stratified plateau layers
+            let base = noise.fbm(nx * 0.75, ny * 0.75, 5, 2.0, 0.5);
+            base = Math.sin(base * 10.0) * 0.2 + base * 0.8;
+            rawH = Math.min(255, Math.max(0, base * 255));
+          } else if (biomeName === "volcano") {
+            // Central caldera island
+            const dx = (x - 512) / 512.0;
+            const dy = (y - 512) / 512.0;
+            const dist = Math.hypot(dx, dy);
+            let crater = Math.exp(-dist * 3.5) * 240;
+            if (dist < 0.12) crater *= (dist / 0.12); // Crater dip
+            let bump = noise.fbm(nx * 2, ny * 2, 4, 2.0, 0.5) * 40;
+            rawH = Math.min(255, Math.max(0, crater + bump));
+          } else if (biomeName === "outrun") {
+            // Synthwave grid waves
+            let base = Math.sin(nx * 8.0) * Math.cos(ny * 8.0) * 0.5 + 0.5;
+            let n = noise.fbm(nx, ny, 4, 2.0, 0.5);
+            rawH = Math.min(255, Math.max(0, (base * 0.6 + n * 0.4) * 255));
+          }
+
+          heightMap[y * MAP_SIZE + x] = rawH;
+        }
+      }
+
+      // Compute directional hill-shading and texturing
+      for (let y = 0; y < MAP_SIZE; y++) {
+        for (let x = 0; x < MAP_SIZE; x++) {
+          const idx = y * MAP_SIZE + x;
+          const h = heightMap[idx];
+
+          // Height gradients for normal vector
+          const hL = heightMap[y * MAP_SIZE + ((x - 1) & MAP_MASK)];
+          const hR = heightMap[y * MAP_SIZE + ((x + 1) & MAP_MASK)];
+          const hU = heightMap[((y - 1) & MAP_MASK) * MAP_SIZE + x];
+          const hD = heightMap[((y + 1) & MAP_MASK) * MAP_SIZE + x];
+
+          const slopeX = (hR - hL);
+          const slopeY = (hD - hU);
+
+          // Dot product with sun direction
+          let light = 0.5 + (slopeX * sunDx + slopeY * sunDy) * 0.015;
+          light = Math.max(0.25, Math.min(1.35, light));
+
+          let r = 0, g = 0, b = 0;
+
+          if (biomeName === "alpine") {
+            if (h < 40) {
+              // Deep glacial lake
+              r = 14; g = 80; b = 130;
+            } else if (h < 55) {
+              // Beach shoreline
+              r = 160; g = 150; b = 120;
+            } else if (h < 130) {
+              // Pine forest & alpine grass
+              r = 45; g = 115; b = 55;
+            } else if (h < 190) {
+              // Granite rock
+              r = 110; g = 115; b = 120;
+            } else {
+              // Glacial snow
+              r = 230; g = 235; b = 245;
+            }
+          } else if (biomeName === "canyon") {
+            // Stratified sandstone bands
+            const band = (h % 32);
+            if (h < 30) {
+              r = 30; g = 70; b = 110; // Colorado river
+            } else if (band < 8) {
+              r = 195; g = 85; b = 50;  // Deep red sandstone
+            } else if (band < 18) {
+              r = 215; g = 140; b = 75; // Golden amber shale
+            } else {
+              r = 175; g = 100; b = 60; // Terracotta clay
+            }
+          } else if (biomeName === "volcano") {
+            if (h < 25) {
+              r = 10; g = 30; b = 60;   // Ocean
+            } else if (h > 180 && (h % 16 < 4)) {
+              r = 255; g = 80; b = 20;  // Glowing lava fissure
+              light = 1.6;
+            } else if (h > 140) {
+              r = 50; g = 45; b = 55;   // Basalt ash
+            } else {
+              r = 30; g = 75; b = 40;   // Tropical jungle
+            }
+          } else if (biomeName === "outrun") {
+            // Cyberpunk neon wireframe aesthetic
+            const isGrid = (x % 32 === 0 || y % 32 === 0 || h % 20 < 2);
+            if (isGrid) {
+              r = 6; g = 240; b = 255;  // Glowing cyan grid
+              light = 1.5;
+            } else {
+              r = Math.floor(h * 0.5);
+              g = 10;
+              b = Math.floor(h * 0.9);
+            }
+          }
+
+          // Apply directional hill-shading
+          r = Math.min(255, Math.floor(r * light));
+          g = Math.min(255, Math.floor(g * light));
+          b = Math.min(255, Math.floor(b * light));
+
+          // Store in 32-bit RGBA integer (Little-endian: ABGR)
+          colorMap[idx] = (255 << 24) | (b << 16) | (g << 8) | r;
+        }
+      }
+    }
+
+    // --- High Performance VoxelSpace Software Raycaster ---
+    function renderVoxelSpace() {
+      const w = screenW;
+      const h = screenH;
+      const px = state.x;
+      const py = state.y;
+      const pz = state.altitude;
+      const phi = state.heading;
+      const fov = 1.05; // ~60 degree horizontal Field Of View
+      const zFar = state.maxDistance;
+      const vScale = state.verticalScale;
+      const fogDen = state.fogDensity * 0.0018;
+
+      // Base horizon height shifted by pitch
+      const horizonMid = (h * 0.5) + state.pitch * (h * 0.6);
+      const rollSin = Math.sin(state.roll);
+
+      // Sky gradient color palette (Noon, Sunset, Night based on biome)
+      let skyR = 20, skyG = 35, skyB = 65;
+      if (state.biome === "canyon") {
+        skyR = 60; skyG = 50; skyB = 85;
+      } else if (state.biome === "outrun") {
+        skyR = 25; skyG = 5; skyB = 40;
+      }
+
+      // 1. Clear Screen Buffer with Atmospheric Sky Gradient
+      const buf32 = new Uint32Array(pixels.buffer);
+      for (let y = 0; y < h; y++) {
+        const skyFrac = y / h;
+        const curSkyR = Math.min(255, Math.floor(skyR + skyFrac * 40));
+        const curSkyG = Math.min(255, Math.floor(skyG + skyFrac * 35));
+        const curSkyB = Math.min(255, Math.floor(skyB + skyFrac * 25));
+        const skyColor = (255 << 24) | (curSkyB << 16) | (curSkyG << 8) | curSkyR;
+
+        const rowOffset = y * w;
+        for (let x = 0; x < w; x++) {
+          buf32[rowOffset + x] = skyColor;
+        }
+      }
+
+      // Initialize vertical column occlusion buffer to bottom of screen
+      maxHeights.fill(h);
+
+      // Camera orientation vectors
+      const sinPhi = Math.sin(phi);
+      const cosPhi = Math.cos(phi);
+
+      // March rays from near plane to far plane
+      const zNear = 2.0;
+      let dz = 1.5;
+
+      for (let z = zNear; z < zFar; z += dz) {
+        // Dynamic Level Of Detail: increase step size with distance
+        dz = 1.2 + (z * 0.008);
+
+        // Ray extent spanning horizontal screen width
+        const rayHalfWidth = z * Math.tan(fov * 0.5);
+
+        // Left and right ray endpoints on map
+        const pLeftX = (-cosPhi * rayHalfWidth - sinPhi * z) + px;
+        const pLeftY = ( sinPhi * rayHalfWidth - cosPhi * z) + py;
+        const pRightX = ( cosPhi * rayHalfWidth - sinPhi * z) + px;
+        const pRightY = (-sinPhi * rayHalfWidth - cosPhi * z) + py;
+
+        const stepX = (pRightX - pLeftX) / w;
+        const stepY = (pRightY - pLeftY) / w;
+
+        let curX = pLeftX;
+        let curY = pLeftY;
+
+        // Exponential distance fog factor
+        const fogFactor = Math.min(1.0, 1.0 - Math.exp(-z * fogDen));
+
+        // Column scan
+        for (let x = 0; x < w; x++) {
+          const mapX = Math.floor(curX) & MAP_MASK;
+          const mapY = Math.floor(curY) & MAP_MASK;
+          const mapIdx = mapY * MAP_SIZE + mapX;
+
+          const groundH = heightMap[mapIdx];
+          const groundColor = colorMap[mapIdx];
+
+          // Screen Y projection formula
+          // Bank / roll tilts horizon across screen column x
+          const horizonX = horizonMid + (x - (w * 0.5)) * rollSin;
+          const screenY = Math.floor((pz - groundH) / z * vScale + horizonX);
+
+          // Front-to-back occlusion rendering
+          if (screenY < maxHeights[x]) {
+            const startY = Math.max(0, screenY);
+            const endY = maxHeights[x];
+
+            // Extract RGB from 32-bit map pixel
+            let r = groundColor & 0xFF;
+            let g = (groundColor >> 8) & 0xFF;
+            let b = (groundColor >> 16) & 0xFF;
+
+            // Apply atmospheric fog blending
+            if (fogFactor > 0.01) {
+              r = Math.floor(r * (1.0 - fogFactor) + skyR * fogFactor);
+              g = Math.floor(g * (1.0 - fogFactor) + skyG * fogFactor);
+              b = Math.floor(b * (1.0 - fogFactor) + skyB * fogFactor);
+            }
+
+            const pixelColor = (255 << 24) | (b << 16) | (g << 8) | r;
+
+            // Draw vertical column segment
+            for (let y = startY; y < endY; y++) {
+              buf32[y * w + x] = pixelColor;
+            }
+
+            // Update occlusion height
+            maxHeights[x] = startY;
+          }
+
+          curX += stepX;
+          curY += stepY;
+        }
+      }
+
+      // Draw chase-camera aircraft model if in Chase Cam mode
+      if (state.camMode === "chase") {
+        drawChaseAircraft(buf32, w, h);
+      }
+
+      // Blit offscreen pixel buffer to canvas
+      renderCtx.putImageData(imgData, 0, 0);
+    }
+
+    // --- Third Person Chase Aircraft Renderer ---
+    function drawChaseAircraft(buf32, w, h) {
+      const cx = Math.floor(w * 0.5);
+      const cy = Math.floor(h * 0.62);
+      const roll = state.roll;
+
+      // Draw stylized supersonic jet fighter silhouette
+      const cosR = Math.cos(roll);
+      const sinR = Math.sin(roll);
+
+      const jetPts = [
+        [0, -18],  // Nose
+        [5, -4],   // Fuselage
+        [28, 6],   // Right Wingtip
+        [8, 8],    // Wing trailing edge
+        [4, 16],   // Right Stabilizer
+        [0, 14],   // Engine center
+        [-4, 16],  // Left Stabilizer
+        [-8, 8],
+        [-28, 6],  // Left Wingtip
+        [-5, -4]
+      ];
+
+      // Draw afterburner flame
+      const flameLen = 8 + Math.floor(state.throttle * 14);
+      const flameColor = (255 << 24) | (50 << 16) | (180 << 8) | 255;
+      for (let dy = 14; dy < 14 + flameLen; dy++) {
+        const fx = Math.floor(cx - sinR * dy);
+        const fy = Math.floor(cy + cosR * dy);
+        if (fx >= 0 && fx < w && fy >= 0 && fy < h) {
+          buf32[fy * w + fx] = flameColor;
+          if (fx + 1 < w) buf32[fy * w + (fx + 1)] = flameColor;
+        }
+      }
+
+      // Paint aircraft hull
+      const hullColor = (255 << 24) | (200 << 16) | (200 << 8) | 210;
+      const canopyColor = (255 << 24) | (255 << 16) | (180 << 8) | 6;
+
+      for (let i = 0; i < jetPts.length; i++) {
+        const pt = jetPts[i];
+        const rotX = Math.floor(cx + pt[0] * cosR - pt[1] * sinR);
+        const rotY = Math.floor(cy + pt[0] * sinR + pt[1] * cosR);
+
+        if (rotX >= 2 && rotX < w - 2 && rotY >= 2 && rotY < h - 2) {
+          buf32[rotY * w + rotX] = hullColor;
+          buf32[(rotY + 1) * w + rotX] = hullColor;
+        }
+      }
+    }
+
+    // --- Vector HUD & Instrument Overlays ---
+    function renderHUD() {
+      const w = hudCanvas.width;
+      const h = hudCanvas.height;
+      hudCtx.clearRect(0, 0, w, h);
+
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+
+      hudCtx.strokeStyle = "rgba(6, 182, 212, 0.75)";
+      hudCtx.fillStyle = "rgba(6, 182, 212, 0.75)";
+      hudCtx.lineWidth = 1.5;
+      hudCtx.font = '10px "SF Mono", Menlo, monospace';
+
+      // 1. Flight Path Boresight Reticle
+      hudCtx.beginPath();
+      hudCtx.arc(cx, cy, 12, 0, Math.PI * 2);
+      hudCtx.moveTo(cx - 20, cy); hudCtx.lineTo(cx - 12, cy);
+      hudCtx.moveTo(cx + 12, cy); hudCtx.lineTo(cx + 20, cy);
+      hudCtx.moveTo(cx, cy - 20); hudCtx.lineTo(cx, cy - 12);
+      hudCtx.moveTo(cx, cy + 12); hudCtx.lineTo(cx, cy + 20);
+      hudCtx.stroke();
+
+      // 2. Pitch Ladder (Rotates with Bank / Roll)
+      hudCtx.save();
+      hudCtx.translate(cx, cy + state.pitch * 200);
+      hudCtx.rotate(-state.roll);
+
+      for (let p = -30; p <= 30; p += 10) {
+        if (p === 0) {
+          // Zero Horizon Line
+          hudCtx.beginPath();
+          hudCtx.moveTo(-70, 0); hudCtx.lineTo(-20, 0);
+          hudCtx.moveTo(20, 0);  hudCtx.lineTo(70, 0);
+          hudCtx.stroke();
+        } else {
+          const py = -p * 6;
+          hudCtx.beginPath();
+          hudCtx.moveTo(-40, py); hudCtx.lineTo(-20, py);
+          hudCtx.moveTo(20, py);  hudCtx.lineTo(40, py);
+          hudCtx.stroke();
+          hudCtx.fillText(`${Math.abs(p)}`, -55, py + 3);
+          hudCtx.fillText(`${Math.abs(p)}`, 45, py + 3);
+        }
+      }
+      hudCtx.restore();
+
+      // 3. Compass Ribbon at Top
+      const compassW = 300;
+      const compassX = cx - compassW * 0.5;
+      const compassY = 30;
+
+      hudCtx.strokeRect(compassX, compassY, compassW, 20);
+      const headingDeg = (state.heading * (180 / Math.PI) + 360) % 360;
+
+      const cardinals = [
+        { deg: 0, label: "N" },
+        { deg: 90, label: "E" },
+        { deg: 180, label: "S" },
+        { deg: 270, label: "W" }
+      ];
+
+      for (let a = 0; a < 360; a += 15) {
+        let diff = (a - headingDeg + 540) % 360 - 180;
+        if (Math.abs(diff) < 45) {
+          const tickX = cx + diff * 3;
+          hudCtx.beginPath();
+          hudCtx.moveTo(tickX, compassY + 15);
+          hudCtx.lineTo(tickX, compassY + 20);
+          hudCtx.stroke();
+
+          const card = cardinals.find(c => c.deg === a);
+          if (card) {
+            hudCtx.fillStyle = "#F59E0B";
+            hudCtx.fillText(card.label, tickX - 4, compassY + 12);
+            hudCtx.fillStyle = "rgba(6, 182, 212, 0.75)";
+          }
+        }
+      }
+
+      // Compass Pointer Arrow
+      hudCtx.beginPath();
+      hudCtx.moveTo(cx, compassY + 22);
+      hudCtx.lineTo(cx - 5, compassY + 28);
+      hudCtx.lineTo(cx + 5, compassY + 28);
+      hudCtx.closePath();
+      hudCtx.fillStyle = "#F59E0B";
+      hudCtx.fill();
+    }
+
+    // --- Tactical Radar Mini-Map ---
+    function renderRadar() {
+      const w = radarCanvas.width;
+      const h = radarCanvas.height;
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+
+      radarCtx.clearRect(0, 0, w, h);
+
+      // Radar Concentric Range Rings
+      radarCtx.strokeStyle = "rgba(6, 182, 212, 0.35)";
+      radarCtx.lineWidth = 1;
+      radarCtx.beginPath();
+      radarCtx.arc(cx, cy, 30, 0, Math.PI * 2);
+      radarCtx.arc(cx, cy, 60, 0, Math.PI * 2);
+      radarCtx.stroke();
+
+      // Crosshairs
+      radarCtx.beginPath();
+      radarCtx.moveTo(cx, 0); radarCtx.lineTo(cx, h);
+      radarCtx.moveTo(0, cy); radarCtx.lineTo(w, cy);
+      radarCtx.stroke();
+
+      // Sample topography around aircraft
+      const range = 250; // meters on map
+      const step = 8;
+      const scale = 70.0 / range;
+
+      for (let dy = -range; dy <= range; dy += step) {
+        for (let dx = -range; dx <= range; dx += step) {
+          const dist = Math.hypot(dx, dy);
+          if (dist > range) continue;
+
+          const mx = Math.floor(state.x + dx) & MAP_MASK;
+          const my = Math.floor(state.y + dy) & MAP_MASK;
+          const alt = heightMap[my * MAP_SIZE + mx];
+
+          if (alt > 140) {
+            const rx = cx + dx * scale;
+            const ry = cy + dy * scale;
+            radarCtx.fillStyle = alt > 200 ? "rgba(245, 158, 11, 0.4)" : "rgba(6, 182, 212, 0.25)";
+            radarCtx.fillRect(rx, ry, 2, 2);
+          }
+        }
+      }
+
+      // Aircraft Marker (Rotates with Heading)
+      radarCtx.save();
+      radarCtx.translate(cx, cy);
+      radarCtx.rotate(state.heading);
+
+      radarCtx.fillStyle = "#10B981";
+      radarCtx.beginPath();
+      radarCtx.moveTo(0, -7);
+      radarCtx.lineTo(5, 5);
+      radarCtx.lineTo(0, 3);
+      radarCtx.lineTo(-5, 5);
+      radarCtx.closePath();
+      radarCtx.fill();
+      radarCtx.restore();
+    }
+
+    // --- 6-DOF Aerodynamic Physics Loop ---
+    let lastTime = performance.now();
+
+    function updatePhysics(dt) {
+      // 1. Throttle & Airspeed Integration
+      const targetSpeed = 80.0 + state.throttle * 180.0;
+      state.speed += (targetSpeed - state.speed) * (dt * 0.8);
+
+      // 2. Flight Stick Keyboard / Mouse Input Handling
+      let pitchInput = 0;
+      let rollInput = 0;
+      let yawInput = 0;
+
+      if (keys["KeyW"] || keys["ArrowUp"]) pitchInput -= 1.0;
+      if (keys["KeyS"] || keys["ArrowDown"]) pitchInput += 1.0;
+      if (keys["KeyA"] || keys["ArrowLeft"]) rollInput += 1.0;
+      if (keys["KeyD"] || keys["ArrowRight"]) rollInput -= 1.0;
+      if (keys["KeyQ"]) yawInput -= 1.0;
+      if (keys["KeyE"]) yawInput += 1.0;
+
+      if (keys["ShiftLeft"] || keys["ShiftRight"]) {
+        state.throttle = Math.min(1.0, state.throttle + dt * 0.35);
+      }
+      if (keys["Space"]) {
+        state.throttle = Math.max(0.15, state.throttle - dt * 0.35);
+      }
+
+      // Autopilot Cruise Wandering
+      if (state.autopilot) {
+        state.heading += dt * 0.04;
+        state.pitch = Math.sin(performance.now() * 0.0008) * 0.05;
+        state.roll = 0.15;
+      } else {
+        // Roll rate & aerodynamic centering
+        state.rollRate = rollInput * 1.6;
+        state.roll += state.rollRate * dt;
+        if (rollInput === 0) {
+          state.roll *= Math.pow(0.92, dt * 60); // Centering damping
+        }
+        state.roll = Math.max(-1.1, Math.min(1.1, state.roll));
+
+        // Coordinated turn from banking
+        const bankTurn = -Math.sin(state.roll) * 0.85;
+        state.heading += (bankTurn + yawInput * 0.6) * dt;
+
+        // Pitch rate
+        state.pitch += pitchInput * dt * 0.6;
+        state.pitch = Math.max(-0.6, Math.min(0.6, state.pitch));
+      }
+
+      // 3. Airframe Velocity Vector
+      const forwardDist = state.speed * dt * 0.6;
+      state.x = (state.x - Math.sin(state.heading) * forwardDist + MAP_SIZE) % MAP_SIZE;
+      state.y = (state.y - Math.cos(state.heading) * forwardDist + MAP_SIZE) % MAP_SIZE;
+
+      // Climb / Dive rate based on pitch angle and speed
+      state.climbRate = -state.pitch * state.speed * 0.9;
+      state.altitude += state.climbRate * dt;
+
+      // 4. Ground Collision & Terrain Clearance Detection
+      const curMx = Math.floor(state.x) & MAP_MASK;
+      const curMy = Math.floor(state.y) & MAP_MASK;
+      state.terrainUnder = heightMap[curMy * MAP_SIZE + curMx];
+      state.agl = Math.floor(state.altitude - state.terrainUnder);
+
+      const stallBanner = document.getElementById("stallBanner");
+      if (state.agl < 25) {
+        // Ground impact rebound
+        state.altitude = state.terrainUnder + 28;
+        state.pitch = -0.2; // Pitch up
+        stallBanner.style.display = "block";
+      } else if (state.agl < 60) {
+        stallBanner.style.display = "block";
+      } else {
+        stallBanner.style.display = "none";
+      }
+
+      // 5. Update Telemetry DOM Elements
+      document.getElementById("hudSpeed").textContent = `${Math.floor(state.speed * 1.94)} KTS`;
+      document.getElementById("hudAlt").textContent = `${Math.floor(state.altitude * 10)} FT`;
+
+      const aglElem = document.getElementById("hudAgl");
+      aglElem.textContent = `${Math.floor(state.agl * 10)} FT`;
+      if (state.agl < 60) {
+        aglElem.classList.add("alert");
+      } else {
+        aglElem.classList.remove("alert");
+      }
+
+      document.getElementById("hudThrottle").textContent = `${Math.floor(state.throttle * 100)}%`;
+
+      updateAudio();
+    }
+
+    // --- Main Frame Animation Loop ---
+    function animLoop(now) {
+      const dt = Math.min(0.1, (now - lastTime) * 0.001);
+      lastTime = now;
+
+      // Calculate Running FPS
+      if (dt > 0) {
+        state.fps = state.fps * 0.9 + (1.0 / dt) * 0.1;
+      }
+
+      updatePhysics(dt);
+      renderVoxelSpace();
+      renderHUD();
+      renderRadar();
+
+      requestAnimationFrame(animLoop);
+    }
+
+    // --- Window Resize & Internal Buffer Resolution ---
+    function resizeViewport() {
+      const rect = document.getElementById("workspace").getBoundingClientRect();
+      const scale = state.renderScale;
+
+      // High-performance retro pixel grid (scaled for 60 FPS performance)
+      screenW = Math.max(320, Math.floor(rect.width * 0.45 * scale));
+      screenH = Math.max(180, Math.floor(rect.height * 0.45 * scale));
+
+      renderCanvas.width = screenW;
+      renderCanvas.height = screenH;
+
+      hudCanvas.width = rect.width;
+      hudCanvas.height = rect.height;
+
+      imgData = renderCtx.createImageData(screenW, screenH);
+      pixels = imgData.data;
+
+      if (maxHeights.length < screenW) {
+        maxHeights = new Int32Array(screenW);
+      }
+    }
+
+    // --- Event Listeners & Interactive Controls ---
+    window.addEventListener("resize", resizeViewport);
+
+    window.addEventListener("keydown", (e) => {
+      keys[e.code] = true;
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.code] = false;
+    });
+
+    // Mouse Flight Stick Mode
+    renderCanvas.addEventListener("mousedown", (e) => {
+      isMouseDown = true;
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+      initAudio();
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isMouseDown) return;
+      const dx = (e.clientX - mouseStartX) * 0.003;
+      const dy = (e.clientY - mouseStartY) * 0.003;
+      state.roll = Math.max(-0.9, Math.min(0.9, state.roll - dx * 0.6));
+      state.pitch = Math.max(-0.5, Math.min(0.5, state.pitch + dy * 0.4));
+      mouseStartX = e.clientX;
+      mouseStartY = e.clientY;
+    });
+
+    window.addEventListener("mouseup", () => {
+      isMouseDown = false;
+    });
+
+    // Toolbar Buttons
+    document.getElementById("btnSound").addEventListener("click", toggleAudio);
+
+    document.getElementById("btnCamMode").addEventListener("click", () => {
+      state.camMode = state.camMode === "cockpit" ? "chase" : "cockpit";
+      document.getElementById("btnCamMode").innerHTML = state.camMode === "cockpit" ?
+        "<span>🎥 Cockpit View</span>" : "<span>✈ Chase View</span>";
+    });
+
+    document.getElementById("btnAutopilot").addEventListener("click", () => {
+      state.autopilot = !state.autopilot;
+      const btn = document.getElementById("btnAutopilot");
+      btn.innerHTML = state.autopilot ? "<span>✈ Auto-Cruise: ON</span>" : "<span>✈ Auto-Cruise: OFF</span>";
+      btn.classList.toggle("active", state.autopilot);
+    });
+
+    // Side Drawer Toggle
+    const sideDrawer = document.getElementById("sideDrawer");
+    document.getElementById("btnToggleDrawer").addEventListener("click", () => {
+      sideDrawer.classList.toggle("collapsed");
+    });
+    document.getElementById("btnCloseDrawer").addEventListener("click", () => {
+      sideDrawer.classList.add("collapsed");
+    });
+
+    // Biome Selector Buttons
+    document.querySelectorAll(".biome-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".biome-btn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        state.biome = btn.dataset.biome;
+        generateTerrainMaps(state.biome);
+      });
+    });
+
+    // Sliders
+    document.getElementById("slDist").addEventListener("input", (e) => {
+      state.maxDistance = parseInt(e.target.value);
+      document.getElementById("lblDist").textContent = `${state.maxDistance} m`;
+    });
+
+    document.getElementById("slVScale").addEventListener("input", (e) => {
+      state.verticalScale = parseFloat(e.target.value);
+      document.getElementById("lblVScale").textContent = `${state.verticalScale}`;
+    });
+
+    document.getElementById("slFog").addEventListener("input", (e) => {
+      state.fogDensity = parseFloat(e.target.value);
+      document.getElementById("lblFog").textContent = `${state.fogDensity.toFixed(2)}`;
+    });
+
+    document.getElementById("slSun").addEventListener("input", (e) => {
+      const deg = parseInt(e.target.value);
+      state.sunAngle = deg * (Math.PI / 180.0);
+      document.getElementById("lblSun").textContent = `${deg}°`;
+      generateTerrainMaps(state.biome);
+    });
+
+    document.getElementById("slRes").addEventListener("input", (e) => {
+      state.renderScale = parseFloat(e.target.value);
+      document.getElementById("lblRes").textContent = `${state.renderScale.toFixed(2)}x`;
+      resizeViewport();
+    });
+
+    document.getElementById("btnRegen").addEventListener("click", () => {
+      generateTerrainMaps(state.biome);
+    });
+
+    // Initialize & Kickoff Simulation
+    generateTerrainMaps(state.biome);
+    resizeViewport();
+    requestAnimationFrame(animLoop);
+  </script>
+</body>
+</html>

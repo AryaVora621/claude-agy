@@ -1,0 +1,3170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agy Showcase - Interactive Web Engineering Systems & GUI Applications</title>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --surface: #111827;
+      --card-bg: #161F30;
+      --border: #1F293D;
+      --border-hover: #374151;
+      --accent: #06B6D4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --accent-purple: #8B5CF6;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      height: 64px;
+      background: rgba(11, 15, 25, 0.85);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #FFF;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+    }
+
+    .nav-link.active {
+      color: var(--accent);
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1F293D;
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0B0F19;
+    }
+
+    .btn-primary:hover {
+      background: #22D3EE;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      padding: 80px 32px 60px;
+      max-width: 1280px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 14px;
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .hero-badge span.pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .hero-title {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -1.2px;
+      line-height: 1.15;
+      margin-bottom: 20px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-title span.grad {
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6, #EC4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    /* Stats Ribbon */
+    .stats-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 1080px;
+      margin: 0 auto 60px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      text-align: left;
+    }
+
+    .stat-val {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-val.cyan { color: var(--accent); }
+    .stat-val.purple { color: var(--accent-purple); }
+    .stat-val.emerald { color: var(--accent-emerald); }
+    .stat-val.amber { color: var(--accent-amber); }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Section Container */
+    .section-wrap {
+      max-width: 1280px;
+      margin: 0 auto 80px;
+      padding: 0 32px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Featured Flagship GUI Cards Grid */
+    .flagship-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .flagship-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s ease;
+    }
+
+    .flagship-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-preview {
+      height: 200px;
+      background: #080C14;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-preview canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .preview-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .card-body {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-category {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .card-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .tag-chip {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    /* Systems Matrix Table */
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: rgba(17, 24, 39, 0.8);
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(31, 41, 61, 0.3);
+      color: var(--text);
+    }
+
+    .mono-cell {
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .badge-pass {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    /* Interactive Preview Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-window {
+      width: 100%;
+      max-width: 1400px;
+      height: 90vh;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-topbar {
+      height: 48px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+
+    .modal-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 8px;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text);
+    }
+
+    iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">AGY</div>
+      <div class="brand-title">Agy<span>Showcase</span></div>
+    </div>
+    <nav class="nav-links">
+      <a href="#flagships" class="nav-link active">Interactive Studios</a>
+      <a href="#desktop" class="nav-link">Desktop Apps</a>
+      <a href="#systems" class="nav-link">33 CS Engines</a>
+      <a href="projects.md" class="nav-link" target="_blank">Documentation</a>
+    </nav>
+    <div class="header-actions">
+      <a href="https://github.com" class="btn" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub Repository
+      </a>
+      <a href="#flagships" class="btn btn-primary">Launch Studios</a>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span>
+      High-Performance Web GUI Systems & Engineering Portfolio
+    </div>
+    <h1 class="hero-title">
+      Autonomous Engineering Showcase: <br>
+      <span class="grad">Real-Time Interactive Visual Studios</span>
+    </h1>
+    <p class="hero-subtitle">
+      A collection of high-performance interactive graphical web applications, physics simulations,
+      and 33 zero-dependency computer science engineering systems built from first principles.
+    </p>
+
+    <!-- Metrics Ribbon -->
+    <div class="stats-ribbon">
+      <div class="stat-card">
+        <div class="stat-val cyan">14 Studios</div>
+        <div class="stat-label">Interactive Web Applications</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val emerald">9 Desktop</div>
+        <div class="stat-label">Native Tkinter Desktop Software</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val purple">33 Engines</div>
+        <div class="stat-label">Zero-Dependency Python Systems</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val amber">1,003 Tests</div>
+        <div class="stat-label">Total Unit Tests Passing (100%)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: Flagship Web GUI Studios -->
+  <section class="section-wrap" id="flagships">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Interactive Visual Studios</h2>
+        <p class="section-desc">Full-featured graphical interfaces running client-side with zero external CDN dependencies.</p>
+      </div>
+    </div>
+
+    <div class="flagship-grid">
+      <!-- 1. ChromaSplat Studio -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-chromasplat"></canvas>
+          <div class="preview-badge">60 FPS • 3D</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Radiance Fields & Rendering</div>
+          <h3 class="card-title">ChromaSplat Studio</h3>
+          <p class="card-text">
+            Interactive 3D Gaussian Splatting & Volume Radiance laboratory with orbital camera navigation,
+            spherical harmonics specular lobes, and procedural scenes (Saturnian Rings, Cornell Box, DNA Helix).
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">3D Splatting</span>
+            <span class="tag-chip">Spherical Harmonics</span>
+            <span class="tag-chip">Camera Orbit</span>
+            <span class="tag-chip">Mahalanobis</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('chromasplat/index.html', 'ChromaSplat Studio')">Open Studio</button>
+            <a href="chromasplat/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. NeuralStudio -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-neuralstudio"></canvas>
+          <div class="preview-badge">Autograd • Live</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Deep Learning & Autograd</div>
+          <h3 class="card-title">NeuralStudio</h3>
+          <p class="card-text">
+            Computational graph visualizer with live reverse-mode backpropagation, real-time 2D decision boundary
+            contour heatmaps, animated gradient heat pipes, and benchmark datasets (Two Spirals, Moons, Circles).
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Autograd</span>
+            <span class="tag-chip">Decision Space</span>
+            <span class="tag-chip">Adam / SGD</span>
+            <span class="tag-chip">Loss Telemetry</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('neuralstudio/index.html', 'NeuralStudio')">Open Studio</button>
+            <a href="neuralstudio/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. OpticaLab -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-opticalab"></canvas>
+          <div class="preview-badge">Ray Tracing • MTF</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Optics & Precision Physics</div>
+          <h3 class="card-title">OpticaLab</h3>
+          <p class="card-text">
+            Interactive optical bench and aspheric lens design studio with multi-wavelength ray tracing,
+            Schott Sellmeier dispersion models, focal plane spot diagrams with Airy disk boundary, and MTF curves.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Snell Refraction</span>
+            <span class="tag-chip">Sellmeier Dispersion</span>
+            <span class="tag-chip">Spot RMS</span>
+            <span class="tag-chip">MTF Curve</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('opticalab/index.html', 'OpticaLab')">Open Studio</button>
+            <a href="opticalab/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. AeroTunnel -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-aerotunnel"></canvas>
+          <div class="preview-badge">LBM D2Q9 • CFD</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Fluid Dynamics & Aerodynamics</div>
+          <h3 class="card-title">AeroTunnel</h3>
+          <p class="card-text">
+            Real-time 2D Lattice Boltzmann wind tunnel simulator with von Kármán vortex street shedding,
+            NACA 0012 airfoil angle-of-attack tuning, interactive obstacle drawing, and live Lift/Drag gauges.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">LBM D2Q9</span>
+            <span class="tag-chip">Vorticity Map</span>
+            <span class="tag-chip">Lift / Drag</span>
+            <span class="tag-chip">Streamlines</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('aerotunnel/index.html', 'AeroTunnel')">Open Studio</button>
+            <a href="aerotunnel/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. TokamakCockpit -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-tokamak"></canvas>
+          <div class="preview-badge">Grad-Shafranov • Boris</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Plasma Physics & Fusion Energy</div>
+          <h3 class="card-title">TokamakCockpit</h3>
+          <p class="card-text">
+            Magnetic confinement fusion simulator with 2D Grad-Shafranov equilibrium flux surfaces,
+            relativistic Boris particle pusher tracing neoclassical trapped banana orbits, and Lawson criterion meters.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Grad-Shafranov</span>
+            <span class="tag-chip">Boris Pusher</span>
+            <span class="tag-chip">Banana Orbits</span>
+            <span class="tag-chip">Lawson Criterion</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('tokamak/index.html', 'TokamakCockpit')">Open Studio</button>
+            <a href="tokamak/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. BlackHole Studio -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-blackhole"></canvas>
+          <div class="preview-badge">Kerr Raymarch • 60 FPS</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">General Relativity & Spacetime Optics</div>
+          <h3 class="card-title">BlackHole Studio</h3>
+          <p class="card-text">
+            General relativistic Kerr and Schwarzschild spacetime geodesic raymarcher with double accretion disk lensing,
+            relativistic Doppler beaming asymmetry, gravitational redshift, and ergosphere frame-dragging.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Kerr Geodesics</span>
+            <span class="tag-chip">Doppler Beaming</span>
+            <span class="tag-chip">Accretion Disk</span>
+            <span class="tag-chip">Event Horizon</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('blackhole/index.html', 'BlackHole Relativitas Studio')">Open Studio</button>
+            <a href="blackhole/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. BioGenesis Studio -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-biogenesis"></canvas>
+          <div class="preview-badge">Particle Life • 60 FPS</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #10B981;">Artificial Life & Evolutionary Biology</div>
+          <h3 class="card-title">BioGenesis Studio</h3>
+          <p class="card-text">
+            Emergent artificial life and evolutionary neural simulation with non-reciprocal 6x6 particle interaction matrices,
+            multi-segmented soft-body invertebrate physics, neural sensory cones, and Darwinian natural selection.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Particle Life</span>
+            <span class="tag-chip">Force Matrix</span>
+            <span class="tag-chip">Neuro-Evolution</span>
+            <span class="tag-chip">Invertebrates</span>
+            <span class="tag-chip">Cellular Mitosis</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('biogenesis/index.html', 'BioGenesis Artificial Life Studio')">Open Studio</button>
+            <a href="biogenesis/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. VoxelSpace 3D Flight Studio -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-voxelspace"></canvas>
+          <div class="preview-badge">Raycaster • 60 FPS</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #38BDF8;">Volumetric Terrain & Flight Simulation</div>
+          <h3 class="card-title">VoxelSpace 3D Flight Studio</h3>
+          <p class="card-text">
+            First-principles volumetric voxel terrain raycaster and 6-DOF aerodynamic flight simulator.
+            Renders 1024x1024 procedural landscapes across 4 biomes (Alpine Glaciers, Grand Canyon, Volcanic Caldera, Cyber Outrun)
+            with vector HUD pitch ladder, radar altimeter, tactical radar, and synthetic Web Audio turbofan sound.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">VoxelSpace Engine</span>
+            <span class="tag-chip">6-DOF Aerodynamics</span>
+            <span class="tag-chip">HUD Vector Glass</span>
+            <span class="tag-chip">Procedural fBm</span>
+            <span class="tag-chip">Web Audio Synth</span>
+            <span class="tag-chip">Tactical Radar</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('voxelspace/index.html', 'VoxelSpace 3D Flight Studio')">Open Studio</button>
+            <a href="voxelspace/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. QuantumLab Studio -->
+      <div class="flagship-card">
+        <div class="card-preview">
+          <canvas id="preview-quantum"></canvas>
+          <div class="preview-badge">3D Bloch • Statevector</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #00F0FF;">Quantum Computing & Statevector Mechanics</div>
+          <h3 class="card-title">QuantumLab Studio</h3>
+          <p class="card-text">
+            Interactive universal quantum circuit simulator and 3D Bloch sphere visualizer.
+            Features real-time statevector evolution, Hadamard, Pauli, Phase, CNOT, and Toffoli gates,
+            entanglement Bell states, quantum teleportation, density matrix heatmap, and 1024-shot Monte Carlo sampler.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Statevector Engine</span>
+            <span class="tag-chip">3D Bloch Sphere</span>
+            <span class="tag-chip">Bell Entanglement</span>
+            <span class="tag-chip">Density Matrix</span>
+            <span class="tag-chip">Teleportation</span>
+            <span class="tag-chip">OpenQASM 2.0</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('quantum/index.html', 'QuantumLab Studio')">Open Studio</button>
+            <a href="quantum/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flagship 10: NeuroMorph Studio -->
+      <div class="flagship-card" style="border-color: rgba(16, 185, 129, 0.4);">
+        <div class="card-preview" style="background: #04060A;">
+          <canvas id="preview-neuromorph"></canvas>
+          <div class="preview-badge">Web Studio • DVS & SNN</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #10B981;">Neuromorphic Computing & Event-Based Sensing</div>
+          <h3 class="card-title">NeuroMorph Studio</h3>
+          <p class="card-text">
+            Standalone neuromorphic engineering laboratory featuring asynchronous AER dynamic vision sensor emulation,
+            time-surface optical flow vector fields, LIF / Izhikevich multi-compartment spiking dynamics with live phase-plane trajectory oscilloscope,
+            STDP Hebbian learning synapse laboratory, and a 3D spiking cortical column reservoir with multi-channel raster plot and PSTH telemetry.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">DVS Silicon Retina</span>
+            <span class="tag-chip">Optical Flow</span>
+            <span class="tag-chip">Izhikevich SNN</span>
+            <span class="tag-chip">STDP Plasticity</span>
+            <span class="tag-chip">3D Cortical Column</span>
+            <span class="tag-chip">Web Audio Clicks</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('neuromorph/index.html', 'NeuroMorph Studio')">Open Studio</button>
+            <a href="neuromorph/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flagship 11: SynthWave Audio Studio -->
+      <div class="flagship-card" style="border-color: rgba(255, 0, 127, 0.4);">
+        <div class="card-preview" style="background: #06040F;">
+          <canvas id="preview-synthwave"></canvas>
+          <div class="preview-badge">Web Audio • Poly Synth</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #FF007F;">Digital Audio DSP & Polyphonic Synthesis</div>
+          <h3 class="card-title">SynthWave Audio Studio</h3>
+          <p class="card-text">
+            Standalone browser-based digital audio workstation and polyphonic synthesizer built with the pure Web Audio API.
+            Features dual-oscillator voice architecture, detuning, resonant biquad lowpass filtering, waveshaper saturation,
+            4-track 808 drum machine (Kick, Snare, Closed Hat, Open Hat), 16-step melodic bass sequencer, stereo tape delay and space reverb rack,
+            2-octave interactive piano keyboard, and real-time CRT phosphor oscilloscope / 64-band FFT spectrum analyzer.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Dual Oscillators</span>
+            <span class="tag-chip">ADSR Envelopes</span>
+            <span class="tag-chip">Resonant Lowpass</span>
+            <span class="tag-chip">16-Step Sequencer</span>
+            <span class="tag-chip">808 Drum Machine</span>
+            <span class="tag-chip">Stereo Tape Delay</span>
+            <span class="tag-chip">Phosphor Scope</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('synthwave/index.html', 'SynthWave Studio')">Open Studio</button>
+            <a href="synthwave/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flagship 12: PlasmaFlow MHD Studio -->
+      <div class="flagship-card" style="border-color: rgba(0, 240, 255, 0.4);">
+        <div class="card-preview" style="background: #05060D;">
+          <canvas id="preview-plasmaflow"></canvas>
+          <div class="preview-badge">2D MHD • WebGL / Canvas</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #00F0FF;">Magnetohydrodynamics & Plasma Physics</div>
+          <h3 class="card-title">PlasmaFlow MHD Studio</h3>
+          <p class="card-text">
+            Standalone browser-based magnetohydrodynamics laboratory and magnetic reconnection simulator.
+            Solves coupled Navier-Stokes fluid advection, Poisson pressure projection, magnetic vector potential induction
+            ensuring exact solenoidal field lines (&nabla; &bull; B = 0), and Lorentz body forces (J &times; B).
+            Features 6 curated astrophysical scenarios: Sweet-Parker reconnection current sheets, Orszag-Tang vortex turbulence,
+            Kelvin-Helmholtz shear roll-up, transverse Alfven wave propagation, and Tokamak magnetic flux surfaces.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Solenoidal (&nabla;&bull;B=0)</span>
+            <span class="tag-chip">Lorentz Forces (J&times;B)</span>
+            <span class="tag-chip">Sweet-Parker Reconnection</span>
+            <span class="tag-chip">Orszag-Tang Vortex</span>
+            <span class="tag-chip">Alfven Waves</span>
+            <span class="tag-chip">Magnetic Field Lines</span>
+            <span class="tag-chip">Energy Cascade</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('plasmaflow/index.html', 'PlasmaFlow Studio')">Open Studio</button>
+            <a href="plasmaflow/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flagship 13: WaveOptics 2D Studio -->
+      <div class="flagship-card" style="border-color: rgba(56, 189, 248, 0.4);">
+        <div class="card-preview" style="background: #040814;">
+          <canvas id="preview-waveoptics"></canvas>
+          <div class="preview-badge">2D FDTD • Wave Optics</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #38BDF8;">Physical Optics & Electromagnetic Wavefields</div>
+          <h3 class="card-title">WaveOptics 2D Studio</h3>
+          <p class="card-text">
+            Standalone browser-based 2D physical optics laboratory and scalar wave equation FDTD simulator.
+            Features Courant-Friedrichs-Lewy stable time-domain electrodynamics, absorbing boundary layers,
+            dielectric refraction with variable refractive index (n=1.55 glass lenses and prisms),
+            Fraunhofer double-slit and single-slit diffraction with analytical Sinc^2 fringe verification,
+            time-averaged irradiance accumulation, and cyclic optical phase mapping.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">FDTD Wave Equation</span>
+            <span class="tag-chip">CFL Stability Condition</span>
+            <span class="tag-chip">Double-Slit Interference</span>
+            <span class="tag-chip">Fraunhofer Sinc^2</span>
+            <span class="tag-chip">Dielectric Refraction</span>
+            <span class="tag-chip">Absorbing Boundary Layer</span>
+            <span class="tag-chip">Time-Averaged Irradiance</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('waveoptics/index.html', 'WaveOptics Studio')">Open Studio</button>
+            <a href="waveoptics/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. GravWave Studio -->
+      <div class="flagship-card" style="border-color: rgba(0, 240, 255, 0.4);">
+        <div class="card-preview">
+          <canvas id="preview-gravwave"></canvas>
+          <div class="preview-badge">Numerical Relativity • Audio</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #00F0FF;">Gravitational Waves & Laser Interferometry</div>
+          <h3 class="card-title">GravWave Studio</h3>
+          <p class="card-text">
+            Standalone browser-based 2D numerical relativity and gravitational wave observatory laboratory.
+            Features post-Newtonian binary black hole inspiral trajectory via Peters radiation reaction,
+            spacetime metric fabric perturbation h_ij with transverse-traceless quadrupolar ripples,
+            time-frequency chirp spectrogram, 4 km Fabry-Perot cavity laser interferometer with dynamic optical fringe shifts,
+            and real-time Web Audio API gravitational chirp acoustic sonification.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Numerical Relativity</span>
+            <span class="tag-chip">Peters Radiation Reaction</span>
+            <span class="tag-chip">Quadrupole Strain h(t)</span>
+            <span class="tag-chip">Chirp Spectrogram</span>
+            <span class="tag-chip">Laser Interferometer</span>
+            <span class="tag-chip">Web Audio Sonification</span>
+            <span class="tag-chip">Kerr Ringdown</span>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-primary" onclick="openStudio('gravwave/index.html', 'GravWave Studio')">Open Studio</button>
+            <a href="gravwave/index.html" class="btn" target="_blank">New Tab &nearr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Desktop GUI Applications (programs/) -->
+  <section class="section-wrap" id="desktop">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Standalone Desktop GUI Applications</h2>
+        <p class="section-desc">Native desktop software featuring graphical windows, 3D canvases, and zero external dependencies (standard library Tkinter).</p>
+      </div>
+      <div class="badge-pass">Native Python GUI • 142 / 142 Active Tests Pass (100%)</div>
+    </div>
+
+    <div class="flagship-grid">
+      <!-- Desktop App 1: Gravitas 3D -->
+      <div class="flagship-card" style="border-color: rgba(6, 182, 212, 0.4);">
+        <div class="card-preview" style="background: #080C14;">
+          <canvas id="preview-gravitas"></canvas>
+          <div class="preview-badge">Desktop Tkinter • 3D</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #10B981;">Celestial Mechanics & Orbital Dynamics</div>
+          <h3 class="card-title">Gravitas 3D Orbital Studio</h3>
+          <p class="card-text">
+            Interactive desktop laboratory featuring true 3D perspective projection, 4th-order symplectic Yoshida integration,
+            post-Newtonian relativistic perihelion advance (rosette orbits), interactive sling-launch mode, and real-time Hamiltonian conservation telemetry (drift &Delta;E/E &lt; 10<sup>-4</sup>).
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Yoshida 4th-Order</span>
+            <span class="tag-chip">Figure-8 Choreography</span>
+            <span class="tag-chip">Sling Launcher</span>
+            <span class="tag-chip">Relativistic Precession</span>
+            <span class="tag-chip">Collision Merging</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #06B6D4;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/gravitas/gravitas.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 2: SignalScope -->
+      <div class="flagship-card" style="border-color: rgba(139, 92, 246, 0.4);">
+        <div class="card-preview" style="background: #080C14;">
+          <canvas id="preview-signalscope"></canvas>
+          <div class="preview-badge">DSP • FFT • Synth</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #8B5CF6;">Audio DSP & Frequency Synthesis</div>
+          <h3 class="card-title">SignalScope Studio</h3>
+          <p class="card-text">
+            Standalone virtual oscilloscope and spectrum analyzer built in pure Python Tkinter.
+            Features Radix-2 Cooley-Tukey FFT, Lissajous X-Y phase trajectories, edge-trigger engine,
+            2nd-order resonant biquad filtering, FM/AM modulation synthesis, and 16-bit PCM WAV exporting.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Radix-2 FFT</span>
+            <span class="tag-chip">Dual-Trace CRT</span>
+            <span class="tag-chip">Lissajous X-Y</span>
+            <span class="tag-chip">Biquad Filter</span>
+            <span class="tag-chip">FM / AM Synth</span>
+            <span class="tag-chip">WAV Export</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #8B5CF6;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/signalscope/signalscope.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 3: PyCircuit -->
+      <div class="flagship-card" style="border-color: rgba(16, 185, 129, 0.4);">
+        <div class="card-preview" style="background: #080C14;">
+          <canvas id="preview-pycircuit"></canvas>
+          <div class="preview-badge">SPICE • MNA Solver</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #10B981;">Analog Electronics & Circuit Simulation</div>
+          <h3 class="card-title">PyCircuit SPICE Studio</h3>
+          <p class="card-text">
+            Standalone desktop analog schematic designer and SPICE-grade Modified Nodal Analysis (MNA) simulator.
+            Features Gaussian elimination with partial pivoting, Backward Euler companion models for capacitors and inductors,
+            piecewise non-linear diodes, virtual ground operational amplifiers, animated electron flow along wires, and dual-trace oscilloscope dock.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Modified Nodal Analysis</span>
+            <span class="tag-chip">Companion Models</span>
+            <span class="tag-chip">Gaussian Pivoting</span>
+            <span class="tag-chip">Diode Companion</span>
+            <span class="tag-chip">Dual-Trace Scope</span>
+            <span class="tag-chip">Electron Animation</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #10B981;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/pycircuit/pycircuit.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 4: RetroCAD 3D Studio -->
+      <div class="flagship-card" style="border-color: rgba(245, 158, 11, 0.4);">
+        <div class="card-preview" style="background: #080C14;">
+          <canvas id="preview-retrocad"></canvas>
+          <div class="preview-badge">Desktop Tkinter • B-Rep 3D</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #F59E0B;">Parametric CAD & Solid Modeling</div>
+          <h3 class="card-title">RetroCAD 3D Studio</h3>
+          <p class="card-text">
+            Standalone desktop mechanical CAD modeler and CSG studio built in pure Python Tkinter.
+            Features 3D boundary representation (B-Rep) polygonal kernel, Constructive Solid Geometry booleans (Union/Difference),
+            parametric extrusion and revolve features, divergence theorem volume calculation, and STL/OBJ/DXF/SVG codecs.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">B-Rep Mesh Kernel</span>
+            <span class="tag-chip">CSG Booleans</span>
+            <span class="tag-chip">Extrusion & Revolve</span>
+            <span class="tag-chip">AutoCAD DXF R12</span>
+            <span class="tag-chip">ASCII STL Export</span>
+            <span class="tag-chip">CRT / Blueprint Shading</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #F59E0B;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/retrocad/retrocad.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 5: AeroAcoustics Studio -->
+      <div class="flagship-card" style="border-color: rgba(244, 63, 94, 0.4);">
+        <div class="card-preview" style="background: #04060A;">
+          <canvas id="preview-aeroacoustics"></canvas>
+          <div class="preview-badge">Desktop Tkinter • Acoustics</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #F43F5E;">Computational Aeroacoustics & Shock Dynamics</div>
+          <h3 class="card-title">AeroAcoustics Studio</h3>
+          <p class="card-text">
+            Standalone computational aeroacoustics laboratory built in pure Python Tkinter.
+            Features supersonic Mach cone shockwave envelopes (sin(&mu;) = 1/M), moving Doppler wave propagation,
+            Whitham N-wave sonic boom overpressure profiles, virtual microphone sensor arrays,
+            real-time FFT acoustic spectrum analyzer, and 360-degree polar directivity radiation diagrams.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Supersonic Mach Cone</span>
+            <span class="tag-chip">Doppler Effect</span>
+            <span class="tag-chip">Sonic Boom N-Wave</span>
+            <span class="tag-chip">Virtual Microphones</span>
+            <span class="tag-chip">Real-Time FFT</span>
+            <span class="tag-chip">Polar Directivity</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #F43F5E;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/aeroacoustics/aeroacoustics.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 6: AstroEphemeris 3D Studio -->
+      <div class="flagship-card" style="border-color: rgba(0, 240, 255, 0.4);">
+        <div class="card-preview" style="background: #03050C;">
+          <canvas id="preview-astroephemeris"></canvas>
+          <div class="preview-badge">Desktop Tkinter • Astrodynamics</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #00F0FF;">Astrodynamics & CR3BP Three-Body Mechanics</div>
+          <h3 class="card-title">AstroEphemeris 3D Studio</h3>
+          <p class="card-text">
+            Standalone desktop astrodynamics laboratory and orbital targeting workstation built in pure Python Tkinter.
+            Features 3D perspective orbital canvas with orbital pitch/yaw/zoom navigation, Keplerian state propagation,
+            General Relativistic Post-Newtonian (1PN) Schwarzschild perihelion precession (Mercury rosette), J2 planetary oblateness perturbations,
+            Circular Restricted Three-Body Problem (CR3BP) rotating frame with analytical Newton-Raphson equilibria for all 5 Lagrange libration points (L1-L5),
+            Jacobi energy constant conservation telemetry, and coplanar Hohmann interplanetary transfer trajectories with spacecraft impulsive thruster burns.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">CR3BP Lagrange L1-L5</span>
+            <span class="tag-chip">1PN Relativistic Rosette</span>
+            <span class="tag-chip">J2 Earth Oblateness</span>
+            <span class="tag-chip">Jacobi Energy Integral</span>
+            <span class="tag-chip">Hohmann Transfer</span>
+            <span class="tag-chip">Yoshida 4th-Order</span>
+            <span class="tag-chip">Telemetry HUD</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #00F0FF;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/astroephemeris/astroephemeris.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 7: SpectroChem 3D Studio -->
+      <div class="flagship-card" style="border-color: rgba(255, 119, 0, 0.4);">
+        <div class="card-preview" style="background: #070913;">
+          <canvas id="preview-spectrochem"></canvas>
+          <div class="preview-badge">Desktop Tkinter • FTIR Spectrum</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #FF7700;">Computational Chemistry & Molecular Spectroscopy</div>
+          <h3 class="card-title">SpectroChem 3D Studio</h3>
+          <p class="card-text">
+            Standalone desktop computational chemistry workstation and FTIR vibrational spectroscopy studio built in standard library Python Tkinter.
+            Features 3D perspective molecular canvas with orbit/pan/zoom, Ball-and-Stick, Space-Filling (vdW), and Electrostatic Potential (ESP) rendering,
+            harmonic bond stretching, angle bending, Lennard-Jones 6-12, and Coulomb electrostatics force field,
+            Conjugate Gradient geometry optimization with Armijo backtracking line search,
+            Velocity Verlet Molecular Dynamics with Maxwell-Boltzmann thermalization and Berendsen thermostat,
+            mass-weighted Hessian matrix calculation via central finite differences, Jacobi symmetric eigenvalue solver for 3N normal mode frequencies,
+            harmonic vibrational displacement animations, and interactive continuous FTIR absorption spectrum with Lorentzian line broadening.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Molecular Mechanics</span>
+            <span class="tag-chip">Velocity Verlet MD</span>
+            <span class="tag-chip">Conjugate Gradient</span>
+            <span class="tag-chip">Mass-Weighted Hessian</span>
+            <span class="tag-chip">FTIR Spectroscopy</span>
+            <span class="tag-chip">Lorentzian Bands</span>
+            <span class="tag-chip">VSEPR Geometry</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #FF7700;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/spectrochem/spectrochem.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 8: Structura 2D FEA Studio -->
+      <div class="flagship-card" style="border-color: rgba(0, 240, 255, 0.4);">
+        <div class="card-preview" style="background: #050811;">
+          <canvas id="preview-structura2d"></canvas>
+          <div class="preview-badge">Desktop Tkinter • FEA / CST / Quad4</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #00F0FF;">Finite Element Analysis & Continuum Mechanics</div>
+          <h3 class="card-title">Structura 2D FEA Studio</h3>
+          <p class="card-text">
+            Standalone desktop finite element analysis workstation and continuum elasticity studio built in standard library Python Tkinter.
+            Solves 1D truss pin-jointed structures, 2D Constant Strain Triangles (CST), and 4-node Isoparametric Quadrilaterals (Quad4)
+            integrated using 2x2 Gauss-Legendre numerical quadrature.
+            Features global stiffness matrix assembly, Dirichlet boundary condition partitioning, Gaussian elimination with partial pivoting,
+            Cauchy stress recovery, Von Mises equivalent failure yield criteria, Rayleigh quotient fundamental natural vibration frequencies,
+            real-time deformation scaling (1x to 1000x), and interactive harmonic modal vibration animation.
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Truss Elements</span>
+            <span class="tag-chip">CST Continuum</span>
+            <span class="tag-chip">Quad4 Isoparametric</span>
+            <span class="tag-chip">2x2 Gauss Quadrature</span>
+            <span class="tag-chip">Von Mises Stress</span>
+            <span class="tag-chip">Modal Harmonics</span>
+            <span class="tag-chip">Rayleigh Quotient</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #00F0FF;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/structura2d/structura2d.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop App 9: OptiFlow 2D -->
+      <div class="flagship-card" style="border-color: rgba(16, 185, 129, 0.4);">
+        <div class="card-preview" style="background: #080C14;">
+          <canvas id="preview-optiflow"></canvas>
+          <div class="preview-badge">Desktop Tkinter • CFD</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category" style="color: #10B981;">Aerodynamics & Computational Fluid Dynamics</div>
+          <h3 class="card-title">OptiFlow 2D CFD Studio</h3>
+          <p class="card-text">
+            Standalone desktop computational fluid dynamics (CFD) workstation and aerodynamics laboratory built in pure Python Tkinter.
+            Features 2D incompressible Navier-Stokes solver via vorticity-streamfunction formulation,
+            SOR Poisson pressure solver, parametric NACA 4-digit airfoil morphology (NACA 0012, 2412, 4412) with real-time Angle of Attack (-18° to +22°),
+            dynamic Karman vortex shedding, smoke streaklines, and virtual Pitot tube telemetry (CL, CD, L/D, CM).
+          </p>
+          <div class="card-tags">
+            <span class="tag-chip">Navier-Stokes</span>
+            <span class="tag-chip">Vorticity-Streamfunction</span>
+            <span class="tag-chip">NACA Airfoil Generator</span>
+            <span class="tag-chip">Angle of Attack</span>
+            <span class="tag-chip">Karman Vortex Street</span>
+            <span class="tag-chip">Lift & Drag (CL, CD)</span>
+            <span class="tag-chip">Virtual Pitot Probe</span>
+          </div>
+          <div style="background: #080C14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 11px; color: #10B981;">
+            <div style="color: var(--text-dim); margin-bottom: 4px;"># Launch Native Desktop Window:</div>
+            <div>python3 programs/optiflow/optiflow.py</div>
+          </div>
+          <div class="card-footer">
+            <a href="projects.md#programs-desktop-software" class="btn btn-primary" target="_blank">View Specs</a>
+            <a href="https://github.com" class="btn" target="_blank">Source Code &nearr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Complete Systems Index -->
+  <section class="section-wrap" id="systems">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">33 Zero-Dependency Computer Science Engines</h2>
+        <p class="section-desc">Rigorous standalone Python engineering libraries built from scratch without external libraries.</p>
+      </div>
+      <div class="badge-pass">861 / 861 Tests Passing (100%)</div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Project System</th>
+            <th>Domain & Architecture</th>
+            <th>Verification Status</th>
+            <th>Primary Algorithms & Mechanics</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono-cell">01</td>
+            <td style="color: var(--text); font-weight: 600;">NeuralNetwork</td>
+            <td>Machine Learning & Deep Learning</td>
+            <td><span class="badge-pass">19 / 19 PASS</span></td>
+            <td>Reverse-mode automatic differentiation, backprop, Adam optimizer</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">02</td>
+            <td style="color: var(--text); font-weight: 600;">RayTracer</td>
+            <td>Computer Graphics & Rendering</td>
+            <td><span class="badge-pass">21 / 21 PASS</span></td>
+            <td>BVH acceleration, Monte Carlo path tracing, Cook-Torrance BRDF</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">03</td>
+            <td style="color: var(--text); font-weight: 600;">PhysicsEngine</td>
+            <td>Rigid Body Dynamics</td>
+            <td><span class="badge-pass">24 / 24 PASS</span></td>
+            <td>Symplectic Euler, SAT collision detection, Sequential Impulse solver</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">04</td>
+            <td style="color: var(--text); font-weight: 600;">DatabaseEngine</td>
+            <td>Data Storage & Relational Kernels</td>
+            <td><span class="badge-pass">26 / 26 PASS</span></td>
+            <td>B+ Tree indexing, ACID WAL logger, Cost-based query optimizer</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">05</td>
+            <td style="color: var(--text); font-weight: 600;">SearchEngine</td>
+            <td>Information Retrieval</td>
+            <td><span class="badge-pass">23 / 23 PASS</span></td>
+            <td>Inverted index, BM25 ranking, Vector space cosine similarity</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">06</td>
+            <td style="color: var(--text); font-weight: 600;">Compiler</td>
+            <td>Programming Languages</td>
+            <td><span class="badge-pass">27 / 27 PASS</span></td>
+            <td>Recursive descent parser, SSA intermediate representation, Register allocator</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">07</td>
+            <td style="color: var(--text); font-weight: 600;">CryptoChain</td>
+            <td>Distributed Systems & Cryptography</td>
+            <td><span class="badge-pass">25 / 25 PASS</span></td>
+            <td>SHA-256 Merkle tree, UTXO transaction engine, Proof-of-Work consensus</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">08</td>
+            <td style="color: var(--text); font-weight: 600;">ChessEngine</td>
+            <td>Game Theory & Artificial Intelligence</td>
+            <td><span class="badge-pass">28 / 28 PASS</span></td>
+            <td>Bitboards, Alpha-Beta pruning, Principal Variation Search, Transposition tables</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">17</td>
+            <td style="color: var(--text); font-weight: 600;">FluidSim</td>
+            <td>Computational Fluid Dynamics</td>
+            <td><span class="badge-pass">24 / 24 PASS</span></td>
+            <td>Stable fluids Navier-Stokes, Pressure Poisson Conjugate Gradient solver</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">21</td>
+            <td style="color: var(--text); font-weight: 600;">QuantumSim</td>
+            <td>Quantum Computing & Statevectors</td>
+            <td><span class="badge-pass">30 / 30 PASS</span></td>
+            <td>Universal gate matrix tensor product, Grover search, Quantum Fourier Transform</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">26</td>
+            <td style="color: var(--text); font-weight: 600;">SiliconRISC</td>
+            <td>Microarchitecture & Emulation</td>
+            <td><span class="badge-pass">34 / 34 PASS</span></td>
+            <td>RISC-V 32IM 5-stage pipelined CPU, Hazard detection & Data forwarding</td>
+          </tr>
+          <tr>
+            <td class="mono-cell">33</td>
+            <td style="color: var(--text); font-weight: 600;">ChromaSplat</td>
+            <td>Volume Radiance & 3D Splatting</td>
+            <td><span class="badge-pass">26 / 26 PASS</span></td>
+            <td>Covariance 3D-to-2D projection, Tile binning sort, Spherical harmonics</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Interactive Studio Modal -->
+  <div class="modal-backdrop" id="modal-container">
+    <div class="modal-window">
+      <div class="modal-topbar">
+        <span class="modal-title" id="modal-app-title">Studio Preview</span>
+        <button class="modal-close-btn" onclick="closeStudio()">&times;</button>
+      </div>
+      <iframe id="modal-frame" src=""></iframe>
+    </div>
+  </div>
+
+  <script>
+    // Modal Launcher
+    function openStudio(url, title) {
+      document.getElementById('modal-app-title').textContent = title;
+      document.getElementById('modal-frame').src = url;
+      document.getElementById('modal-container').classList.add('open');
+    }
+
+    function closeStudio() {
+      document.getElementById('modal-container').classList.remove('open');
+      document.getElementById('modal-frame').src = '';
+    }
+
+    // Mini Live Card Previews
+    function initCardMiniPreviews() {
+      // 1. ChromaSplat Mini
+      const c1 = document.getElementById('preview-chromasplat');
+      const ctx1 = c1.getContext('2d');
+      c1.width = c1.clientWidth; c1.height = c1.clientHeight;
+      let angle1 = 0;
+      function drawSplatMini() {
+        ctx1.clearRect(0, 0, c1.width, c1.height);
+        angle1 += 0.02;
+        const cx = c1.width * 0.5;
+        const cy = c1.height * 0.5;
+        for (let i = 0; i < 40; i++) {
+          const a = angle1 + (i / 40) * Math.PI * 2;
+          const r = 40 + 20 * Math.sin(a * 3);
+          const px = cx + r * Math.cos(a);
+          const py = cy + r * Math.sin(a) * 0.5;
+          ctx1.beginPath();
+          ctx1.ellipse(px, py, 10, 5, a, 0, Math.PI * 2);
+          ctx1.fillStyle = `rgba(${Math.round(6 + 180 * Math.sin(a))}, 182, 212, 0.4)`;
+          ctx1.fill();
+        }
+        requestAnimationFrame(drawSplatMini);
+      }
+      drawSplatMini();
+
+      // 2. NeuralStudio Mini
+      const c2 = document.getElementById('preview-neuralstudio');
+      const ctx2 = c2.getContext('2d');
+      c2.width = c2.clientWidth; c2.height = c2.clientHeight;
+      let phase2 = 0;
+      function drawNeuralMini() {
+        ctx2.clearRect(0, 0, c2.width, c2.height);
+        phase2 += 0.03;
+        const step = 16;
+        for (let x = 0; x < c2.width; x += step) {
+          for (let y = 0; y < c2.height; y += step) {
+            const val = Math.sin((x * 0.04) + phase2) * Math.cos((y * 0.04) + phase2);
+            ctx2.fillStyle = val > 0 ? 'rgba(6, 182, 212, 0.35)' : 'rgba(236, 72, 153, 0.35)';
+            ctx2.fillRect(x, y, step, step);
+          }
+        }
+        requestAnimationFrame(drawNeuralMini);
+      }
+      drawNeuralMini();
+
+      // 3. OpticaLab Mini
+      const c3 = document.getElementById('preview-opticalab');
+      const ctx3 = c3.getContext('2d');
+      c3.width = c3.clientWidth; c3.height = c3.clientHeight;
+      function drawOpticsMini() {
+        ctx3.clearRect(0, 0, c3.width, c3.height);
+        const cy = c3.height * 0.5;
+        // Lens
+        ctx3.fillStyle = 'rgba(6, 182, 212, 0.25)';
+        ctx3.beginPath();
+        ctx3.ellipse(c3.width * 0.35, cy, 14, 45, 0, 0, Math.PI * 2);
+        ctx3.fill();
+        // Rays
+        for (let i = -3; i <= 3; i++) {
+          const y = cy + i * 10;
+          ctx3.strokeStyle = i === 0 ? '#FBBF24' : '#38BDF8';
+          ctx3.beginPath();
+          ctx3.moveTo(10, y);
+          ctx3.lineTo(c3.width * 0.35, y);
+          ctx3.lineTo(c3.width * 0.85, cy);
+          ctx3.stroke();
+        }
+      }
+      drawOpticsMini();
+
+      // 4. AeroTunnel Mini
+      const c4 = document.getElementById('preview-aerotunnel');
+      const ctx4 = c4.getContext('2d');
+      c4.width = c4.clientWidth; c4.height = c4.clientHeight;
+      let offset4 = 0;
+      function drawAeroMini() {
+        ctx4.clearRect(0, 0, c4.width, c4.height);
+        offset4 += 2;
+        const cy = c4.height * 0.5;
+        ctx4.fillStyle = '#334155';
+        ctx4.beginPath();
+        ctx4.arc(c4.width * 0.25, cy, 12, 0, Math.PI * 2);
+        ctx4.fill();
+        for (let i = 0; i < 18; i++) {
+          const vx = (c4.width * 0.35) + ((offset4 + i * 22) % (c4.width * 0.6));
+          const vy = cy + Math.sin(vx * 0.08) * 12 * (i % 2 === 0 ? 1 : -1);
+          ctx4.beginPath();
+          ctx4.arc(vx, vy, 4, 0, Math.PI * 2);
+          ctx4.fillStyle = i % 2 === 0 ? 'rgba(6, 182, 212, 0.6)' : 'rgba(236, 72, 153, 0.6)';
+          ctx4.fill();
+        }
+        requestAnimationFrame(drawAeroMini);
+      }
+      drawAeroMini();
+
+      // 5. Tokamak Mini
+      const c5 = document.getElementById('preview-tokamak');
+      const ctx5 = c5.getContext('2d');
+      c5.width = c5.clientWidth; c5.height = c5.clientHeight;
+      let tPhase = 0;
+      function drawTokamakMini() {
+        ctx5.clearRect(0, 0, c5.width, c5.height);
+        tPhase += 0.03;
+        const cx = c5.width * 0.5;
+        const cy = c5.height * 0.5;
+        for (let i = 1; i <= 4; i++) {
+          ctx5.strokeStyle = `rgba(139, 92, 246, ${0.15 * i})`;
+          ctx5.beginPath();
+          ctx5.ellipse(cx, cy, i * 22, i * 36, 0, 0, Math.PI * 2);
+          ctx5.stroke();
+        }
+        // Particle
+        const px = cx + 55 * Math.cos(tPhase);
+        const py = cy + 90 * Math.sin(tPhase);
+        ctx5.beginPath();
+        ctx5.arc(px, py, 3.5, 0, Math.PI * 2);
+        ctx5.fillStyle = '#F97316';
+        ctx5.fill();
+        requestAnimationFrame(drawTokamakMini);
+      }
+      drawTokamakMini();
+
+      // 6. BlackHole Mini
+      const c6 = document.getElementById('preview-blackhole');
+      if (c6) {
+        const ctx6 = c6.getContext('2d');
+        c6.width = c6.clientWidth; c6.height = c6.clientHeight;
+        let bhTime = 0;
+        function drawBlackholeMini() {
+          ctx6.clearRect(0, 0, c6.width, c6.height);
+          bhTime += 0.03;
+          const cx = c6.width * 0.5;
+          const cy = c6.height * 0.5;
+
+          // Upper bent accretion ring
+          ctx6.beginPath();
+          ctx6.ellipse(cx, cy - 14, 56, 32, 0, Math.PI, Math.PI * 2);
+          ctx6.strokeStyle = 'rgba(6, 182, 212, 0.7)';
+          ctx6.lineWidth = 4;
+          ctx6.stroke();
+
+          // Lower bent accretion ring
+          ctx6.beginPath();
+          ctx6.ellipse(cx, cy + 14, 52, 28, 0, 0, Math.PI);
+          ctx6.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+          ctx6.lineWidth = 3;
+          ctx6.stroke();
+
+          // Central black hole shadow
+          ctx6.beginPath();
+          ctx6.arc(cx, cy, 24, 0, Math.PI * 2);
+          ctx6.fillStyle = '#000000';
+          ctx6.fill();
+          ctx6.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+          ctx6.lineWidth = 1;
+          ctx6.stroke();
+
+          // Equatorial glowing disk
+          const grad = ctx6.createLinearGradient(cx - 75, cy, cx + 75, cy);
+          grad.addColorStop(0, 'rgba(6, 182, 212, 0.9)');
+          grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.8)');
+          grad.addColorStop(1, 'rgba(239, 68, 68, 0.2)');
+          ctx6.beginPath();
+          ctx6.ellipse(cx, cy, 75, 12, 0, 0, Math.PI * 2);
+          ctx6.strokeStyle = grad;
+          ctx6.lineWidth = 5;
+          ctx6.stroke();
+
+          requestAnimationFrame(drawBlackholeMini);
+        }
+        drawBlackholeMini();
+      }
+
+      // 7. Gravitas 3D Mini
+      const c7 = document.getElementById('preview-gravitas');
+      if (c7) {
+        const ctx7 = c7.getContext('2d');
+        c7.width = c7.clientWidth; c7.height = c7.clientHeight;
+        let gAngle = 0;
+        function drawGravitasMini() {
+          ctx7.clearRect(0, 0, c7.width, c7.height);
+          gAngle += 0.03;
+          const cx = c7.width * 0.5;
+          const cy = c7.height * 0.5;
+
+          // Figure-8 curve preview
+          ctx7.beginPath();
+          ctx7.strokeStyle = 'rgba(6, 182, 212, 0.25)';
+          ctx7.lineWidth = 1.5;
+          for (let t = 0; t <= Math.PI * 2; t += 0.05) {
+            const x = cx + 60 * Math.sin(t);
+            const y = cy + 30 * Math.sin(2 * t);
+            if (t === 0) ctx7.moveTo(x, y);
+            else ctx7.lineTo(x, y);
+          }
+          ctx7.stroke();
+
+          // 3 orbiting bodies
+          const offsets = [0, (Math.PI * 2) / 3, (Math.PI * 4) / 3];
+          const colors = ['#06B6D4', '#8B5CF6', '#10B981'];
+          for (let k = 0; k < 3; k++) {
+            const t = gAngle + offsets[k];
+            const px = cx + 60 * Math.sin(t);
+            const py = cy + 30 * Math.sin(2 * t);
+            ctx7.beginPath();
+            ctx7.arc(px, py, 4.5, 0, Math.PI * 2);
+            ctx7.fillStyle = colors[k];
+            ctx7.fill();
+          }
+
+          requestAnimationFrame(drawGravitasMini);
+        }
+        drawGravitasMini();
+      }
+
+      // 8. BioGenesis Mini
+      const c8 = document.getElementById('preview-biogenesis');
+      if (c8) {
+        const ctx8 = c8.getContext('2d');
+        c8.width = c8.clientWidth; c8.height = c8.clientHeight;
+        let bTime = 0;
+        const pts = [];
+        for (let i = 0; i < 45; i++) {
+          pts.push({
+            r: 15 + Math.random() * 55,
+            theta: Math.random() * Math.PI * 2,
+            speed: (Math.random() * 0.02 + 0.01) * (i % 2 === 0 ? 1 : -1),
+            color: ['#10B981', '#06B6D4', '#F43F5E', '#F59E0B', '#8B5CF6'][i % 5]
+          });
+        }
+
+        function drawBioMini() {
+          ctx8.fillStyle = 'rgba(3, 7, 18, 0.3)';
+          ctx8.fillRect(0, 0, c8.width, c8.height);
+          bTime += 0.02;
+          const cx = c8.width * 0.5;
+          const cy = c8.height * 0.5;
+
+          for (const p of pts) {
+            p.theta += p.speed;
+            const px = cx + Math.cos(p.theta) * p.r;
+            const py = cy + Math.sin(p.theta) * (p.r * 0.65);
+            ctx8.beginPath();
+            ctx8.arc(px, py, 2.5, 0, Math.PI * 2);
+            ctx8.fillStyle = p.color;
+            ctx8.fill();
+          }
+
+          // Undulating micro-creature swimming across
+          const wormX = (bTime * 45) % (c8.width + 60) - 30;
+          const wormY = cy + Math.sin(bTime * 2) * 25;
+          for (let s = 0; s < 5; s++) {
+            const sx = wormX - s * 6;
+            const sy = wormY + Math.sin(bTime * 3 - s * 0.6) * 4;
+            ctx8.beginPath();
+            ctx8.arc(sx, sy, 4 - s * 0.6, 0, Math.PI * 2);
+            ctx8.fillStyle = s === 0 ? '#38BDF8' : '#10B981';
+            ctx8.fill();
+          }
+
+          requestAnimationFrame(drawBioMini);
+        }
+        drawBioMini();
+      }
+
+      // 9. SignalScope Mini
+      const c9 = document.getElementById('preview-signalscope');
+      if (c9) {
+        const ctx9 = c9.getContext('2d');
+        c9.width = c9.clientWidth; c9.height = c9.clientHeight;
+        let sTime = 0;
+
+        function drawScopeMini() {
+          ctx9.clearRect(0, 0, c9.width, c9.height);
+          sTime += 0.04;
+          const w = c9.width;
+          const h = c9.height;
+
+          // CRT graticule grid
+          ctx9.strokeStyle = '#0E1C2E';
+          ctx9.lineWidth = 1;
+          for (let x = 0; x < w; x += 25) {
+            ctx9.beginPath(); ctx9.moveTo(x, 0); ctx9.lineTo(x, h); ctx9.stroke();
+          }
+          for (let y = 0; y < h; y += 25) {
+            ctx9.beginPath(); ctx9.moveTo(0, y); ctx9.lineTo(w, y); ctx9.stroke();
+          }
+
+          // CH2 Amber Trace
+          ctx9.strokeStyle = '#F59E0B';
+          ctx9.lineWidth = 2;
+          ctx9.beginPath();
+          for (let x = 0; x < w; x += 3) {
+            const y = h * 0.5 + Math.sin(x * 0.04 + sTime * 1.5) * 32;
+            if (x === 0) ctx9.moveTo(x, y);
+            else ctx9.lineTo(x, y);
+          }
+          ctx9.stroke();
+
+          // CH1 Cyan Trace
+          ctx9.strokeStyle = '#06B6D4';
+          ctx9.lineWidth = 2;
+          ctx9.beginPath();
+          for (let x = 0; x < w; x += 3) {
+            const y = h * 0.5 + Math.sin(x * 0.02 + sTime) * 45;
+            if (x === 0) ctx9.moveTo(x, y);
+            else ctx9.lineTo(x, y);
+          }
+          ctx9.stroke();
+
+          // Mini FFT bars at bottom
+          ctx9.fillStyle = 'rgba(139, 92, 246, 0.4)';
+          const numBars = 16;
+          const barW = (w - 30) / numBars;
+          for (let i = 0; i < numBars; i++) {
+            const barH = 8 + Math.abs(Math.sin(sTime * 2 + i * 0.8)) * 26;
+            ctx9.fillRect(15 + i * barW, h - barH - 4, barW - 2, barH);
+          }
+
+          requestAnimationFrame(drawScopeMini);
+        }
+        drawScopeMini();
+      }
+
+      // 10. VoxelSpace 3D Mini
+      const c10 = document.getElementById('preview-voxelspace');
+      if (c10) {
+        const ctx10 = c10.getContext('2d');
+        c10.width = c10.clientWidth; c10.height = c10.clientHeight;
+        let vTime = 0;
+
+        function drawVoxelMini() {
+          ctx10.clearRect(0, 0, c10.width, c10.height);
+          vTime += 0.025;
+          const w = c10.width;
+          const h = c10.height;
+
+          // Sky gradient
+          const skyGrad = ctx10.createLinearGradient(0, 0, 0, h);
+          skyGrad.addColorStop(0, '#0F172A');
+          skyGrad.addColorStop(0.5, '#1E293B');
+          skyGrad.addColorStop(1, '#0C4A6E');
+          ctx10.fillStyle = skyGrad;
+          ctx10.fillRect(0, 0, w, h);
+
+          // Sun disc
+          ctx10.beginPath();
+          ctx10.arc(w * 0.75, 45, 18, 0, Math.PI * 2);
+          ctx10.fillStyle = 'rgba(251, 191, 36, 0.8)';
+          ctx10.shadowColor = '#F59E0B';
+          ctx10.shadowBlur = 15;
+          ctx10.fill();
+          ctx10.shadowBlur = 0;
+
+          // Background mountain ridge
+          ctx10.fillStyle = '#164E63';
+          ctx10.beginPath();
+          ctx10.moveTo(0, h);
+          for (let x = 0; x <= w; x += 10) {
+            const my = h * 0.45 + Math.sin(x * 0.015 + vTime * 0.4) * 20 + Math.cos(x * 0.03) * 12;
+            ctx10.lineTo(x, my);
+          }
+          ctx10.lineTo(w, h);
+          ctx10.closePath();
+          ctx10.fill();
+
+          // Foreground mountain ridge
+          ctx10.fillStyle = '#065F46';
+          ctx10.beginPath();
+          ctx10.moveTo(0, h);
+          for (let x = 0; x <= w; x += 8) {
+            const my = h * 0.65 + Math.sin(x * 0.025 + vTime) * 24 + Math.sin(x * 0.05) * 8;
+            ctx10.lineTo(x, my);
+          }
+          ctx10.lineTo(w, h);
+          ctx10.closePath();
+          ctx10.fill();
+
+          // Stylized banking jet fighter
+          const jx = w * 0.42;
+          const jy = h * 0.48 + Math.sin(vTime * 1.5) * 8;
+          const jRoll = Math.sin(vTime * 1.2) * 0.35;
+
+          ctx10.save();
+          ctx10.translate(jx, jy);
+          ctx10.rotate(jRoll);
+
+          // Afterburner flame
+          ctx10.fillStyle = '#F59E0B';
+          ctx10.fillRect(-14, -1.5, 8, 3);
+          ctx10.fillStyle = '#EF4444';
+          ctx10.fillRect(-18, -1, 5, 2);
+
+          // Jet silhouette
+          ctx10.fillStyle = '#F8FAFC';
+          ctx10.beginPath();
+          ctx10.moveTo(16, 0);
+          ctx10.lineTo(-6, -14);
+          ctx10.lineTo(-4, -3);
+          ctx10.lineTo(-12, -7);
+          ctx10.lineTo(-10, 0);
+          ctx10.lineTo(-12, 7);
+          ctx10.lineTo(-4, 3);
+          ctx10.lineTo(-6, 14);
+          ctx10.closePath();
+          ctx10.fill();
+
+          ctx10.restore();
+
+          requestAnimationFrame(drawVoxelMini);
+        }
+        drawVoxelMini();
+      }
+
+      // 11. PyCircuit Mini
+      const c11 = document.getElementById('preview-pycircuit');
+      if (c11) {
+        const ctx11 = c11.getContext('2d');
+        c11.width = c11.clientWidth; c11.height = c11.clientHeight;
+        let cTime = 0;
+
+        function drawCircuitMini() {
+          ctx11.clearRect(0, 0, c11.width, c11.height);
+          cTime += 0.05;
+          const w = c11.width;
+          const h = c11.height;
+
+          // Dark breadboard background
+          ctx11.fillStyle = '#05080E';
+          ctx11.fillRect(0, 0, w, h);
+
+          // Subtle dot grid
+          ctx11.fillStyle = '#162032';
+          for (let gx = 15; gx < w; gx += 20) {
+            for (let gy = 15; gy < h; gy += 20) {
+              ctx11.fillRect(gx, gy, 1.5, 1.5);
+            }
+          }
+
+          // Circuit Wires (Loop rectangle)
+          const x1 = 40, y1 = 40, x2 = w - 40, y2 = h - 40;
+          ctx11.strokeStyle = '#06B6D4';
+          ctx11.lineWidth = 2;
+          ctx11.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+          // Left component: AC Source
+          const sy = (y1 + y2) * 0.5;
+          ctx11.fillStyle = '#0F172A';
+          ctx11.beginPath();
+          ctx11.arc(x1, sy, 14, 0, Math.PI * 2);
+          ctx11.fill();
+          ctx11.strokeStyle = '#10B981';
+          ctx11.stroke();
+          ctx11.fillStyle = '#10B981';
+          ctx11.font = 'bold 12px sans-serif';
+          ctx11.fillText('~', x1 - 5, sy + 4);
+
+          // Top component: Resistor
+          const rx = (x1 + x2) * 0.5;
+          ctx11.fillStyle = '#05080E';
+          ctx11.fillRect(rx - 25, y1 - 10, 50, 20);
+          ctx11.strokeStyle = '#FBBF24';
+          ctx11.beginPath();
+          ctx11.moveTo(rx - 20, y1);
+          for (let k = 0; k < 4; k++) {
+            ctx11.lineTo(rx - 15 + k * 10, y1 - 6);
+            ctx11.lineTo(rx - 10 + k * 10, y1 + 6);
+          }
+          ctx11.lineTo(rx + 20, y1);
+          ctx11.stroke();
+
+          // Right component: Capacitor
+          const cy = (y1 + y2) * 0.5;
+          ctx11.fillStyle = '#05080E';
+          ctx11.fillRect(x2 - 15, cy - 18, 30, 36);
+          ctx11.strokeStyle = '#38BDF8';
+          ctx11.lineWidth = 3;
+          ctx11.beginPath();
+          ctx11.moveTo(x2 - 12, cy - 12); ctx11.lineTo(x2 - 12, cy + 12);
+          ctx11.moveTo(x2 - 4, cy - 12);  ctx11.lineTo(x2 - 4, cy + 12);
+          ctx11.stroke();
+
+          // Flowing electron particles
+          ctx11.fillStyle = '#FDE047';
+          const perim = 2 * ((x2 - x1) + (y2 - y1));
+          for (let i = 0; i < 12; i++) {
+            const dist = ((cTime * 45 + i * (perim / 12)) % perim);
+            let ex = x1, ey = y1;
+            const topW = x2 - x1;
+            const rightH = y2 - y1;
+
+            if (dist < topW) {
+              ex = x1 + dist; ey = y1;
+            } else if (dist < topW + rightH) {
+              ex = x2; ey = y1 + (dist - topW);
+            } else if (dist < 2 * topW + rightH) {
+              ex = x2 - (dist - topW - rightH); ey = y2;
+            } else {
+              ex = x1; ey = y2 - (dist - 2 * topW - rightH);
+            }
+
+            ctx11.beginPath();
+            ctx11.arc(ex, ey, 2.5, 0, Math.PI * 2);
+            ctx11.fill();
+          }
+
+          requestAnimationFrame(drawCircuitMini);
+        }
+        drawCircuitMini();
+      }
+
+      // 12. QuantumLab Mini Preview (3D Bloch Sphere Precession)
+      const c12 = document.getElementById('preview-quantum');
+      if (c12) {
+        const ctx12 = c12.getContext('2d');
+        c12.width = c12.clientWidth; c12.height = c12.clientHeight;
+        let qTime = 0;
+
+        function drawQuantumMini() {
+          ctx12.clearRect(0, 0, c12.width, c12.height);
+          qTime += 0.035;
+          const w = c12.width;
+          const h = c12.height;
+          const cx = w * 0.48;
+          const cy = h * 0.52;
+          const R = Math.min(w, h) * 0.36;
+
+          // Deep space quantum backdrop
+          ctx12.fillStyle = '#060913';
+          ctx12.fillRect(0, 0, w, h);
+
+          // Faint radial glow
+          const glow = ctx12.createRadialGradient(cx, cy, 5, cx, cy, R * 1.3);
+          glow.addColorStop(0, 'rgba(0, 240, 255, 0.12)');
+          glow.addColorStop(1, 'rgba(6, 9, 19, 0)');
+          ctx12.fillStyle = glow;
+          ctx12.fillRect(0, 0, w, h);
+
+          // Outer Bloch sphere silhouette
+          ctx12.strokeStyle = 'rgba(0, 240, 255, 0.3)';
+          ctx12.lineWidth = 1.5;
+          ctx12.beginPath();
+          ctx12.arc(cx, cy, R, 0, Math.PI * 2);
+          ctx12.stroke();
+
+          // Equator ellipse
+          ctx12.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+          ctx12.setLineDash([4, 4]);
+          ctx12.beginPath();
+          ctx12.ellipse(cx, cy, R, R * 0.32, 0, 0, Math.PI * 2);
+          ctx12.stroke();
+
+          // Vertical meridian ellipse
+          ctx12.beginPath();
+          ctx12.ellipse(cx, cy, R * 0.32, R, 0, 0, Math.PI * 2);
+          ctx12.stroke();
+          ctx12.setLineDash([]);
+
+          // Z-axis (Vertical: |0> at top, |1> at bottom)
+          ctx12.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+          ctx12.beginPath();
+          ctx12.moveTo(cx, cy - R * 1.15);
+          ctx12.lineTo(cx, cy + R * 1.15);
+          ctx12.stroke();
+
+          // Labels |0> and |1>
+          ctx12.fillStyle = '#38BDF8';
+          ctx12.font = 'bold 11px monospace';
+          ctx12.fillText('|0>', cx + 6, cy - R * 1.05);
+          ctx12.fillText('|1>', cx + 6, cy + R * 1.15);
+
+          // Precessing statevector angles
+          const theta = 0.95 + Math.sin(qTime * 0.8) * 0.45; // Polar angle
+          const phi = qTime * 1.5;                          // Azimuthal angle
+
+          // 3D Bloch coordinates
+          const bx = Math.sin(theta) * Math.cos(phi);
+          const by = Math.sin(theta) * Math.sin(phi);
+          const bz = Math.cos(theta);
+
+          // Perspective projection
+          const px = cx + (bx * 0.9 - by * 0.3) * R;
+          const py = cy - bz * R + (bx * 0.15 + by * 0.3) * (R * 0.35);
+
+          // Statevector line
+          ctx12.strokeStyle = '#00F0FF';
+          ctx12.lineWidth = 2.5;
+          ctx12.beginPath();
+          ctx12.moveTo(cx, cy);
+          ctx12.lineTo(px, py);
+          ctx12.stroke();
+
+          // Vector tip glowing marker
+          ctx12.fillStyle = '#FFFFFF';
+          ctx12.beginPath();
+          ctx12.arc(px, py, 4, 0, Math.PI * 2);
+          ctx12.fill();
+          ctx12.strokeStyle = '#00F0FF';
+          ctx12.lineWidth = 2;
+          ctx12.stroke();
+
+          // Probability bars on top right
+          const prob0 = Math.cos(theta / 2) ** 2;
+          const prob1 = Math.sin(theta / 2) ** 2;
+          const bx0 = w - 65, by0 = 20;
+
+          ctx12.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx12.fillRect(bx0 - 10, by0 - 5, 65, 42);
+          ctx12.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+          ctx12.strokeRect(bx0 - 10, by0 - 5, 65, 42);
+
+          ctx12.fillStyle = '#94A3B8';
+          ctx12.font = '9px monospace';
+          ctx12.fillText('P|0>', bx0, by0 + 10);
+          ctx12.fillStyle = '#00F0FF';
+          ctx12.fillRect(bx0 + 24, by0 + 3, prob0 * 25, 7);
+
+          ctx12.fillStyle = '#94A3B8';
+          ctx12.fillText('P|1>', bx0, by0 + 26);
+          ctx12.fillStyle = '#A855F7';
+          ctx12.fillRect(bx0 + 24, by0 + 19, prob1 * 25, 7);
+
+          requestAnimationFrame(drawQuantumMini);
+        }
+        drawQuantumMini();
+      }
+
+      // 13. RetroCAD Mini Preview (3D Rotating Solid Wireframe)
+      const c13 = document.getElementById('preview-retrocad');
+      if (c13) {
+        const ctx13 = c13.getContext('2d');
+        c13.width = c13.clientWidth; c13.height = c13.clientHeight;
+        let cadTime = 0;
+
+        function drawCadMini() {
+          ctx13.clearRect(0, 0, c13.width, c13.height);
+          cadTime += 0.025;
+          const w = c13.width;
+          const h = c13.height;
+          const cx = w * 0.5;
+          const cy = h * 0.52;
+
+          // CRT dark background
+          ctx13.fillStyle = '#060A0E';
+          ctx13.fillRect(0, 0, w, h);
+
+          // Subtle CAD datum grid in perspective
+          ctx13.strokeStyle = 'rgba(245, 158, 11, 0.12)';
+          ctx13.lineWidth = 1;
+          const gridR = 90;
+          for (let gx = -gridR; gx <= gridR; gx += 30) {
+            // Project line from (gx, -gridR, 0) to (gx, gridR, 0)
+            const p1x = cx + gx * 0.85 - (-gridR) * 0.45;
+            const p1y = cy + 45 + gx * 0.2 + (-gridR) * 0.35;
+            const p2x = cx + gx * 0.85 - (gridR) * 0.45;
+            const p2y = cy + 45 + gx * 0.2 + (gridR) * 0.35;
+            ctx13.beginPath(); ctx13.moveTo(p1x, p1y); ctx13.lineTo(p2x, p2y); ctx13.stroke();
+          }
+
+          // Rotating 3D Revolved Rocket Nozzle Profile
+          const rings = [
+            { r: 24, z: -35 },
+            { r: 16, z: -15 },
+            { r: 9,  z: 0 },   // Throat
+            { r: 18, z: 20 },
+            { r: 32, z: 45 }   // Exit Bell
+          ];
+
+          const cosRot = Math.cos(cadTime);
+          const sinRot = Math.sin(cadTime);
+          const pitch = 0.45;
+          const cosP = Math.cos(pitch);
+          const sinP = Math.sin(pitch);
+
+          // Project ring points
+          const numSectors = 16;
+          const projectedRings = [];
+
+          for (let ring of rings) {
+            const pts = [];
+            for (let s = 0; s < numSectors; s++) {
+              const ang = (s / numSectors) * Math.PI * 2;
+              // Local coords
+              const lx = ring.r * Math.cos(ang);
+              const ly = ring.r * Math.sin(ang);
+              const lz = ring.z;
+
+              // Rotate Y (yaw)
+              const rx = lx * cosRot - ly * sinRot;
+              const ry = lx * sinRot + ly * cosRot;
+              const rz = lz;
+
+              // Pitch around X
+              const py = ry * cosP - rz * sinP;
+              const pz = ry * sinP + rz * cosP;
+
+              // 2D screen projection
+              const sx = cx + rx * 1.5;
+              const sy = cy - py * 1.5;
+              pts.push({ sx, sy, pz });
+            }
+            projectedRings.push(pts);
+          }
+
+          // Draw circular ring wireframes
+          ctx13.strokeStyle = '#F59E0B';
+          ctx13.lineWidth = 1.3;
+          for (let ringPts of projectedRings) {
+            ctx13.beginPath();
+            ctx13.moveTo(ringPts[0].sx, ringPts[0].sy);
+            for (let i = 1; i < ringPts.length; i++) {
+              ctx13.lineTo(ringPts[i].sx, ringPts[i].sy);
+            }
+            ctx13.closePath();
+            ctx13.stroke();
+          }
+
+          // Draw longitudinal rib lines connecting rings
+          ctx13.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+          ctx13.lineWidth = 1;
+          for (let s = 0; s < numSectors; s += 2) {
+            ctx13.beginPath();
+            ctx13.moveTo(projectedRings[0][s].sx, projectedRings[0][s].sy);
+            for (let r = 1; r < rings.length; r++) {
+              ctx13.lineTo(projectedRings[r][s].sx, projectedRings[r][s].sy);
+            }
+            ctx13.stroke();
+          }
+
+          // Coordinate Triad in top left
+          const ox = 30, oy = 35;
+          ctx13.lineWidth = 2;
+          ctx13.strokeStyle = '#EF4444'; // X
+          ctx13.beginPath(); ctx13.moveTo(ox, oy); ctx13.lineTo(ox + 16, oy + 4); ctx13.stroke();
+          ctx13.strokeStyle = '#10B981'; // Y
+          ctx13.beginPath(); ctx13.moveTo(ox, oy); ctx13.lineTo(ox - 8, oy + 12); ctx13.stroke();
+          ctx13.strokeStyle = '#38BDF8'; // Z
+          ctx13.beginPath(); ctx13.moveTo(ox, oy); ctx13.lineTo(ox, oy - 16); ctx13.stroke();
+
+          ctx13.fillStyle = '#F59E0B';
+          ctx13.font = '9px monospace';
+          ctx13.fillText('B-REP / CSG', w - 85, 22);
+
+          requestAnimationFrame(drawCadMini);
+        }
+        drawCadMini();
+      }
+
+      // 14. NeuroMorph Mini Preview (DVS Events & Spiking SNN)
+      const c14 = document.getElementById('preview-neuromorph');
+      if (c14) {
+        const ctx14 = c14.getContext('2d');
+        c14.width = c14.clientWidth; c14.height = c14.clientHeight;
+        let nTime = 0;
+
+        function drawNeuroMini() {
+          ctx14.clearRect(0, 0, c14.width, c14.height);
+          nTime += 0.035;
+          const w = c14.width;
+          const h = c14.height;
+          const cx = w * 0.48;
+          const cy = h * 0.5;
+
+          // Deep dark substrate
+          ctx14.fillStyle = '#04060A';
+          ctx14.fillRect(0, 0, w, h);
+
+          // Orbiting DVS event ring (emulating rotating disc contrast)
+          const R = Math.min(w, h) * 0.32;
+          const numEvents = 36;
+
+          for (let i = 0; i < numEvents; i++) {
+            const ang = (i / numEvents) * Math.PI * 2 + nTime * 2.0;
+            const r = R + Math.sin(ang * 3 + nTime * 4) * 12;
+            const ex = cx + r * Math.cos(ang);
+            const ey = cy + r * Math.sin(ang);
+
+            // Alternate ON (green) and OFF (red) events
+            const isON = (i % 2 === 0);
+            ctx14.fillStyle = isON ? '#10B981' : '#F43F5E';
+            ctx14.fillRect(ex - 1.5, ey - 1.5, 3, 3);
+
+            // Optical flow velocity arrows
+            if (i % 4 === 0) {
+              const tangX = -Math.sin(ang);
+              const tangY = Math.cos(ang);
+              ctx14.strokeStyle = '#00F0FF';
+              ctx14.lineWidth = 1;
+              ctx14.beginPath();
+              ctx14.moveTo(ex, ey);
+              ctx14.lineTo(ex + tangX * 10, ey + tangY * 10);
+              ctx14.stroke();
+            }
+          }
+
+          // Central biological soma
+          const flash = Math.sin(nTime * 5.0) > 0.85;
+          const somaRad = flash ? 16 : 13;
+
+          ctx14.fillStyle = flash ? '#FFFFFF' : '#10B981';
+          ctx14.beginPath();
+          ctx14.arc(cx, cy, somaRad, 0, Math.PI * 2);
+          ctx14.fill();
+
+          ctx14.strokeStyle = flash ? '#00F0FF' : '#047857';
+          ctx14.lineWidth = 2;
+          ctx14.stroke();
+
+          // Action potential axonal pulse to the right
+          const axonEndX = cx + 85;
+          ctx14.strokeStyle = '#1E293B';
+          ctx14.lineWidth = 2;
+          ctx14.beginPath();
+          ctx14.moveTo(cx + somaRad, cy);
+          ctx14.lineTo(axonEndX, cy);
+          ctx14.stroke();
+
+          const apProg = (nTime * 1.8) % 1.0;
+          const pulseX = (cx + somaRad) + apProg * (axonEndX - (cx + somaRad));
+          ctx14.fillStyle = '#00F0FF';
+          ctx14.beginPath();
+          ctx14.arc(pulseX, cy, 3.5, 0, Math.PI * 2);
+          ctx14.fill();
+
+          ctx14.fillStyle = '#10B981';
+          ctx14.font = '9px monospace';
+          ctx14.fillText('DVS AER / SNN', w - 95, 22);
+
+          requestAnimationFrame(drawNeuroMini);
+        }
+        drawNeuroMini();
+      }
+
+      // 15. AeroAcoustics Mini Preview (Supersonic Mach Cone & Wavefronts)
+      const c15 = document.getElementById('preview-aeroacoustics');
+      if (c15) {
+        const ctx15 = c15.getContext('2d');
+        c15.width = c15.clientWidth; c15.height = c15.clientHeight;
+        let aTime = 0;
+
+        function drawAeroMini() {
+          ctx15.clearRect(0, 0, c15.width, c15.height);
+          aTime += 0.025;
+          const w = c15.width;
+          const h = c15.height;
+
+          // Sky dark background
+          ctx15.fillStyle = '#04060A';
+          ctx15.fillRect(0, 0, w, h);
+
+          // Ground line at bottom
+          const gy = h - 25;
+          ctx15.strokeStyle = '#1E293B';
+          ctx15.lineWidth = 1;
+          ctx15.beginPath(); ctx15.moveTo(0, gy); ctx15.lineTo(w, gy); ctx15.stroke();
+
+          // Supersonic Aircraft Position moving left to right
+          const speed = w * 0.35; // px per second
+          const acX = ((aTime * speed) % (w + 120)) - 60;
+          const acY = h * 0.38;
+
+          // Expanding Doppler Wavefront rings emitted behind aircraft
+          const numRings = 10;
+          for (let k = 1; k <= numRings; k++) {
+            const age = k * 0.22;
+            const r = age * (speed / 1.5); // sound speed c < v (supersonic)
+            const emitX = acX - age * speed;
+            if (emitX + r > -20 && emitX - r < w + 20) {
+              ctx15.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+              ctx15.lineWidth = 1;
+              ctx15.beginPath();
+              ctx15.arc(emitX, acY, r, 0, Math.PI * 2);
+              ctx15.stroke();
+            }
+          }
+
+          // Supersonic Mach Shock Cone Envelope (Red V-lines)
+          const machAngle = Math.asin(1.0 / 1.5); // Mach 1.5 -> ~41.8 deg
+          const rayLen = 220;
+          const upX = acX - rayLen * Math.cos(machAngle);
+          const upY = acY - rayLen * Math.sin(machAngle);
+          const lowX = acX - rayLen * Math.cos(machAngle);
+          const lowY = acY + rayLen * Math.sin(machAngle);
+
+          ctx15.strokeStyle = '#F43F5E';
+          ctx15.lineWidth = 2;
+          ctx15.beginPath();
+          ctx15.moveTo(acX, acY); ctx15.lineTo(upX, upY);
+          ctx15.moveTo(acX, acY); ctx15.lineTo(lowX, lowY);
+          ctx15.stroke();
+
+          // Delta-wing aircraft icon
+          ctx15.fillStyle = '#FFFFFF';
+          ctx15.beginPath();
+          ctx15.moveTo(acX + 12, acY);
+          ctx15.lineTo(acX - 10, acY - 7);
+          ctx15.lineTo(acX - 6, acY);
+          ctx15.lineTo(acX - 10, acY + 7);
+          ctx15.closePath();
+          ctx15.fill();
+
+          // Ground microphone station
+          const micX = w * 0.55;
+          ctx15.strokeStyle = '#10B981';
+          ctx15.lineWidth = 1.5;
+          ctx15.beginPath(); ctx15.arc(micX, gy, 6, 0, Math.PI * 2); ctx15.stroke();
+
+          ctx15.fillStyle = '#F43F5E';
+          ctx15.font = '9px monospace';
+          ctx15.fillText('MACH 1.5 / BOOM', w - 105, 22);
+
+          requestAnimationFrame(drawAeroMini);
+        }
+        drawAeroMini();
+      }
+
+      // 16. SynthWave Audio Mini Preview (Oscilloscope & 16-Step Sequencer Lights)
+      const c16 = document.getElementById('preview-synthwave');
+      if (c16) {
+        const ctx16 = c16.getContext('2d');
+        c16.width = c16.clientWidth; c16.height = c16.clientHeight;
+        let swTime = 0;
+
+        function drawSynthwaveMini() {
+          ctx16.clearRect(0, 0, c16.width, c16.height);
+          swTime += 0.04;
+          const w = c16.width;
+          const h = c16.height;
+
+          // CRT phosphor dark grid
+          ctx16.fillStyle = '#06040F';
+          ctx16.fillRect(0, 0, w, h);
+
+          // Grid lines
+          ctx16.strokeStyle = 'rgba(42, 31, 82, 0.5)';
+          ctx16.lineWidth = 1;
+          for (let x = 0; x < w; x += 22) {
+            ctx16.beginPath(); ctx16.moveTo(x, 0); ctx16.lineTo(x, h); ctx16.stroke();
+          }
+          for (let y = 0; y < h; y += 22) {
+            ctx16.beginPath(); ctx16.moveTo(0, y); ctx16.lineTo(w, y); ctx16.stroke();
+          }
+
+          // Oscilloscope Waveform (Cyan glow)
+          ctx16.strokeStyle = '#00F0FF';
+          ctx16.lineWidth = 2.2;
+          ctx16.shadowBlur = 8;
+          ctx16.shadowColor = '#00F0FF';
+          ctx16.beginPath();
+          for (let x = 0; x < w; x += 3) {
+            const y = h * 0.42 + Math.sin(x * 0.05 + swTime * 3) * 25 + Math.sin(x * 0.02 - swTime * 1.5) * 15;
+            if (x === 0) ctx16.moveTo(x, y);
+            else ctx16.lineTo(x, y);
+          }
+          ctx16.stroke();
+          ctx16.shadowBlur = 0;
+
+          // Harmonic Sawtooth Secondary Trace (Magenta)
+          ctx16.strokeStyle = 'rgba(255, 0, 127, 0.65)';
+          ctx16.lineWidth = 1.5;
+          ctx16.beginPath();
+          for (let x = 0; x < w; x += 3) {
+            const y = h * 0.42 + ((x * 0.04 + swTime * 2) % 1 - 0.5) * 40;
+            if (x === 0) ctx16.moveTo(x, y);
+            else ctx16.lineTo(x, y);
+          }
+          ctx16.stroke();
+
+          // 16-Step Sequencer Indicator Bar at Bottom
+          const stepW = (w - 24) / 16;
+          const activeStep = Math.floor((swTime * 4) % 16);
+          for (let i = 0; i < 16; i++) {
+            const bx = 12 + i * stepW;
+            const by = h - 22;
+            const isLit = (i === activeStep);
+            const isBeat = (i % 4 === 0);
+
+            ctx16.fillStyle = isLit ? '#FFFFFF' : (isBeat ? '#FF007F' : '#1C1638');
+            if (isLit) {
+              ctx16.shadowBlur = 8;
+              ctx16.shadowColor = '#00F0FF';
+            }
+            ctx16.fillRect(bx, by, stepW - 3, 10);
+            ctx16.shadowBlur = 0;
+          }
+
+          ctx16.fillStyle = '#00F0FF';
+          ctx16.font = '9px monospace';
+          ctx16.fillText('POLY SYNTH / 120 BPM', w - 130, 20);
+
+          requestAnimationFrame(drawSynthwaveMini);
+        }
+        drawSynthwaveMini();
+      }
+
+      // 17. AstroEphemeris 3D Mini Preview (CR3BP Lagrange Points & Precessing Orbit)
+      const c17 = document.getElementById('preview-astroephemeris');
+      if (c17) {
+        const ctx17 = c17.getContext('2d');
+        c17.width = c17.clientWidth; c17.height = c17.clientHeight;
+        let aeTime = 0;
+
+        function drawAstroMini() {
+          ctx17.clearRect(0, 0, c17.width, c17.height);
+          aeTime += 0.02;
+          const w = c17.width;
+          const h = c17.height;
+          const cx = w * 0.48;
+          const cy = h * 0.52;
+
+          // Deep cosmos backdrop
+          ctx17.fillStyle = '#03050C';
+          ctx17.fillRect(0, 0, w, h);
+
+          // Faint star background dots
+          ctx17.fillStyle = 'rgba(255, 255, 255, 0.4)';
+          for (let s = 0; s < 25; s++) {
+            const sx = ((s * 47) % w);
+            const sy = ((s * 73) % h);
+            ctx17.fillRect(sx, sy, 1, 1);
+          }
+
+          // Rotating synodic frame axis
+          const dMoon = 85;
+          const earthX = cx - 12;
+          const earthY = cy;
+          const moonX = cx + dMoon;
+          const moonY = cy;
+
+          // Jacobi zero-velocity curve contour preview
+          ctx17.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+          ctx17.lineWidth = 1;
+          ctx17.setLineDash([3, 4]);
+          ctx17.beginPath();
+          ctx17.ellipse(cx + 35, cy, 105, 55, 0, 0, Math.PI * 2);
+          ctx17.stroke();
+          ctx17.beginPath();
+          ctx17.ellipse(earthX, earthY, 38, 38, 0, 0, Math.PI * 2);
+          ctx17.stroke();
+          ctx17.setLineDash([]);
+
+          // Earth Body
+          ctx17.fillStyle = '#00BFFF';
+          ctx17.beginPath();
+          ctx17.arc(earthX, earthY, 9, 0, Math.PI * 2);
+          ctx17.fill();
+
+          // Moon Body
+          ctx17.fillStyle = '#E2E8F0';
+          ctx17.beginPath();
+          ctx17.arc(moonX, moonY, 4, 0, Math.PI * 2);
+          ctx17.fill();
+
+          // Lagrange Points L1, L2, L3, L4, L5
+          const lagrangePoints = [
+            { name: 'L1', x: cx + 60, y: cy, col: '#FFB703' },
+            { name: 'L2', x: cx + 110, y: cy, col: '#FFB703' },
+            { name: 'L3', x: cx - 95, y: cy, col: '#FFB703' },
+            { name: 'L4', x: cx + 36, y: cy - 65, col: '#10B981' },
+            { name: 'L5', x: cx + 36, y: cy + 65, col: '#10B981' }
+          ];
+
+          ctx17.font = '8px monospace';
+          for (let lp of lagrangePoints) {
+            ctx17.fillStyle = lp.col;
+            ctx17.beginPath();
+            ctx17.arc(lp.x, lp.y, 2.5, 0, Math.PI * 2);
+            ctx17.fill();
+            ctx17.fillText(lp.name, lp.x + 4, lp.y - 3);
+          }
+
+          // Spacecraft Halo Orbit around L1
+          ctx17.strokeStyle = '#FF00FF';
+          ctx17.lineWidth = 1.8;
+          ctx17.beginPath();
+          const l1x = cx + 60;
+          for (let t = 0; t <= Math.PI * 2; t += 0.1) {
+            const hx = l1x + Math.sin(t) * 16;
+            const hy = cy + Math.cos(t) * 28;
+            if (t === 0) ctx17.moveTo(hx, hy);
+            else ctx17.lineTo(hx, hy);
+          }
+          ctx17.stroke();
+
+          // Spacecraft current beacon
+          const scProg = aeTime * 1.5;
+          const scX = l1x + Math.sin(scProg) * 16;
+          const scY = cy + Math.cos(scProg) * 28;
+          ctx17.fillStyle = '#FFFFFF';
+          ctx17.shadowBlur = 6;
+          ctx17.shadowColor = '#FF00FF';
+          ctx17.beginPath();
+          ctx17.arc(scX, scY, 3, 0, Math.PI * 2);
+          ctx17.fill();
+          ctx17.shadowBlur = 0;
+
+          ctx17.fillStyle = '#00F0FF';
+          ctx17.font = '9px monospace';
+          ctx17.fillText('CR3BP / LAGRANGE L1-L5', w - 145, 20);
+
+          requestAnimationFrame(drawAstroMini);
+        }
+        drawAstroMini();
+      }
+
+      // 18. PlasmaFlow MHD Mini Preview (Magnetic Reconnection & Reconnecting Flux Loops)
+      const c18 = document.getElementById('preview-plasmaflow');
+      if (c18) {
+        const ctx18 = c18.getContext('2d');
+        c18.width = c18.clientWidth; c18.height = c18.clientHeight;
+        let pfTime = 0;
+
+        function drawPlasmaflowMini() {
+          ctx18.clearRect(0, 0, c18.width, c18.height);
+          pfTime += 0.03;
+          const w = c18.width;
+          const h = c18.height;
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+
+          // Deep space plasma background
+          ctx18.fillStyle = '#05060D';
+          ctx18.fillRect(0, 0, w, h);
+
+          // Central Current Sheet (Sweet-Parker Neutral Layer)
+          const gradJ = ctx18.createLinearGradient(0, cy - 18, 0, cy + 18);
+          gradJ.addColorStop(0, 'rgba(0, 240, 255, 0.0)');
+          gradJ.addColorStop(0.5, 'rgba(255, 0, 127, 0.5)');
+          gradJ.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+          ctx18.fillStyle = gradJ;
+          ctx18.fillRect(0, cy - 18, w, 36);
+
+          // Opposing Magnetic Field Streamlines (Top: pointing left, Bottom: pointing right)
+          const numLines = 6;
+          for (let l = 1; l <= numLines; l++) {
+            const dy = l * 12;
+            const pinch = Math.exp(-((pfTime * 0.8) % 3));
+
+            // Top Streamline (Inflow towards X-point)
+            ctx18.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+            ctx18.lineWidth = 1.2;
+            ctx18.beginPath();
+            ctx18.moveTo(0, cy - dy);
+            ctx18.quadraticCurveTo(cx, cy - dy * (0.3 + 0.5 * pinch), w, cy - dy);
+            ctx18.stroke();
+
+            // Bottom Streamline (Inflow towards X-point)
+            ctx18.strokeStyle = 'rgba(255, 119, 0, 0.45)';
+            ctx18.beginPath();
+            ctx18.moveTo(0, cy + dy);
+            ctx18.quadraticCurveTo(cx, cy + dy * (0.3 + 0.5 * pinch), w, cy + dy);
+            ctx18.stroke();
+          }
+
+          // Reconnected Outflow Plasmoids (Moving horizontally outward from X-point)
+          const plasmoidCycle = (pfTime * 40) % (w * 0.6);
+          const pLeftX = cx - plasmoidCycle;
+          const pRightX = cx + plasmoidCycle;
+
+          // Left Plasmoid Island
+          ctx18.strokeStyle = '#00F0FF';
+          ctx18.lineWidth = 1.5;
+          ctx18.beginPath();
+          ctx18.ellipse(pLeftX, cy, 14, 8, 0, 0, Math.PI * 2);
+          ctx18.stroke();
+
+          // Right Plasmoid Island
+          ctx18.strokeStyle = '#FF7700';
+          ctx18.lineWidth = 1.5;
+          ctx18.beginPath();
+          ctx18.ellipse(pRightX, cy, 14, 8, 0, 0, Math.PI * 2);
+          ctx18.stroke();
+
+          // X-Point Central Glow
+          ctx18.fillStyle = '#FFFFFF';
+          ctx18.shadowBlur = 10;
+          ctx18.shadowColor = '#00F0FF';
+          ctx18.beginPath();
+          ctx18.arc(cx, cy, 3, 0, Math.PI * 2);
+          ctx18.fill();
+          ctx18.shadowBlur = 0;
+
+          ctx18.fillStyle = '#00F0FF';
+          ctx18.font = '9px monospace';
+          ctx18.fillText('MHD / RECONNECTION', w - 125, 20);
+
+          requestAnimationFrame(drawPlasmaflowMini);
+        }
+        drawPlasmaflowMini();
+      }
+
+      // 19. SpectroChem 3D Mini Preview (Rotating Molecule & FTIR Vibrational Spectrum)
+      const c19 = document.getElementById('preview-spectrochem');
+      if (c19) {
+        const ctx19 = c19.getContext('2d');
+        c19.width = c19.clientWidth; c19.height = c19.clientHeight;
+        let scTime = 0;
+
+        function drawSpectrochemMini() {
+          ctx19.clearRect(0, 0, c19.width, c19.height);
+          scTime += 0.03;
+          const w = c19.width;
+          const h = c19.height;
+          const cx = w * 0.32;
+          const cy = h * 0.48;
+
+          // Dark laboratory ground
+          ctx19.fillStyle = '#070913';
+          ctx19.fillRect(0, 0, w, h);
+
+          // 3D Rotating & Vibrating Water Molecule (Left Half)
+          const rotY = scTime * 1.2;
+          const vibAmp = Math.sin(scTime * 6.0) * 4.0;
+
+          const cosY = Math.cos(rotY);
+          const sinY = Math.sin(rotY);
+
+          // Base positions: Oxygen at origin, 2 Hydrogens
+          const atoms = [
+            { elem: 'O',  x: 0,   y: 0,   z: 0,   r: 10, col: '#FF0D0D' },
+            { elem: 'H1', x: 26 + vibAmp, y: -16 - vibAmp * 0.6, z: 0, r: 6, col: '#FFFFFF' },
+            { elem: 'H2', x: -26 - vibAmp, y: -16 - vibAmp * 0.6, z: 0, r: 6, col: '#FFFFFF' }
+          ];
+
+          // Project atoms with yaw rotation
+          const projAtoms = atoms.map(a => {
+            const rx = a.x * cosY + a.z * sinY;
+            const rz = -a.x * sinY + a.z * cosY;
+            return {
+              sx: cx + rx,
+              sy: cy + a.y,
+              sz: rz,
+              r: a.r,
+              col: a.col,
+              elem: a.elem
+            };
+          });
+
+          // Sort back to front
+          projAtoms.sort((a, b) => a.sz - b.sz);
+
+          // Draw bonds
+          const oAtom = projAtoms.find(a => a.elem === 'O');
+          const h1Atom = projAtoms.find(a => a.elem === 'H1');
+          const h2Atom = projAtoms.find(a => a.elem === 'H2');
+
+          ctx19.strokeStyle = '#718096';
+          ctx19.lineWidth = 3.5;
+          ctx19.beginPath();
+          ctx19.moveTo(oAtom.sx, oAtom.sy); ctx19.lineTo(h1Atom.sx, h1Atom.sy);
+          ctx19.moveTo(oAtom.sx, oAtom.sy); ctx19.lineTo(h2Atom.sx, h2Atom.sy);
+          ctx19.stroke();
+
+          // Draw atomic spheres
+          for (let a of projAtoms) {
+            ctx19.fillStyle = a.col;
+            ctx19.beginPath();
+            ctx19.arc(a.sx, a.sy, a.r, 0, Math.PI * 2);
+            ctx19.fill();
+          }
+
+          // Mini FTIR Spectrum Curve (Right Half)
+          const specLeft = w * 0.58;
+          const specRight = w - 12;
+          const specBottom = h - 18;
+          const specTop = 28;
+          const specH = specBottom - specTop;
+
+          ctx19.strokeStyle = '#1E274A';
+          ctx19.lineWidth = 1;
+          ctx19.beginPath();
+          ctx19.moveTo(specLeft, specBottom); ctx19.lineTo(specRight, specBottom);
+          ctx19.moveTo(specLeft, specTop); ctx19.lineTo(specLeft, specBottom);
+          ctx19.stroke();
+
+          // Lorentzian Absorption Bands
+          ctx19.strokeStyle = '#00F0FF';
+          ctx19.lineWidth = 1.8;
+          ctx19.beginPath();
+          const specW = specRight - specLeft;
+          for (let i = 0; i <= specW; i += 2) {
+            const normX = i / specW;
+            // Two sharp FTIR bands: bending (left) and stretching (right)
+            const peak1 = 1.0 / (1.0 + Math.pow((normX - 0.35) * 22, 2));
+            const peak2 = 1.3 / (1.0 + Math.pow((normX - 0.78) * 26, 2));
+            const absVal = Math.min(1.0, (peak1 + peak2) * 0.85);
+            const py = specBottom - absVal * (specH * 0.85);
+
+            if (i === 0) ctx19.moveTo(specLeft + i, py);
+            else ctx19.lineTo(specLeft + i, py);
+          }
+          ctx19.stroke();
+
+          // Animated Peak Scanner Dot on stretching peak
+          const peakX = specLeft + specW * 0.78;
+          const peakY = specBottom - 1.1 * (specH * 0.85);
+          ctx19.fillStyle = '#FF7700';
+          ctx19.shadowBlur = 6;
+          ctx19.shadowColor = '#FF7700';
+          ctx19.beginPath();
+          ctx19.arc(peakX, peakY, 3, 0, Math.PI * 2);
+          ctx19.fill();
+          ctx19.shadowBlur = 0;
+
+          ctx19.fillStyle = '#FF7700';
+          ctx19.font = '9px monospace';
+          ctx19.fillText('FTIR SPECTRUM / MD', w - 128, 20);
+
+          requestAnimationFrame(drawSpectrochemMini);
+        }
+        drawSpectrochemMini();
+      }
+
+      // 20. WaveOptics 2D Mini Preview (Double-Slit Wave Interference & Diffraction)
+      const c20 = document.getElementById('preview-waveoptics');
+      if (c20) {
+        const ctx20 = c20.getContext('2d');
+        c20.width = c20.clientWidth; c20.height = c20.clientHeight;
+        let woTime = 0;
+
+        function drawWaveopticsMini() {
+          ctx20.clearRect(0, 0, c20.width, c20.height);
+          woTime += 0.04;
+          const w = c20.width;
+          const h = c20.height;
+          const cy = h * 0.5;
+
+          ctx20.fillStyle = '#040814';
+          ctx20.fillRect(0, 0, w, h);
+
+          // Slit Barrier coordinates
+          const barrierX = w * 0.38;
+          const slit1Y = cy - 22;
+          const slit2Y = cy + 22;
+          const slitW = 6;
+
+          // Incident Wavefronts from left point source (x = 20, y = cy)
+          const srcX = 20;
+          ctx20.lineWidth = 1.4;
+          for (let r = (woTime * 25) % 18; r < barrierX - srcX; r += 18) {
+            ctx20.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+            ctx20.beginPath();
+            ctx20.arc(srcX, cy, r, -Math.PI * 0.45, Math.PI * 0.45);
+            ctx20.stroke();
+          }
+
+          // Barrier Walls
+          ctx20.fillStyle = '#1E293B';
+          ctx20.fillRect(barrierX - 2, 0, 4, slit1Y - slitW);
+          ctx20.fillRect(barrierX - 2, slit1Y + slitW, 4, (slit2Y - slitW) - (slit1Y + slitW));
+          ctx20.fillRect(barrierX - 2, slit2Y + slitW, 4, h - (slit2Y + slitW));
+
+          // Slit glowing openings
+          ctx20.fillStyle = '#38BDF8';
+          ctx20.fillRect(barrierX - 1, slit1Y - slitW + 1, 2, slitW * 2 - 2);
+          ctx20.fillRect(barrierX - 1, slit2Y - slitW + 1, 2, slitW * 2 - 2);
+
+          // Diffracted Wavefronts from Slit 1 and Slit 2
+          const maxR = w - barrierX;
+          for (let r = (woTime * 25) % 16; r < maxR; r += 16) {
+            const alpha = Math.max(0, 0.55 - r / maxR * 0.5);
+            ctx20.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
+            ctx20.beginPath();
+            ctx20.arc(barrierX, slit1Y, r, -Math.PI * 0.48, Math.PI * 0.48);
+            ctx20.stroke();
+
+            ctx20.strokeStyle = `rgba(168, 85, 247, ${alpha})`;
+            ctx20.beginPath();
+            ctx20.arc(barrierX, slit2Y, r, -Math.PI * 0.48, Math.PI * 0.48);
+            ctx20.stroke();
+          }
+
+          // Virtual CCD Interference Intensity Profile on Right Edge
+          const detX = w - 24;
+          ctx20.strokeStyle = '#38BDF8';
+          ctx20.lineWidth = 1.8;
+          ctx20.beginPath();
+          for (let y = 10; y < h - 10; y += 2) {
+            const dy = y - cy;
+            // Double slit interference equation: I = cos^2(alpha) * sinc^2(beta)
+            const alphaVal = dy * 0.14;
+            const betaVal = dy * 0.035;
+            const sinc = (Math.abs(betaVal) < 1e-4) ? 1.0 : Math.sin(betaVal) / betaVal;
+            const intensity = Math.pow(Math.cos(alphaVal) * sinc, 2);
+            const px = detX + intensity * 18;
+            if (y === 10) ctx20.moveTo(px, y);
+            else ctx20.lineTo(px, y);
+          }
+          ctx20.stroke();
+
+          ctx20.fillStyle = '#38BDF8';
+          ctx20.font = '9px monospace';
+          ctx20.fillText('FDTD WAVE OPTICS', w - 120, 20);
+
+          requestAnimationFrame(drawWaveopticsMini);
+        }
+        drawWaveopticsMini();
+      }
+
+      // 21. Structura 2D Mini Preview (Vibrating Truss & FEA Stress Heatmap)
+      const c21 = document.getElementById('preview-structura2d');
+      if (c21) {
+        const ctx21 = c21.getContext('2d');
+        c21.width = c21.clientWidth; c21.height = c21.clientHeight;
+        let feTime = 0;
+
+        function drawStructura2dMini() {
+          ctx21.clearRect(0, 0, c21.width, c21.height);
+          feTime += 0.045;
+          const w = c21.width;
+          const h = c21.height;
+          const cy = h * 0.56;
+
+          ctx21.fillStyle = '#050811';
+          ctx21.fillRect(0, 0, w, h);
+
+          // Grid coordinates for a 4-bay Warren truss
+          const numBays = 4;
+          const bayW = (w - 60) / numBays;
+          const trussH = 42;
+          const vibAmp = Math.sin(feTime) * 8.0;
+
+          // Bottom chord nodes
+          const botNodes = [];
+          for (let i = 0; i <= numBays; i++) {
+            const x = 30 + i * bayW;
+            // First mode harmonic shape: maximum deflection at midspan
+            const modeShape = Math.sin(Math.PI * (i / numBays));
+            const y = cy + modeShape * vibAmp;
+            botNodes.push({ x, y, mode: modeShape });
+          }
+
+          // Top chord nodes
+          const topNodes = [];
+          for (let i = 0; i < numBays; i++) {
+            const x = 30 + (i + 0.5) * bayW;
+            const modeShape = Math.sin(Math.PI * ((i + 0.5) / numBays));
+            const y = cy - trussH + modeShape * vibAmp * 0.9;
+            topNodes.push({ x, y, mode: modeShape });
+          }
+
+          // Draw Truss Elements with Stress Color Contours
+          function getStressCol(stressVal) {
+            // Low (blue/cyan) -> Medium (green) -> High (yellow/red)
+            if (stressVal < 0.33) return '#00F0FF';
+            if (stressVal < 0.66) return '#00FF9D';
+            return '#FF3366';
+          }
+
+          ctx21.lineWidth = 2.0;
+
+          // Bottom chord
+          for (let i = 0; i < numBays; i++) {
+            const stress = Math.abs(Math.sin(feTime)) * (0.3 + 0.6 * Math.sin(Math.PI * ((i + 0.5) / numBays)));
+            ctx21.strokeStyle = getStressCol(stress);
+            ctx21.beginPath();
+            ctx21.moveTo(botNodes[i].x, botNodes[i].y);
+            ctx21.lineTo(botNodes[i + 1].x, botNodes[i + 1].y);
+            ctx21.stroke();
+          }
+
+          // Top chord
+          for (let i = 0; i < numBays - 1; i++) {
+            const stress = Math.abs(Math.sin(feTime)) * (0.4 + 0.5 * Math.sin(Math.PI * ((i + 1) / numBays)));
+            ctx21.strokeStyle = getStressCol(stress);
+            ctx21.beginPath();
+            ctx21.moveTo(topNodes[i].x, topNodes[i].y);
+            ctx21.lineTo(topNodes[i + 1].x, topNodes[i + 1].y);
+            ctx21.stroke();
+          }
+
+          // Web diagonals
+          for (let i = 0; i < numBays; i++) {
+            const s1 = Math.abs(Math.sin(feTime)) * (0.2 + 0.5 * (1 - i / numBays));
+            ctx21.strokeStyle = getStressCol(s1);
+            ctx21.beginPath();
+            ctx21.moveTo(botNodes[i].x, botNodes[i].y);
+            ctx21.lineTo(topNodes[i].x, topNodes[i].y);
+            ctx21.stroke();
+
+            const s2 = Math.abs(Math.sin(feTime)) * (0.2 + 0.5 * (i / numBays));
+            ctx21.strokeStyle = getStressCol(s2);
+            ctx21.beginPath();
+            ctx21.moveTo(topNodes[i].x, topNodes[i].y);
+            ctx21.lineTo(botNodes[i + 1].x, botNodes[i + 1].y);
+            ctx21.stroke();
+          }
+
+          // Draw Nodes
+          ctx21.fillStyle = '#00F0FF';
+          for (let n of botNodes) {
+            ctx21.beginPath();
+            ctx21.arc(n.x, n.y, 2.5, 0, Math.PI * 2);
+            ctx21.fill();
+          }
+          for (let n of topNodes) {
+            ctx21.beginPath();
+            ctx21.arc(n.x, n.y, 2.5, 0, Math.PI * 2);
+            ctx21.fill();
+          }
+
+          // Supports (Left Pin, Right Roller)
+          const pLeft = botNodes[0];
+          ctx21.fillStyle = '#F59E0B';
+          ctx21.beginPath();
+          ctx21.moveTo(pLeft.x, pLeft.y);
+          ctx21.lineTo(pLeft.x - 6, pLeft.y + 10);
+          ctx21.lineTo(pLeft.x + 6, pLeft.y + 10);
+          ctx21.closePath();
+          ctx21.fill();
+
+          const pRight = botNodes[numBays];
+          ctx21.fillStyle = '#38BDF8';
+          ctx21.beginPath();
+          ctx21.moveTo(pRight.x, pRight.y);
+          ctx21.lineTo(pRight.x - 5, pRight.y + 8);
+          ctx21.lineTo(pRight.x + 5, pRight.y + 8);
+          ctx21.closePath();
+          ctx21.fill();
+
+          ctx21.fillStyle = '#00F0FF';
+          ctx21.font = '9px monospace';
+          ctx21.fillText('FEA / CONTINUUM 2D', w - 130, 20);
+
+          requestAnimationFrame(drawStructura2dMini);
+        }
+        drawStructura2dMini();
+      }
+
+      // 22. GravWave Mini Preview (Binary Black Hole Inspiral & Quadrupole Ripples)
+      const c22 = document.getElementById('preview-gravwave');
+      if (c22) {
+        const ctx22 = c22.getContext('2d');
+        c22.width = c22.clientWidth; c22.height = c22.clientHeight;
+        let gwTime = 0;
+
+        function drawGravwaveMini() {
+          ctx22.clearRect(0, 0, c22.width, c22.height);
+          gwTime += 0.04;
+          const w = c22.width;
+          const h = c22.height;
+          const cx = w * 0.48;
+          const cy = h * 0.46;
+
+          // Space background
+          ctx22.fillStyle = '#050711';
+          ctx22.fillRect(0, 0, w, h);
+
+          // Inspiral cycle
+          const cyclePeriod = 8.0;
+          const phaseProgress = (gwTime % cyclePeriod) / cyclePeriod;
+          const sep = Math.max(12.0, 48.0 * Math.pow(1.0 - phaseProgress * 0.85, 0.4));
+          const orbSpeed = 3.5 / Math.pow(sep / 48.0, 1.2);
+          const orbAngle = gwTime * orbSpeed;
+
+          // Outward propagating quadrupole gravitational wave spiral
+          const numRipples = 14;
+          ctx22.lineWidth = 1.2;
+          for (let k = 0; k < numRipples; k++) {
+            const rBase = k * 10;
+            const alpha = Math.max(0, 0.5 - k / numRipples * 0.45);
+            ctx22.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
+            ctx22.beginPath();
+            const steps = 36;
+            for (let s = 0; s <= steps; s++) {
+              const th = (s / steps) * Math.PI * 2;
+              const delay = (rBase / 5.0) * 0.2;
+              const wave = Math.cos(2.0 * (th - orbAngle + delay));
+              const r = rBase + wave * 4.5;
+              const px = cx + r * Math.cos(th);
+              const py = cy + r * Math.sin(th);
+              if (s === 0) ctx22.moveTo(px, py);
+              else ctx22.lineTo(px, py);
+            }
+            ctx22.stroke();
+          }
+
+          // Binary Black Holes
+          const x1 = cx + (sep * 0.5) * Math.cos(orbAngle);
+          const y1 = cy + (sep * 0.5) * Math.sin(orbAngle);
+          const x2 = cx - (sep * 0.5) * Math.cos(orbAngle);
+          const y2 = cy - (sep * 0.5) * Math.sin(orbAngle);
+
+          // Horizon 1 (Cyan)
+          ctx22.fillStyle = '#000000';
+          ctx22.strokeStyle = '#00F0FF';
+          ctx22.lineWidth = 2.0;
+          ctx22.beginPath(); ctx22.arc(x1, y1, 5, 0, Math.PI * 2); ctx22.fill(); ctx22.stroke();
+
+          // Horizon 2 (Rose)
+          ctx22.strokeStyle = '#F43F5E';
+          ctx22.beginPath(); ctx22.arc(x2, y2, 4.5, 0, Math.PI * 2); ctx22.fill(); ctx22.stroke();
+
+          // Oscilloscope Strain Waveform h(t) at bottom
+          const scopeY = h - 18;
+          ctx22.strokeStyle = 'rgba(0, 240, 255, 0.8)';
+          ctx22.lineWidth = 1.5;
+          ctx22.beginPath();
+          for (let x = 0; x < w; x += 3) {
+            const freqFactor = (1.0 + phaseProgress * 2.5);
+            const amp = Math.min(12, (2 + phaseProgress * 10));
+            const y = scopeY + Math.sin(x * 0.08 * freqFactor + gwTime * 8.0) * amp;
+            if (x === 0) ctx22.moveTo(x, y);
+            else ctx22.lineTo(x, y);
+          }
+          ctx22.stroke();
+
+          ctx22.fillStyle = '#00F0FF';
+          ctx22.font = '9px monospace';
+          ctx22.fillText('GW150914 / RELATIVITY', w - 145, 20);
+
+          requestAnimationFrame(drawGravwaveMini);
+        }
+        drawGravwaveMini();
+      }
+
+      // 23. OptiFlow 2D Mini Preview (Airfoil Aerodynamics & Karman Vortex Shedding)
+      const c23 = document.getElementById('preview-optiflow');
+      if (c23) {
+        const ctx23 = c23.getContext('2d');
+        c23.width = c23.clientWidth; c23.height = c23.clientHeight;
+        let ofTime = 0;
+
+        function drawOptiflowMini() {
+          ctx23.clearRect(0, 0, c23.width, c23.height);
+          ofTime += 0.035;
+          const w = c23.width;
+          const h = c23.height;
+          const cy = h * 0.5;
+
+          // Flow domain background
+          ctx23.fillStyle = '#060B18';
+          ctx23.fillRect(0, 0, w, h);
+
+          // Flow Streamlines with velocity deflection around airfoil
+          const numLines = 9;
+          const chordX = w * 0.38;
+          const chordY = cy;
+          const chordL = 60;
+          const aoaRad = 0.14; // ~8 deg angle of attack
+
+          for (let l = 0; l < numLines; l++) {
+            const y0 = (l + 1) * (h / (numLines + 1));
+            const dyFromCenter = y0 - cy;
+
+            ctx23.strokeStyle = Math.abs(dyFromCenter) < 22 ? 'rgba(0, 240, 255, 0.5)' : 'rgba(56, 189, 248, 0.25)';
+            ctx23.lineWidth = Math.abs(dyFromCenter) < 22 ? 1.5 : 1.0;
+            ctx23.beginPath();
+
+            for (let x = 0; x < w; x += 4) {
+              const dxA = x - chordX;
+              let def = 0;
+              if (Math.abs(dxA) < chordL * 1.5) {
+                const distWeight = Math.exp(-(dxA * dxA) / 1200.0);
+                def = -Math.sin(aoaRad) * 14.0 * distWeight * Math.sign(dyFromCenter || 1);
+              }
+              // Downstream wake oscillations
+              if (x > chordX + chordL * 0.5) {
+                const wakeX = x - (chordX + chordL * 0.5);
+                const vortex = Math.sin(wakeX * 0.1 - ofTime * 5.0) * (wakeX * 0.12);
+                def += vortex * Math.exp(-Math.abs(dyFromCenter) / 18.0);
+              }
+
+              const y = y0 + def;
+              if (x === 0) ctx23.moveTo(x, y);
+              else ctx23.lineTo(x, y);
+            }
+            ctx23.stroke();
+          }
+
+          // Karman Vortex Blobs shedding downstream
+          const numVortices = 4;
+          for (let v = 0; v < numVortices; v++) {
+            const vAge = (ofTime * 40 + v * 35) % (w - chordX);
+            const vx = chordX + chordL * 0.6 + vAge;
+            const sign = (v % 2 === 0) ? 1 : -1;
+            const vy = cy + sign * 14 + Math.sin(vAge * 0.08) * 4;
+
+            ctx23.fillStyle = (sign > 0) ? 'rgba(244, 63, 94, 0.4)' : 'rgba(0, 240, 255, 0.4)';
+            ctx23.beginPath();
+            ctx23.arc(vx, vy, 6 + vAge * 0.06, 0, Math.PI * 2);
+            ctx23.fill();
+          }
+
+          // Airfoil Profile (NACA Cambered Foil at AoA)
+          ctx23.save();
+          ctx23.translate(chordX, chordY);
+          ctx23.rotate(-aoaRad);
+
+          ctx23.fillStyle = '#0B0F19';
+          ctx23.strokeStyle = '#10B981';
+          ctx23.lineWidth = 2.0;
+          ctx23.beginPath();
+
+          // NACA profile curve
+          const nPts = 24;
+          const halfL = chordL * 0.5;
+          // Upper surface
+          for (let i = 0; i <= nPts; i++) {
+            const xc = i / nPts;
+            const px = (xc - 0.5) * chordL;
+            const yt = 0.14 * chordL * (0.2969 * Math.sqrt(xc) - 0.126 * xc - 0.3516 * xc * xc);
+            const yc = 0.04 * chordL * (2 * 0.4 * xc - xc * xc);
+            const py = -(yc + yt);
+            if (i === 0) ctx23.moveTo(px, py);
+            else ctx23.lineTo(px, py);
+          }
+          // Lower surface
+          for (let i = nPts; i >= 0; i--) {
+            const xc = i / nPts;
+            const px = (xc - 0.5) * chordL;
+            const yt = 0.14 * chordL * (0.2969 * Math.sqrt(xc) - 0.126 * xc - 0.3516 * xc * xc);
+            const yc = 0.04 * chordL * (2 * 0.4 * xc - xc * xc);
+            const py = -(yc - yt);
+            ctx23.lineTo(px, py);
+          }
+          ctx23.closePath();
+          ctx23.fill();
+          ctx23.stroke();
+          ctx23.restore();
+
+          // Smoke Tracer Emitters
+          ctx23.fillStyle = '#10B981';
+          ctx23.beginPath();
+          ctx23.arc(15, cy - 14, 2.5, 0, Math.PI * 2);
+          ctx23.arc(15, cy, 2.5, 0, Math.PI * 2);
+          ctx23.arc(15, cy + 14, 2.5, 0, Math.PI * 2);
+          ctx23.fill();
+
+          ctx23.fillStyle = '#10B981';
+          ctx23.font = '9px monospace';
+          ctx23.fillText('CFD / NACA 4412', w - 120, 20);
+
+          requestAnimationFrame(drawOptiflowMini);
+        }
+        drawOptiflowMini();
+      }
+    }
+
+    window.addEventListener('load', initCardMiniPreviews);
+  </script>
+</body>
+</html>

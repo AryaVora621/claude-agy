@@ -1,0 +1,3 @@
+"""
+Atomix test suite package.
+"""

@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GravWave Studio: Numerical Relativity & Gravitational Wave Observatory</title>
+  <style>
+    :root {
+      --bg: #050711;
+      --panel-bg: rgba(12, 17, 34, 0.82);
+      --panel-border: rgba(40, 56, 92, 0.6);
+      --accent-cyan: #00F0FF;
+      --accent-purple: #A855F7;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      --font-mono: "SF Mono", Monaco, "Cascadia Code", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      height: 48px;
+      background: #0A0E1F;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      background: linear-gradient(135deg, #00F0FF 0%, #A855F7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 10px;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      background: #151D36;
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1E294B;
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .btn-primary {
+      background: #00F0FF;
+      color: #050711;
+      border-color: #00F0FF;
+    }
+
+    .btn-primary:hover {
+      background: #33F4FF;
+      color: #050711;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    .btn-danger {
+      background: #F43F5E;
+      color: #FFF;
+      border-color: #F43F5E;
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar: Controls & Parameters */
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-cyan);
+      padding: 12px 16px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ctrl-group {
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-bottom: 1px solid rgba(40, 56, 92, 0.3);
+    }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+
+    .ctrl-label {
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ctrl-val {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: #1E294B;
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-cyan);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 8px 16px 12px;
+      border-bottom: 1px solid rgba(40, 56, 92, 0.3);
+    }
+
+    .btn-preset {
+      background: #11172D;
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-preset:hover, .btn-preset.active {
+      background: #1B2446;
+      border-color: var(--accent-purple);
+      color: #FFF;
+    }
+
+    .btn-preset.active {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .toggle-row input {
+      cursor: pointer;
+    }
+
+    /* Central Viewport Canvas */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(circle at center, #0B0F24 0%, #050711 100%);
+      overflow: hidden;
+    }
+
+    #spaceCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Overlay HUD Badge */
+    .hud-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(10, 14, 28, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 220px;
+    }
+
+    .hud-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .hud-key {
+      color: var(--text-dim);
+    }
+
+    .hud-val {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .hud-status {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    .status-inspiral {
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+    }
+
+    .status-plunge {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .status-merger {
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--accent-rose);
+      border: 1px solid rgba(244, 63, 94, 0.5);
+      animation: pulse 0.5s infinite alternate;
+    }
+
+    .status-ringdown {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    @keyframes pulse {
+      from { opacity: 0.7; }
+      to { opacity: 1.0; }
+    }
+
+    /* Right Telemetry & Detector Panel */
+    .right-panel {
+      width: 380px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 5;
+      overflow-y: auto;
+    }
+
+    .sub-canvas-box {
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border-bottom: 1px solid rgba(40, 56, 92, 0.3);
+    }
+
+    .sub-canvas-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      height: 125px;
+      background: #070A18;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    canvas.sub-cv {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Telemetry Data Grid */
+    .telemetry-grid {
+      padding: 10px 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      border-bottom: 1px solid rgba(40, 56, 92, 0.3);
+    }
+
+    .telem-card {
+      background: #0F152C;
+      border: 1px solid rgba(40, 56, 92, 0.5);
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .telem-label {
+      font-size: 9px;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .telem-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    /* Audio Sonification Indicator */
+    .audio-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header>
+    <div class="brand">
+      <div class="brand-title">GRAVWAVE STUDIO</div>
+      <div class="brand-sub">Numerical Relativity & Gravitational Wave Laser Interferometry</div>
+    </div>
+    <div class="header-controls">
+      <div class="audio-badge" id="audioStatusBadge">
+        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor;"></span>
+        Audio Ready
+      </div>
+      <button class="btn" id="btnMute">Mute Audio</button>
+      <button class="btn" id="btnReset">Reset Orbit</button>
+      <button class="btn btn-primary" id="btnPlayPause">Play</button>
+    </div>
+  </header>
+
+  <!-- Main Split Workspace -->
+  <div class="workspace">
+
+    <!-- Left Control Sidebar -->
+    <div class="sidebar">
+      <div class="section-title">
+        <span>Astrophysical Presets</span>
+      </div>
+      <div class="preset-grid">
+        <button class="btn-preset active" data-preset="gw150914">GW150914 (BBH)</button>
+        <button class="btn-preset" data-preset="gw170817">GW170817 (BNS)</button>
+        <button class="btn-preset" data-preset="gw190521">GW190521 (IMBH)</button>
+        <button class="btn-preset" data-preset="lisa_emri">LISA (EMRI)</button>
+        <button class="btn-preset" data-preset="eccentric">Eccentric (e=0.55)</button>
+        <button class="btn-preset" data-preset="pulsar">Spinning Pulsar</button>
+      </div>
+
+      <div class="section-title">
+        <span>Binary Compact System</span>
+      </div>
+      <div class="ctrl-group">
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Primary Mass M1</span>
+            <span class="ctrl-val" id="valM1">36.0 M☉</span>
+          </div>
+          <input type="range" id="rngM1" min="1" max="120" step="1" value="36">
+        </div>
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Secondary Mass M2</span>
+            <span class="ctrl-val" id="valM2">29.0 M☉</span>
+          </div>
+          <input type="range" id="rngM2" min="1" max="120" step="1" value="29">
+        </div>
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Initial Separation a0</span>
+            <span class="ctrl-val" id="valA0">28 Rg</span>
+          </div>
+          <input type="range" id="rngA0" min="12" max="60" step="1" value="28">
+        </div>
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Orbital Eccentricity e</span>
+            <span class="ctrl-val" id="valEcc">0.00</span>
+          </div>
+          <input type="range" id="rngEcc" min="0" max="0.75" step="0.01" value="0.0">
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>Observation & Geometry</span>
+      </div>
+      <div class="ctrl-group">
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Inclination Angle ι</span>
+            <span class="ctrl-val" id="valInc">0° (Face-On)</span>
+          </div>
+          <input type="range" id="rngInc" min="0" max="90" step="1" value="0">
+        </div>
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Luminosity Distance</span>
+            <span class="ctrl-val" id="valDist">410 Mpc</span>
+          </div>
+          <input type="range" id="rngDist" min="50" max="2000" step="10" value="410">
+        </div>
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Simulation Speed</span>
+            <span class="ctrl-val" id="valSpeed">1.0x</span>
+          </div>
+          <input type="range" id="rngSpeed" min="0.1" max="3.0" step="0.1" value="1.0">
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>Visual Overlays</span>
+      </div>
+      <div class="ctrl-group">
+        <label class="toggle-row">
+          <span>Spacetime Metric Fabric Grid</span>
+          <input type="checkbox" id="chkGrid" checked>
+        </label>
+        <label class="toggle-row">
+          <span>Quadrupole Radiation Spiral</span>
+          <input type="checkbox" id="chkSpiral" checked>
+        </label>
+        <label class="toggle-row">
+          <span>Test Mass Ring Deformation</span>
+          <input type="checkbox" id="chkTestRing" checked>
+        </label>
+        <label class="toggle-row">
+          <span>Event Horizons & Ergospheres</span>
+          <input type="checkbox" id="chkHorizons" checked>
+        </label>
+        <label class="toggle-row">
+          <span>Relativistic Orbital Trails</span>
+          <input type="checkbox" id="chkTrails" checked>
+        </label>
+      </div>
+
+      <div class="section-title">
+        <span>Audio Sonification</span>
+      </div>
+      <div class="ctrl-group">
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Master Volume</span>
+            <span class="ctrl-val" id="valVol">65%</span>
+          </div>
+          <input type="range" id="rngVol" min="0" max="100" step="1" value="65">
+        </div>
+        <div>
+          <div class="ctrl-row">
+            <span class="ctrl-label">Acoustic Pitch Shift</span>
+            <span class="ctrl-val" id="valPitch">1.0x (True)</span>
+          </div>
+          <input type="range" id="rngPitch" min="0.5" max="4.0" step="0.1" value="1.0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Central Spacetime Visualizer Canvas -->
+    <div class="canvas-container">
+      <canvas id="spaceCanvas"></canvas>
+
+      <!-- HUD Telemetry Badge -->
+      <div class="hud-overlay">
+        <div class="hud-line">
+          <span class="hud-key">CHIRP MASS M:</span>
+          <span class="hud-val" id="hudChirpMass">28.1 M☉</span>
+        </div>
+        <div class="hud-line">
+          <span class="hud-key">SEPARATION r:</span>
+          <span class="hud-val" id="hudSeparation">350 km (11.8 Rg)</span>
+        </div>
+        <div class="hud-line">
+          <span class="hud-key">VELOCITY v/c:</span>
+          <span class="hud-val" id="hudVelocity">0.42 c</span>
+        </div>
+        <div class="hud-line">
+          <span class="hud-key">GW FREQUENCY:</span>
+          <span class="hud-val" id="hudGwFreq">114.2 Hz</span>
+        </div>
+        <div class="hud-line">
+          <span class="hud-key">STRAIN |h|:</span>
+          <span class="hud-val" id="hudStrain">1.04e-21</span>
+        </div>
+        <div class="hud-status status-inspiral" id="hudStatus">
+          Post-Newtonian Inspiral
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Telemetry & Detector Panels -->
+    <div class="right-panel">
+
+      <div class="section-title">
+        <span>Detector Strain Waveform h(t)</span>
+      </div>
+      <div class="sub-canvas-box">
+        <div class="sub-canvas-title">
+          <span>TIME-DOMAIN QUADRUPOLE POLARIZATION</span>
+          <span style="color: var(--accent-cyan);" id="lblStrainMag">h = 0.0</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="waveCanvas" class="sub-cv"></canvas>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>Time-Frequency Chirp Spectrogram</span>
+      </div>
+      <div class="sub-canvas-box">
+        <div class="sub-canvas-title">
+          <span>CONTINUOUS FREQUENCY TRAJECTORY f(t)</span>
+          <span style="color: var(--accent-purple);" id="lblSpecFreq">0 Hz</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="specCanvas" class="sub-cv"></canvas>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>Michelson Laser Interferometer</span>
+      </div>
+      <div class="sub-canvas-box">
+        <div class="sub-canvas-title">
+          <span>LIGO 4-KM ARM OPTICAL FRINGE SHIFT</span>
+          <span style="color: var(--accent-emerald);" id="lblFringeShift">ΔL = 0 fm</span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="ligoCanvas" class="sub-cv"></canvas>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <span>Relativistic Telemetry</span>
+      </div>
+      <div class="telemetry-grid">
+        <div class="telem-card">
+          <span class="telem-label">Total Mass</span>
+          <span class="telem-value" id="telemTotMass">65.0 M☉</span>
+        </div>
+        <div class="telem-card">
+          <span class="telem-label">Radiated Energy</span>
+          <span class="telem-value" id="telemRadEnergy">3.1 M☉ c²</span>
+        </div>
+        <div class="telem-card">
+          <span class="telem-label">Peak Luminosity</span>
+          <span class="telem-value" id="telemLuminosity">3.6e49 W</span>
+        </div>
+        <div class="telem-card">
+          <span class="telem-label">Final Remnant Spin</span>
+          <span class="telem-value" id="telemRemnantSpin">a* = 0.69</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    /*
+      GravWave Studio: General Relativistic Numerical Simulation & Waveform Synthesis
+      Zero external CDN dependencies. Pure HTML5 Canvas & Web Audio API.
+    */
+
+    // Physical Constants in Geometrized / Scaled Computational Units
+    const G = 6.67430e-11;     // m^3 kg^-1 s^-2
+    const c = 2.99792458e8;    // m s^-1
+    const M_SUN = 1.98847e30;  // kg
+    const MPC_IN_M = 3.08567758e22; // meters per Mpc
+
+    // Simulation Model State
+    const sim = {
+      m1: 36.0,          // Solar masses
+      m2: 29.0,          // Solar masses
+      a0: 28.0,          // Gravitational radii (Rg = G M_tot / c^2)
+      ecc: 0.0,          // Eccentricity
+      inc: 0.0,          // Inclination angle in radians
+      distMpc: 410.0,    // Distance in Mpc
+      speed: 1.0,        // Speed multiplier
+      pitchMult: 1.0,    // Audio pitch multiplier
+
+      // Dynamic trajectory state
+      time: 0.0,
+      r: 28.0,           // Current separation in Rg
+      phi: 0.0,          // Orbital phase angle
+      f_gw: 35.0,        // Gravitational wave frequency (Hz)
+      h_plus: 0.0,       // Plus polarization
+      h_cross: 0.0,      // Cross polarization
+      h_strain: 0.0,     // Total projected strain
+      phase_stage: 'inspiral', // 'inspiral', 'plunge', 'merger', 'ringdown', 'remnant'
+      merger_time: 0.0,
+      ringdown_decay: 0.0,
+      is_running: false,
+      is_muted: false,
+
+      // Visualization Toggles
+      showGrid: true,
+      showSpiral: true,
+      showTestRing: true,
+      showHorizons: true,
+      showTrails: true,
+
+      // Trajectory histories for rendering
+      orbitTrail1: [],
+      orbitTrail2: [],
+      strainHistory: new Float32Array(250),
+      spectrogramCol: 0
+    };
+
+    // DOM Elements
+    const canvasMain = document.getElementById('spaceCanvas');
+    const ctxMain = canvasMain.getContext('2d');
+
+    const canvasWave = document.getElementById('waveCanvas');
+    const ctxWave = canvasWave.getContext('2d');
+
+    const canvasSpec = document.getElementById('specCanvas');
+    const ctxSpec = canvasSpec.getContext('2d');
+
+    const canvasLigo = document.getElementById('ligoCanvas');
+    const ctxLigo = canvasLigo.getContext('2d');
+
+    // Controls
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnReset = document.getElementById('btnReset');
+    const btnMute = document.getElementById('btnMute');
+    const rngM1 = document.getElementById('rngM1');
+    const rngM2 = document.getElementById('rngM2');
+    const rngA0 = document.getElementById('rngA0');
+    const rngEcc = document.getElementById('rngEcc');
+    const rngInc = document.getElementById('rngInc');
+    const rngDist = document.getElementById('rngDist');
+    const rngSpeed = document.getElementById('rngSpeed');
+    const rngVol = document.getElementById('rngVol');
+    const rngPitch = document.getElementById('rngPitch');
+
+    // Value Labels
+    const valM1 = document.getElementById('valM1');
+    const valM2 = document.getElementById('valM2');
+    const valA0 = document.getElementById('valA0');
+    const valEcc = document.getElementById('valEcc');
+    const valInc = document.getElementById('valInc');
+    const valDist = document.getElementById('valDist');
+    const valSpeed = document.getElementById('valSpeed');
+    const valVol = document.getElementById('valVol');
+    const valPitch = document.getElementById('valPitch');
+
+    // Telemetry HUD Elements
+    const hudChirpMass = document.getElementById('hudChirpMass');
+    const hudSeparation = document.getElementById('hudSeparation');
+    const hudVelocity = document.getElementById('hudVelocity');
+    const hudGwFreq = document.getElementById('hudGwFreq');
+    const hudStrain = document.getElementById('hudStrain');
+    const hudStatus = document.getElementById('hudStatus');
+
+    const telemTotMass = document.getElementById('telemTotMass');
+    const telemRadEnergy = document.getElementById('telemRadEnergy');
+    const telemLuminosity = document.getElementById('telemLuminosity');
+    const telemRemnantSpin = document.getElementById('telemRemnantSpin');
+
+    const lblStrainMag = document.getElementById('lblStrainMag');
+    const lblSpecFreq = document.getElementById('lblSpecFreq');
+    const lblFringeShift = document.getElementById('lblFringeShift');
+    const audioStatusBadge = document.getElementById('audioStatusBadge');
+
+    // -------------------------------------------------------------
+    // Web Audio Synthesizer for Gravitational Wave Chirp Sonification
+    // -------------------------------------------------------------
+    let audioCtx = null;
+    let chirpOsc = null;
+    let chirpGain = null;
+    let audioInitialized = false;
+
+    function initAudio() {
+      if (audioInitialized) return;
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+
+        chirpOsc = audioCtx.createOscillator();
+        chirpOsc.type = 'sine';
+
+        chirpGain = audioCtx.createGain();
+        chirpGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+        chirpOsc.connect(chirpGain);
+        chirpGain.connect(audioCtx.destination);
+        chirpOsc.start();
+
+        audioInitialized = true;
+        audioStatusBadge.style.color = '#10B981';
+        audioStatusBadge.innerHTML = '<span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:currentColor;"></span> Audio Active';
+      } catch (err) {
+        console.warn('Web Audio API not supported:', err);
+      }
+    }
+
+    function updateAudioSonification(freq, amplitude) {
+      if (!audioInitialized || !audioCtx) return;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      if (sim.is_muted || !sim.is_running || amplitude < 1e-25) {
+        chirpGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.02);
+        return;
+      }
+
+      // Map gravitational wave frequency to human audible range [40 Hz to 2200 Hz]
+      const audibleFreq = Math.min(2400, Math.max(35, freq * sim.pitchMult));
+      chirpOsc.frequency.setTargetAtTime(audibleFreq, audioCtx.currentTime, 0.015);
+
+      // Volume scaling based on normalized strain amplitude and user slider
+      const volSlider = parseFloat(rngVol.value) / 100.0;
+      const targetGain = Math.min(0.8, amplitude * 3.5 * volSlider);
+      chirpGain.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.015);
+    }
+
+    // -------------------------------------------------------------
+    // General Relativistic Math & Gravitational Wave Waveform Physics
+    // -------------------------------------------------------------
+    function calculateChirpMass(m1, m2) {
+      return Math.pow(m1 * m2, 3.0 / 5.0) / Math.pow(m1 + m2, 1.0 / 5.0);
+    }
+
+    function calculateISCO(mTotal) {
+      // Innermost Stable Circular Orbit for Schwarzschild black hole: 6 Rg
+      return 6.0;
+    }
+
+    function resetSimulation() {
+      sim.time = 0.0;
+      sim.r = sim.a0;
+      sim.phi = 0.0;
+      sim.phase_stage = 'inspiral';
+      sim.merger_time = 0.0;
+      sim.ringdown_decay = 0.0;
+      sim.orbitTrail1 = [];
+      sim.orbitTrail2 = [];
+      sim.strainHistory.fill(0);
+      sim.spectrogramCol = 0;
+
+      // Clear spectrogram canvas
+      ctxSpec.fillStyle = '#070A18';
+      ctxSpec.fillRect(0, 0, canvasSpec.width, canvasSpec.height);
+
+      updateTelemetryValues();
+    }
+
+    function updateTelemetryValues() {
+      const mTot = sim.m1 + sim.m2;
+      const mChirp = calculateChirpMass(sim.m1, sim.m2);
+
+      valM1.textContent = `${sim.m1.toFixed(1)} M☉`;
+      valM2.textContent = `${sim.m2.toFixed(1)} M☉`;
+      valA0.textContent = `${sim.a0.toFixed(0)} Rg`;
+      valEcc.textContent = sim.ecc.toFixed(2);
+      valInc.textContent = `${sim.inc.toFixed(0)}° (${sim.inc === 0 ? 'Face-On' : (sim.inc === 90 ? 'Edge-On' : 'Oblique')})`;
+      valDist.textContent = `${sim.distMpc.toFixed(0)} Mpc`;
+      valSpeed.textContent = `${sim.speed.toFixed(1)}x`;
+      valPitch.textContent = `${sim.pitchMult.toFixed(1)}x`;
+
+      hudChirpMass.textContent = `${mChirp.toFixed(1)} M☉`;
+      telemTotMass.textContent = `${mTot.toFixed(1)} M☉`;
+
+      // Radiated energy estimate: ~5% of total mass for comparable BBH
+      const radFrac = 0.05 * (4.0 * sim.m1 * sim.m2 / (mTot * mTot));
+      const eRad = mTot * radFrac;
+      telemRadEnergy.textContent = `${eRad.toFixed(1)} M☉ c²`;
+
+      // Remnant dimensionless spin estimate (Buonanno et al. 2008)
+      const eta = (sim.m1 * sim.m2) / (mTot * mTot);
+      const aRemnant = Math.min(0.98, Math.sqrt(12.0) * eta - 2.9 * eta * eta);
+      telemRemnantSpin.textContent = `a* = ${aRemnant.toFixed(2)}`;
+    }
+
+    // Step physics forward in time
+    function stepPhysics(dt) {
+      const mTot = sim.m1 + sim.m2;
+      const eta = (sim.m1 * sim.m2) / (mTot * mTot);
+      const mChirp = calculateChirpMass(sim.m1, sim.m2);
+      const rISCO = calculateISCO(mTot);
+
+      if (sim.phase_stage === 'inspiral') {
+        // Peters (1964) gravitational radiation reaction decay: dr/dt = -64/5 * eta * (1/r^3)
+        // Scaled for real-time visualization and responsive user interaction
+        const drdt = -(64.0 / 5.0) * eta * Math.pow(1.0 / sim.r, 3.0) * (1.0 + 3.0 * sim.ecc * sim.ecc);
+        sim.r += drdt * dt * 45.0 * sim.speed;
+
+        // Keplerian orbital angular velocity: omega = sqrt(G M / r^3) -> omega = r^(-3/2)
+        const omegaOrb = Math.pow(1.0 / Math.max(0.5, sim.r), 1.5) * 6.5 * sim.speed;
+        sim.phi += omegaOrb * dt;
+
+        // Physical Gravitational Wave Frequency in Hz
+        // f_GW = 2 * f_orb = (1 / pi) * sqrt(G M / r_phys^3)
+        const rgMeters = (G * mTot * M_SUN) / (c * c);
+        const rMeters = sim.r * rgMeters;
+        const omegaPhys = Math.sqrt((G * mTot * M_SUN) / Math.pow(Math.max(1000.0, rMeters), 3.0));
+        sim.f_gw = Math.max(15.0, (omegaPhys / Math.PI));
+
+        // Check for plunge / ISCO crossing
+        if (sim.r <= rISCO) {
+          sim.phase_stage = 'plunge';
+          hudStatus.className = 'hud-status status-plunge';
+          hudStatus.textContent = 'Relativistic Plunge';
+        }
+      } else if (sim.phase_stage === 'plunge') {
+        // Rapid dynamical plunge towards light ring / horizon merger
+        sim.r -= 18.0 * dt * sim.speed;
+        const omegaPlunge = Math.pow(1.0 / Math.max(1.8, sim.r), 1.5) * 9.0 * sim.speed;
+        sim.phi += omegaPlunge * dt;
+        sim.f_gw *= 1.05;
+
+        if (sim.r <= 2.2) {
+          sim.phase_stage = 'merger';
+          sim.merger_time = 0.0;
+          hudStatus.className = 'hud-status status-merger';
+          hudStatus.textContent = 'Black Hole Horizon Coalescence';
+        }
+      } else if (sim.phase_stage === 'merger') {
+        sim.merger_time += dt * sim.speed;
+        sim.r = Math.max(0.2, 2.2 - sim.merger_time * 8.0);
+        sim.phi += 25.0 * dt * sim.speed;
+
+        if (sim.merger_time >= 0.25) {
+          sim.phase_stage = 'ringdown';
+          sim.ringdown_decay = 0.0;
+          hudStatus.className = 'hud-status status-ringdown';
+          hudStatus.textContent = 'Quasi-Normal Mode Ringdown';
+        }
+      } else if (sim.phase_stage === 'ringdown') {
+        // Damped quasi-normal mode oscillation of perturbed Kerr black hole
+        sim.ringdown_decay += dt * 14.0 * sim.speed;
+        sim.phi += 35.0 * dt * sim.speed;
+        sim.r = 0.0;
+
+        if (sim.ringdown_decay >= 5.0) {
+          sim.phase_stage = 'remnant';
+          hudStatus.className = 'hud-status status-ringdown';
+          hudStatus.textContent = 'Kerr Remnant Settled';
+        }
+      } else if (sim.phase_stage === 'remnant') {
+        // Hold on settled Kerr horizon
+      }
+
+      // Compute Quadrupole Strain h_plus, h_cross, and projected h
+      const incRad = (sim.inc * Math.PI) / 180.0;
+      const cosInc = Math.cos(incRad);
+      const factorPlus = (1.0 + cosInc * cosInc) * 0.5;
+      const factorCross = cosInc;
+
+      // Base strain magnitude: h ~ (4 G M_chirp / c^2 D_L) * (v/c)^2
+      const vOverC = Math.min(0.65, Math.sqrt(1.0 / Math.max(1.0, sim.r)));
+      const nominalStrain = (4.0 * mChirp / (sim.distMpc * 100.0)) * (vOverC * vOverC) * 1e-21;
+
+      if (sim.phase_stage === 'inspiral' || sim.phase_stage === 'plunge') {
+        sim.h_plus = nominalStrain * factorPlus * Math.cos(2.0 * sim.phi);
+        sim.h_cross = nominalStrain * factorCross * Math.sin(2.0 * sim.phi);
+      } else if (sim.phase_stage === 'merger') {
+        const peakFactor = 2.5 * (1.0 - sim.merger_time / 0.3);
+        sim.h_plus = nominalStrain * peakFactor * factorPlus * Math.cos(2.0 * sim.phi);
+        sim.h_cross = nominalStrain * peakFactor * factorCross * Math.sin(2.0 * sim.phi);
+      } else if (sim.phase_stage === 'ringdown') {
+        const damp = Math.exp(-sim.ringdown_decay);
+        sim.h_plus = nominalStrain * 2.0 * damp * factorPlus * Math.cos(2.0 * sim.phi);
+        sim.h_cross = nominalStrain * 2.0 * damp * factorCross * Math.sin(2.0 * sim.phi);
+      } else {
+        sim.h_plus = 0.0;
+        sim.h_cross = 0.0;
+      }
+
+      sim.h_strain = Math.sqrt(sim.h_plus * sim.h_plus + sim.h_cross * sim.h_cross);
+
+      // Push to scrolling strain waveform history
+      for (let i = 0; i < sim.strainHistory.length - 1; i++) {
+        sim.strainHistory[i] = sim.strainHistory[i + 1];
+      }
+      sim.strainHistory[sim.strainHistory.length - 1] = sim.h_plus;
+
+      // Update HUD Numbers
+      const rgKm = ((G * mTot * M_SUN) / (c * c)) / 1000.0;
+      const rKm = sim.r * rgKm;
+      hudSeparation.textContent = `${rKm.toFixed(0)} km (${sim.r.toFixed(1)} Rg)`;
+      hudVelocity.textContent = `${vOverC.toFixed(2)} c`;
+      hudGwFreq.textContent = `${sim.f_gw.toFixed(1)} Hz`;
+      hudStrain.textContent = `${(sim.h_strain * 1e21).toFixed(2)}e-21`;
+      lblStrainMag.textContent = `h+ = ${(sim.h_plus * 1e21).toFixed(2)}e-21`;
+      lblSpecFreq.textContent = `${sim.f_gw.toFixed(0)} Hz`;
+
+      // Peak luminosity in units of 10^49 Watts
+      const lum = Math.min(50.0, 3.6 * Math.pow(vOverC / 0.5, 5));
+      telemLuminosity.textContent = `${lum.toFixed(1)}e49 W`;
+
+      // Update interferometer arm physical deformation: delta L = L * h / 2 (L = 4000 m)
+      const deltaLFemto = (4000.0 * sim.h_plus / 2.0) * 1e18; // femtometers (1e-15 m)
+      lblFringeShift.textContent = `ΔL = ${deltaLFemto.toFixed(2)} am`;
+
+      // Update Audio Sonification
+      const normAmp = Math.min(1.0, (sim.h_strain * 1e21) / 3.0);
+      updateAudioSonification(sim.f_gw, normAmp);
+
+      // Advance Spectrogram Column
+      drawSpectrogramColumn(sim.f_gw, normAmp);
+    }
+
+    // -------------------------------------------------------------
+    // Main Visualizer Canvas Rendering
+    // -------------------------------------------------------------
+    function resizeCanvases() {
+      const dpr = window.devicePixelRatio || 1;
+
+      // Main Space Canvas
+      canvasMain.width = canvasMain.clientWidth * dpr;
+      canvasMain.height = canvasMain.clientHeight * dpr;
+      ctxMain.scale(dpr, dpr);
+
+      // Sub Canvases
+      canvasWave.width = canvasWave.clientWidth * dpr;
+      canvasWave.height = canvasWave.clientHeight * dpr;
+      ctxWave.scale(dpr, dpr);
+
+      canvasSpec.width = canvasSpec.clientWidth * dpr;
+      canvasSpec.height = canvasSpec.clientHeight * dpr;
+      ctxSpec.scale(dpr, dpr);
+
+      canvasLigo.width = canvasLigo.clientWidth * dpr;
+      canvasLigo.height = canvasLigo.clientHeight * dpr;
+      ctxLigo.scale(dpr, dpr);
+    }
+
+    function renderMainSpace() {
+      const w = canvasMain.clientWidth;
+      const h = canvasMain.clientHeight;
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+
+      ctxMain.clearRect(0, 0, w, h);
+
+      // Deep space starfield background
+      ctxMain.fillStyle = '#050711';
+      ctxMain.fillRect(0, 0, w, h);
+
+      // 1. Quadrupole Gravitational Wave Spiral Ripples
+      if (sim.showSpiral && sim.h_strain > 1e-24) {
+        const numArms = 2;
+        const waveSpeedPix = 4.5;
+        const numRings = 24;
+
+        ctxMain.lineWidth = 1.5;
+        for (let ring = 0; ring < numRings; ring++) {
+          const rBase = ring * 18;
+          const alpha = Math.max(0, 0.6 - ring / numRings * 0.55);
+          ctxMain.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
+
+          ctxMain.beginPath();
+          const steps = 60;
+          for (let s = 0; s <= steps; s++) {
+            const theta = (s / steps) * Math.PI * 2;
+            // Spiral phase delay: delay proportional to distance r / c
+            const phaseDelay = (rBase / waveSpeedPix) * 0.15;
+            const waveMod = Math.cos(2.0 * (theta - sim.phi + phaseDelay));
+            const rSpiral = rBase + waveMod * 8.0 * Math.min(1.5, sim.h_strain * 1e21);
+
+            const px = cx + rSpiral * Math.cos(theta);
+            const py = cy + rSpiral * Math.sin(theta);
+
+            if (s === 0) ctxMain.moveTo(px, py);
+            else ctxMain.lineTo(px, py);
+          }
+          ctxMain.closePath();
+          ctxMain.stroke();
+        }
+      }
+
+      // 2. Spacetime Fabric Coordinate Grid with Metric Perturbation h_ij
+      if (sim.showGrid) {
+        const gridSize = 28;
+        const xCount = Math.ceil(w / gridSize);
+        const yCount = Math.ceil(h / gridSize);
+
+        ctxMain.strokeStyle = 'rgba(40, 56, 92, 0.4)';
+        ctxMain.lineWidth = 1;
+
+        // Metric distortion: dx' = 1/2 * (h_+ x - h_x y), dy' = 1/2 * (-h_+ y - h_x x)
+        const strainNorm = Math.min(35.0, sim.h_strain * 1e21 * 12.0);
+
+        // Grid X lines
+        for (let ix = 0; ix <= xCount; ix++) {
+          ctxMain.beginPath();
+          for (let iy = 0; iy <= yCount; iy++) {
+            const gx = (ix * gridSize) - cx;
+            const gy = (iy * gridSize) - cy;
+            const dist = Math.hypot(gx, gy);
+            const damp = Math.exp(-dist / 320.0);
+
+            // Transverse-traceless quadrupole distortion
+            const dx = (sim.h_plus * gx - sim.h_cross * gy) * strainNorm * damp * 1e20;
+            const dy = (-sim.h_plus * gy - sim.h_cross * gx) * strainNorm * damp * 1e20;
+
+            const px = cx + gx + dx;
+            const py = cy + gy + dy;
+
+            if (iy === 0) ctxMain.moveTo(px, py);
+            else ctxMain.lineTo(px, py);
+          }
+          ctxMain.stroke();
+        }
+
+        // Grid Y lines
+        for (let iy = 0; iy <= yCount; iy++) {
+          ctxMain.beginPath();
+          for (let ix = 0; ix <= xCount; ix++) {
+            const gx = (ix * gridSize) - cx;
+            const gy = (iy * gridSize) - cy;
+            const dist = Math.hypot(gx, gy);
+            const damp = Math.exp(-dist / 320.0);
+
+            const dx = (sim.h_plus * gx - sim.h_cross * gy) * strainNorm * damp * 1e20;
+            const dy = (-sim.h_plus * gy - sim.h_cross * gx) * strainNorm * damp * 1e20;
+
+            const px = cx + gx + dx;
+            const py = cy + gy + dy;
+
+            if (ix === 0) ctxMain.moveTo(px, py);
+            else ctxMain.lineTo(px, py);
+          }
+          ctxMain.stroke();
+        }
+      }
+
+      // 3. Test Mass Ring (LIGO Freely Falling Particles)
+      if (sim.showTestRing) {
+        const ringRadius = Math.min(w, h) * 0.38;
+        const numParticles = 24;
+        const strainScale = Math.min(45.0, sim.h_strain * 1e21 * 22.0);
+
+        // Neutral circle reference
+        ctxMain.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctxMain.lineWidth = 1;
+        ctxMain.setLineDash([4, 4]);
+        ctxMain.beginPath();
+        ctxMain.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+        ctxMain.stroke();
+        ctxMain.setLineDash([]);
+
+        // Deformed ring ellipse
+        ctxMain.strokeStyle = 'rgba(168, 85, 247, 0.6)';
+        ctxMain.lineWidth = 2;
+        ctxMain.beginPath();
+        for (let i = 0; i <= numParticles; i++) {
+          const theta = (i / numParticles) * Math.PI * 2;
+          const x0 = ringRadius * Math.cos(theta);
+          const y0 = ringRadius * Math.sin(theta);
+
+          // Metric perturbation shift
+          const dx = (sim.h_plus * x0 - sim.h_cross * y0) * strainScale * 1e20;
+          const dy = (-sim.h_plus * y0 - sim.h_cross * x0) * strainScale * 1e20;
+
+          const px = cx + x0 + dx;
+          const py = cy + y0 + dy;
+
+          if (i === 0) ctxMain.moveTo(px, py);
+          else ctxMain.lineTo(px, py);
+        }
+        ctxMain.stroke();
+
+        // Draw particle beads on ring
+        for (let i = 0; i < numParticles; i++) {
+          const theta = (i / numParticles) * Math.PI * 2;
+          const x0 = ringRadius * Math.cos(theta);
+          const y0 = ringRadius * Math.sin(theta);
+
+          const dx = (sim.h_plus * x0 - sim.h_cross * y0) * strainScale * 1e20;
+          const dy = (-sim.h_plus * y0 - sim.h_cross * x0) * strainScale * 1e20;
+
+          ctxMain.fillStyle = '#00F0FF';
+          ctxMain.beginPath();
+          ctxMain.arc(cx + x0 + dx, cy + y0 + dy, 3, 0, Math.PI * 2);
+          ctxMain.fill();
+        }
+      }
+
+      // 4. Binary Black Hole Coordinates & Orbital Motion
+      const mTot = sim.m1 + sim.m2;
+      const r1 = (sim.m2 / mTot) * sim.r * 6.5; // Orbit radius of body 1 in canvas pixels
+      const r2 = (sim.m1 / mTot) * sim.r * 6.5; // Orbit radius of body 2 in canvas pixels
+
+      const x1 = cx + r1 * Math.cos(sim.phi);
+      const y1 = cy + r1 * Math.sin(sim.phi);
+
+      const x2 = cx - r2 * Math.cos(sim.phi);
+      const y2 = cy - r2 * Math.sin(sim.phi);
+
+      // Record orbit trails
+      if (sim.showTrails && sim.is_running) {
+        sim.orbitTrail1.push({ x: x1, y: y1 });
+        sim.orbitTrail2.push({ x: x2, y: y2 });
+        if (sim.orbitTrail1.length > 70) sim.orbitTrail1.shift();
+        if (sim.orbitTrail2.length > 70) sim.orbitTrail2.shift();
+      }
+
+      // Render trails
+      if (sim.showTrails) {
+        ctxMain.lineWidth = 2.0;
+        // Trail 1 (Cyan)
+        for (let i = 1; i < sim.orbitTrail1.length; i++) {
+          const alpha = i / sim.orbitTrail1.length;
+          ctxMain.strokeStyle = `rgba(0, 240, 255, ${alpha * 0.8})`;
+          ctxMain.beginPath();
+          ctxMain.moveTo(sim.orbitTrail1[i - 1].x, sim.orbitTrail1[i - 1].y);
+          ctxMain.lineTo(sim.orbitTrail1[i].x, sim.orbitTrail1[i].y);
+          ctxMain.stroke();
+        }
+
+        // Trail 2 (Amber/Rose)
+        for (let i = 1; i < sim.orbitTrail2.length; i++) {
+          const alpha = i / sim.orbitTrail2.length;
+          ctxMain.strokeStyle = `rgba(244, 63, 94, ${alpha * 0.8})`;
+          ctxMain.beginPath();
+          ctxMain.moveTo(sim.orbitTrail2[i - 1].x, sim.orbitTrail2[i - 1].y);
+          ctxMain.lineTo(sim.orbitTrail2[i].x, sim.orbitTrail2[i].y);
+          ctxMain.stroke();
+        }
+      }
+
+      // 5. Render Black Hole Event Horizons & Ergospheres
+      if (sim.phase_stage !== 'remnant') {
+        // Body 1
+        const rad1 = Math.max(5.0, Math.sqrt(sim.m1) * 2.2);
+        // Ergosphere outer glow
+        if (sim.showHorizons) {
+          ctxMain.fillStyle = 'rgba(0, 240, 255, 0.15)';
+          ctxMain.beginPath();
+          ctxMain.arc(x1, y1, rad1 * 1.8, 0, Math.PI * 2);
+          ctxMain.fill();
+        }
+        // Shadow / Event horizon
+        ctxMain.fillStyle = '#000000';
+        ctxMain.strokeStyle = '#00F0FF';
+        ctxMain.lineWidth = 2.0;
+        ctxMain.beginPath();
+        ctxMain.arc(x1, y1, rad1, 0, Math.PI * 2);
+        ctxMain.fill();
+        ctxMain.stroke();
+
+        // Body 2
+        const rad2 = Math.max(5.0, Math.sqrt(sim.m2) * 2.2);
+        if (sim.showHorizons) {
+          ctxMain.fillStyle = 'rgba(244, 63, 94, 0.15)';
+          ctxMain.beginPath();
+          ctxMain.arc(x2, y2, rad2 * 1.8, 0, Math.PI * 2);
+          ctxMain.fill();
+        }
+        ctxMain.fillStyle = '#000000';
+        ctxMain.strokeStyle = '#F43F5E';
+        ctxMain.lineWidth = 2.0;
+        ctxMain.beginPath();
+        ctxMain.arc(x2, y2, rad2, 0, Math.PI * 2);
+        ctxMain.fill();
+        ctxMain.stroke();
+      } else {
+        // Coalesced Single Kerr Remnant at Center
+        const radRem = Math.sqrt(mTot) * 2.5;
+        const gradRem = ctxMain.createRadialGradient(cx, cy, radRem * 0.5, cx, cy, radRem * 2.2);
+        gradRem.addColorStop(0, 'rgba(168, 85, 247, 0.4)');
+        gradRem.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+        ctxMain.fillStyle = gradRem;
+        ctxMain.beginPath();
+        ctxMain.arc(cx, cy, radRem * 2.2, 0, Math.PI * 2);
+        ctxMain.fill();
+
+        ctxMain.fillStyle = '#000000';
+        ctxMain.strokeStyle = '#A855F7';
+        ctxMain.lineWidth = 3.0;
+        ctxMain.beginPath();
+        ctxMain.arc(cx, cy, radRem, 0, Math.PI * 2);
+        ctxMain.fill();
+        ctxMain.stroke();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Sub-Canvas 1: Time-Domain Strain Waveform Oscilloscope h(t)
+    // -------------------------------------------------------------
+    function renderWaveformOscilloscope() {
+      const w = canvasWave.clientWidth;
+      const h = canvasWave.clientHeight;
+      const cy = h * 0.5;
+
+      ctxWave.clearRect(0, 0, w, h);
+      ctxWave.fillStyle = '#070A18';
+      ctxWave.fillRect(0, 0, w, h);
+
+      // Centerline graticule
+      ctxWave.strokeStyle = 'rgba(40, 56, 92, 0.5)';
+      ctxWave.lineWidth = 1;
+      ctxWave.setLineDash([3, 3]);
+      ctxWave.beginPath();
+      ctxWave.moveTo(0, cy); ctxWave.lineTo(w, cy);
+      ctxWave.stroke();
+      ctxWave.setLineDash([]);
+
+      // Draw Strain Trace h(t)
+      ctxWave.strokeStyle = '#00F0FF';
+      ctxWave.lineWidth = 1.8;
+      ctxWave.beginPath();
+
+      const n = sim.strainHistory.length;
+      for (let i = 0; i < n; i++) {
+        const x = (i / (n - 1)) * w;
+        // Scale strain for visual scope: 1e-21 mapped to ~30px
+        const strainVal = sim.strainHistory[i];
+        const y = cy - (strainVal * 1e21) * 14.0;
+
+        if (i === 0) ctxWave.moveTo(x, y);
+        else ctxWave.lineTo(x, y);
+      }
+      ctxWave.stroke();
+
+      // Current leading head dot
+      const lastY = cy - (sim.strainHistory[n - 1] * 1e21) * 14.0;
+      ctxWave.fillStyle = '#FFF';
+      ctxWave.beginPath();
+      ctxWave.arc(w - 2, lastY, 3, 0, Math.PI * 2);
+      ctxWave.fill();
+    }
+
+    // -------------------------------------------------------------
+    // Sub-Canvas 2: Time-Frequency Chirp Spectrogram f(t)
+    // -------------------------------------------------------------
+    function drawSpectrogramColumn(freq, intensity) {
+      const w = canvasSpec.clientWidth;
+      const h = canvasSpec.clientHeight;
+
+      // Scroll column leftward
+      const colX = sim.spectrogramCol % w;
+
+      // Map frequency [20 Hz to 1200 Hz] to Y coordinate [h to 0]
+      const normFreq = Math.min(1.0, Math.max(0.0, (freq - 20.0) / 1000.0));
+      const py = h - normFreq * (h - 8);
+
+      // Clear column bar
+      ctxSpec.fillStyle = '#070A18';
+      ctxSpec.fillRect(colX, 0, 2, h);
+
+      // Draw false-color intensity blob (Purple -> Red -> Yellow -> White)
+      const grad = ctxSpec.createRadialGradient(colX, py, 1, colX, py, 8);
+      grad.addColorStop(0, '#FFFFFF');
+      grad.addColorStop(0.3, '#F59E0B');
+      grad.addColorStop(0.7, '#A855F7');
+      grad.addColorStop(1, 'rgba(12, 17, 34, 0)');
+
+      ctxSpec.fillStyle = grad;
+      ctxSpec.fillRect(colX - 4, py - 8, 8, 16);
+
+      sim.spectrogramCol = (sim.spectrogramCol + 1) % w;
+    }
+
+    // -------------------------------------------------------------
+    // Sub-Canvas 3: LIGO Michelson Interferometer & Fringe Detector
+    // -------------------------------------------------------------
+    function renderLigoInterferometer() {
+      const w = canvasLigo.clientWidth;
+      const h = canvasLigo.clientHeight;
+
+      ctxLigo.clearRect(0, 0, w, h);
+      ctxLigo.fillStyle = '#070A18';
+      ctxLigo.fillRect(0, 0, w, h);
+
+      // Laser Beam Splitter Center (Corner Station)
+      const cornerX = 45;
+      const cornerY = h - 35;
+      const armLength = 70;
+
+      // X-Arm (Horizontal) and Y-Arm (Vertical)
+      const armX_end = cornerX + armLength;
+      const armX_y = cornerY;
+
+      const armY_x = cornerX;
+      const armY_end = cornerY - armLength;
+
+      // Optical Laser Tubes
+      ctxLigo.strokeStyle = 'rgba(40, 56, 92, 0.8)';
+      ctxLigo.lineWidth = 4;
+      ctxLigo.beginPath();
+      // X-Arm Tube
+      ctxLigo.moveTo(cornerX, cornerY); ctxLigo.lineTo(armX_end, armX_y);
+      // Y-Arm Tube
+      ctxLigo.moveTo(cornerX, cornerY); ctxLigo.lineTo(armY_x, armY_end);
+      ctxLigo.stroke();
+
+      // Laser Beams (Red 1064 nm Infrared Laser Carrier)
+      ctxLigo.strokeStyle = '#F43F5E';
+      ctxLigo.lineWidth = 1.8;
+      ctxLigo.beginPath();
+      // Input beam from laser diode (left)
+      ctxLigo.moveTo(10, cornerY); ctxLigo.lineTo(cornerX, cornerY);
+      // Arm X beam
+      ctxLigo.moveTo(cornerX, cornerY); ctxLigo.lineTo(armX_end, armX_y);
+      // Arm Y beam
+      ctxLigo.moveTo(cornerX, cornerY); ctxLigo.lineTo(armY_x, armY_end);
+      ctxLigo.stroke();
+
+      // End Test Masses / Fabry-Perot Cavity Mirrors (oscillating with strain)
+      const mirrorShift = (sim.h_plus * 1e21) * 4.5;
+
+      ctxLigo.fillStyle = '#00F0FF';
+      // Mirror X
+      ctxLigo.fillRect(armX_end + mirrorShift - 2, armX_y - 8, 4, 16);
+      // Mirror Y
+      ctxLigo.fillRect(armY_x - 8, armY_end - mirrorShift - 2, 16, 4);
+
+      // Beam Splitter 45-degree prism
+      ctxLigo.fillStyle = '#10B981';
+      ctxLigo.beginPath();
+      ctxLigo.moveTo(cornerX - 6, cornerY + 6);
+      ctxLigo.lineTo(cornerX + 6, cornerY - 6);
+      ctxLigo.lineTo(cornerX + 8, cornerY - 4);
+      ctxLigo.lineTo(cornerX - 4, cornerY + 8);
+      ctxLigo.fill();
+
+      // Photodiode Dark Port Interference Fringe Pattern (Right Side)
+      const fringeLeft = w * 0.52;
+      const fringeW = w - fringeLeft - 12;
+      const fringeTop = 16;
+      const fringeH = h - 32;
+
+      ctxLigo.fillStyle = '#0B0F20';
+      ctxLigo.fillRect(fringeLeft, fringeTop, fringeW, fringeH);
+      ctxLigo.strokeStyle = varColor('--panel-border');
+      ctxLigo.strokeRect(fringeLeft, fringeTop, fringeW, fringeH);
+
+      // Dynamic Interference Fringe Shift: I = I_0 * cos^2(Delta Phi / 2)
+      // Optical phase shift Delta Phi = (4 pi / lambda) * Delta L
+      const phaseShift = (sim.h_plus * 1e21) * 3.14;
+      const numFringes = 6;
+
+      for (let x = 0; x < fringeW; x++) {
+        const normX = (x / fringeW) * numFringes * Math.PI * 2;
+        const intensity = Math.pow(Math.cos(normX * 0.5 + phaseShift), 2);
+        const colVal = Math.floor(intensity * 255);
+        ctxLigo.fillStyle = `rgb(${colVal}, ${Math.floor(colVal * 0.3)}, ${Math.floor(colVal * 0.4)})`;
+        ctxLigo.fillRect(fringeLeft + x, fringeTop + 1, 1, fringeH - 2);
+      }
+
+      ctxLigo.fillStyle = '#F1F5F9';
+      ctxLigo.font = '9px monospace';
+      ctxLigo.fillText('DARK PORT FRINGE', fringeLeft + 8, fringeTop + 14);
+    }
+
+    function varColor(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    // -------------------------------------------------------------
+    // Main Animation Loop
+    // -------------------------------------------------------------
+    let lastTimestamp = 0;
+
+    function animate(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const dt = Math.min(0.04, (timestamp - lastTimestamp) / 1000.0);
+      lastTimestamp = timestamp;
+
+      if (sim.is_running) {
+        stepPhysics(dt);
+      }
+
+      renderMainSpace();
+      renderWaveformOscilloscope();
+      renderLigoInterferometer();
+
+      requestAnimationFrame(animate);
+    }
+
+    // -------------------------------------------------------------
+    // Preset Configurations
+    // -------------------------------------------------------------
+    const PRESETS = {
+      gw150914: {
+        m1: 36.0, m2: 29.0, a0: 28.0, ecc: 0.0, inc: 0.0, distMpc: 410.0, speed: 1.0, pitch: 1.0
+      },
+      gw170817: {
+        m1: 1.4, m2: 1.3, a0: 36.0, ecc: 0.0, inc: 20.0, distMpc: 40.0, speed: 1.4, pitch: 0.4
+      },
+      gw190521: {
+        m1: 85.0, m2: 66.0, a0: 22.0, ecc: 0.05, inc: 35.0, distMpc: 3900.0, speed: 0.8, pitch: 2.2
+      },
+      lisa_emri: {
+        m1: 100.0, m2: 12.0, a0: 42.0, ecc: 0.25, inc: 45.0, distMpc: 800.0, speed: 1.1, pitch: 1.6
+      },
+      eccentric: {
+        m1: 30.0, m2: 25.0, a0: 34.0, ecc: 0.55, inc: 15.0, distMpc: 500.0, speed: 1.0, pitch: 1.0
+      },
+      pulsar: {
+        m1: 1.4, m2: 1.4, a0: 20.0, ecc: 0.0, inc: 0.0, distMpc: 1.0, speed: 1.8, pitch: 0.8
+      }
+    };
+
+    function loadPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+
+      sim.m1 = p.m1;
+      sim.m2 = p.m2;
+      sim.a0 = p.a0;
+      sim.ecc = p.ecc;
+      sim.inc = p.inc;
+      sim.distMpc = p.distMpc;
+      sim.speed = p.speed;
+      sim.pitchMult = p.pitch;
+
+      rngM1.value = p.m1;
+      rngM2.value = p.m2;
+      rngA0.value = p.a0;
+      rngEcc.value = p.ecc;
+      rngInc.value = p.inc;
+      rngDist.value = p.distMpc;
+      rngSpeed.value = p.speed;
+      rngPitch.value = p.pitch;
+
+      document.querySelectorAll('.btn-preset').forEach(b => {
+        b.classList.toggle('active', b.dataset.preset === key);
+      });
+
+      resetSimulation();
+    }
+
+    // -------------------------------------------------------------
+    // UI Event Listeners
+    // -------------------------------------------------------------
+    btnPlayPause.addEventListener('click', () => {
+      initAudio();
+      sim.is_running = !sim.is_running;
+      if (sim.is_running) {
+        btnPlayPause.textContent = 'Pause';
+        btnPlayPause.classList.remove('btn-primary');
+        btnPlayPause.classList.add('btn-danger');
+      } else {
+        btnPlayPause.textContent = 'Play';
+        btnPlayPause.classList.remove('btn-danger');
+        btnPlayPause.classList.add('btn-primary');
+        updateAudioSonification(sim.f_gw, 0.0);
+      }
+    });
+
+    btnReset.addEventListener('click', () => {
+      resetSimulation();
+      if (sim.is_running) {
+        btnPlayPause.click();
+      }
+    });
+
+    btnMute.addEventListener('click', () => {
+      sim.is_muted = !sim.is_muted;
+      btnMute.textContent = sim.is_muted ? 'Unmute Audio' : 'Mute Audio';
+      btnMute.style.color = sim.is_muted ? 'var(--accent-rose)' : 'var(--text)';
+    });
+
+    // Sliders
+    rngM1.addEventListener('input', (e) => {
+      sim.m1 = parseFloat(e.target.value);
+      updateTelemetryValues();
+    });
+
+    rngM2.addEventListener('input', (e) => {
+      sim.m2 = parseFloat(e.target.value);
+      updateTelemetryValues();
+    });
+
+    rngA0.addEventListener('input', (e) => {
+      sim.a0 = parseFloat(e.target.value);
+      resetSimulation();
+    });
+
+    rngEcc.addEventListener('input', (e) => {
+      sim.ecc = parseFloat(e.target.value);
+      updateTelemetryValues();
+    });
+
+    rngInc.addEventListener('input', (e) => {
+      sim.inc = parseFloat(e.target.value);
+      updateTelemetryValues();
+    });
+
+    rngDist.addEventListener('input', (e) => {
+      sim.distMpc = parseFloat(e.target.value);
+      updateTelemetryValues();
+    });
+
+    rngSpeed.addEventListener('input', (e) => {
+      sim.speed = parseFloat(e.target.value);
+      updateTelemetryValues();
+    });
+
+    rngPitch.addEventListener('input', (e) => {
+      sim.pitchMult = parseFloat(e.target.value);
+      updateTelemetryValues();
+    });
+
+    rngVol.addEventListener('input', (e) => {
+      valVol.textContent = `${e.target.value}%`;
+    });
+
+    // Toggles
+    document.getElementById('chkGrid').addEventListener('change', (e) => { sim.showGrid = e.target.checked; });
+    document.getElementById('chkSpiral').addEventListener('change', (e) => { sim.showSpiral = e.target.checked; });
+    document.getElementById('chkTestRing').addEventListener('change', (e) => { sim.showTestRing = e.target.checked; });
+    document.getElementById('chkHorizons').addEventListener('change', (e) => { sim.showHorizons = e.target.checked; });
+    document.getElementById('chkTrails').addEventListener('change', (e) => { sim.showTrails = e.target.checked; });
+
+    // Preset buttons
+    document.querySelectorAll('.btn-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        loadPreset(btn.dataset.preset);
+      });
+    });
+
+    // Window resize
+    window.addEventListener('resize', resizeCanvases);
+
+    // Click anywhere to wake audio context
+    window.addEventListener('click', () => {
+      initAudio();
+    }, { once: true });
+
+    // Startup Initialization
+    window.addEventListener('load', () => {
+      resizeCanvases();
+      loadPreset('gw150914');
+      requestAnimationFrame(animate);
+    });
+  </script>
+</body>
+</html>

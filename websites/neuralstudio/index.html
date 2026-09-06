@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuralStudio - Interactive Computational Graph & Deep Learning Visualizer</title>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --panel-bg: rgba(17, 24, 39, 0.85);
+      --panel-border: #1F293D;
+      --accent: #06B6D4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --accent-purple: #8B5CF6;
+      --accent-pink: #EC4899;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --card-bg: #161F30;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 56px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #FFF;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 10px;
+      margin-left: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1F293D;
+      border-color: var(--accent);
+    }
+
+    .btn.active {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0B0F19;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #22D3EE;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .viewport-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      grid-template-rows: 1fr 180px;
+      gap: 1px;
+      background: var(--panel-border);
+      position: relative;
+    }
+
+    .viewport-pane {
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pane-header {
+      height: 36px;
+      background: rgba(17, 24, 39, 0.6);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .pane-canvas-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .dataset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .dataset-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .dataset-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .dataset-btn.selected {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--accent);
+    }
+
+    .dataset-btn-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .dataset-btn-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .control-label {
+      color: var(--text-muted);
+    }
+
+    .control-value {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--card-bg);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    .btn-group {
+      display: flex;
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .btn-group button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-group button.active {
+      background: rgba(6, 182, 212, 0.2);
+      color: var(--accent);
+    }
+
+    .metrics-bar {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+    }
+
+    .metric-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-name {
+      color: var(--text-dim);
+    }
+
+    .metric-val {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .metric-val.accent {
+      color: var(--accent);
+    }
+
+    .click-hint {
+      position: absolute;
+      bottom: 12px;
+      left: 14px;
+      font-size: 11px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">NN</div>
+      <div class="brand-title">Neural<span>Studio</span></div>
+      <div class="tagline">Computational Graph & Reverse-Mode Autograd Visualizer</div>
+    </div>
+    <div class="header-actions">
+      <div class="metrics-bar">
+        <div class="metric-pill">
+          <span class="metric-name">Epoch:</span>
+          <span class="metric-val" id="hud-epoch">0</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-name">Loss:</span>
+          <span class="metric-val accent" id="hud-loss">0.6931</span>
+        </div>
+        <div class="metric-pill">
+          <span class="metric-name">Accuracy:</span>
+          <span class="metric-val" id="hud-acc">50.0%</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="btn-play" onclick="toggleTraining()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>Train</span>
+      </button>
+      <button class="btn" onclick="stepTraining()">Step</button>
+      <button class="btn" onclick="resetNetwork()">Reset Weights</button>
+    </div>
+  </header>
+
+  <div class="main-workspace">
+    <div class="viewport-grid">
+      <!-- 2D Decision Space Pane -->
+      <div class="viewport-pane">
+        <div class="pane-header">
+          <span>2D Decision Boundary Space</span>
+          <span style="color: var(--accent); font-family: var(--font-mono);" id="dataset-name-hud">Spiral Dataset</span>
+        </div>
+        <div class="pane-canvas-wrap" id="wrap-boundary">
+          <canvas id="canvas-boundary"></canvas>
+          <div class="click-hint">Click & drag to add custom training points (Left: Class A, Right: Class B)</div>
+        </div>
+      </div>
+
+      <!-- Computational Graph & Neural Weights Pane -->
+      <div class="viewport-pane">
+        <div class="pane-header">
+          <span>Computational Graph & Gradient Flow</span>
+          <span style="color: var(--accent-purple); font-family: var(--font-mono);" id="arch-hud">2 -> [6, 6] -> 1</span>
+        </div>
+        <div class="pane-canvas-wrap" id="wrap-graph">
+          <canvas id="canvas-graph"></canvas>
+        </div>
+      </div>
+
+      <!-- Loss & Metrics History Strip -->
+      <div class="viewport-pane" style="grid-column: span 2;">
+        <div class="pane-header">
+          <span>Training Loss Telemetry & Gradient Norm History</span>
+          <span style="color: var(--text-muted); font-size: 10px; font-family: var(--font-mono);">BCE Loss = -(y*log(p) + (1-y)*log(1-p))</span>
+        </div>
+        <div class="pane-canvas-wrap" id="wrap-loss">
+          <canvas id="canvas-loss"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Configuration -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Benchmark Datasets</div>
+        <div class="dataset-grid">
+          <div class="dataset-btn selected" onclick="selectDataset('spiral', this)">
+            <div class="dataset-btn-name">Two Spirals</div>
+            <div class="dataset-btn-desc">Highly non-linear intertwined curls</div>
+          </div>
+          <div class="dataset-btn" onclick="selectDataset('circles', this)">
+            <div class="dataset-btn-name">Concentric Circles</div>
+            <div class="dataset-btn-desc">Radial separation challenge</div>
+          </div>
+          <div class="dataset-btn" onclick="selectDataset('moons', this)">
+            <div class="dataset-btn-name">Two Moons</div>
+            <div class="dataset-btn-desc">Interlocking crescent manifolds</div>
+          </div>
+          <div class="dataset-btn" onclick="selectDataset('xor', this)">
+            <div class="dataset-btn-name">XOR Problem</div>
+            <div class="dataset-btn-desc">Classic non-linearly separable benchmark</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Network Architecture</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Hidden Topology</span>
+            <span class="control-value" id="val-layers">2 Layers (6, 6)</span>
+          </div>
+          <div class="btn-group">
+            <button onclick="setArchitecture([4], '1 Layer (4)', this)">[4]</button>
+            <button onclick="setArchitecture([6, 6], '2 Layers (6, 6)', this)" class="active">[6, 6]</button>
+            <button onclick="setArchitecture([8, 8, 4], '3 Layers (8, 8, 4)', this)">[8, 8, 4]</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Activation Function</span>
+            <span class="control-value" id="val-act">Tanh</span>
+          </div>
+          <div class="btn-group">
+            <button onclick="setActivation('relu', this)">ReLU</button>
+            <button class="active" onclick="setActivation('tanh', this)">Tanh</button>
+            <button onclick="setActivation('gelu', this)">GELU</button>
+            <button onclick="setActivation('sigmoid', this)">Sigmoid</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Optimizer Hyperparameters</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Learning Rate (&eta;)</span>
+            <span class="control-value" id="val-lr">0.050</span>
+          </div>
+          <input type="range" min="0.001" max="0.2" step="0.002" value="0.05" id="slider-lr" oninput="updateHyperparams()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Weight Decay (L2 &lambda;)</span>
+            <span class="control-value" id="val-l2">0.0001</span>
+          </div>
+          <input type="range" min="0" max="0.005" step="0.0001" value="0.0001" id="slider-l2" oninput="updateHyperparams()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Noise & Distortion</span>
+            <span class="control-value" id="val-noise">10%</span>
+          </div>
+          <input type="range" min="0" max="0.3" step="0.02" value="0.10" id="slider-noise" oninput="regenerateDataset()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Optimizer Engine</span>
+            <span class="control-value" id="val-opt">Adam</span>
+          </div>
+          <div class="btn-group">
+            <button class="active" onclick="setOptimizer('adam', this)">Adam</button>
+            <button onclick="setOptimizer('momentum', this)">SGD + Mom</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Autograd Math Spec</div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--font-mono);">
+          <div>Forward: z^[l] = W^[l] a^[l-1] + b^[l]</div>
+          <div>Activation: a^[l] = sigma(z^[l])</div>
+          <div>Backward: delta^[l] = (W^[l+1]^T delta^[l+1]) * sigma'(z^[l])</div>
+          <div>Grad W: dL/dW^[l] = delta^[l] (a^[l-1])^T</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // --- Autograd Engine & Neural Network Core ---
+    const activations = {
+      relu: {
+        fn: x => Math.max(0, x),
+        grad: x => (x > 0 ? 1 : 0),
+        name: 'ReLU'
+      },
+      tanh: {
+        fn: x => Math.tanh(x),
+        grad: x => { const t = Math.tanh(x); return 1.0 - t * t; },
+        name: 'Tanh'
+      },
+      gelu: {
+        fn: x => 0.5 * x * (1.0 + Math.tanh(Math.sqrt(2.0 / Math.PI) * (x + 0.044715 * Math.pow(x, 3)))),
+        grad: x => {
+          const k = Math.sqrt(2.0 / Math.PI);
+          const u = k * (x + 0.044715 * Math.pow(x, 3));
+          const sech2 = 1.0 / Math.pow(Math.cosh(u), 2);
+          const cdf = 0.5 * (1.0 + Math.tanh(u));
+          return cdf + 0.5 * x * sech2 * k * (1.0 + 3.0 * 0.044715 * x * x);
+        },
+        name: 'GELU'
+      },
+      sigmoid: {
+        fn: x => 1.0 / (1.0 + Math.exp(-Math.max(-20, Math.min(20, x)))),
+        grad: x => {
+          const s = 1.0 / (1.0 + Math.exp(-Math.max(-20, Math.min(20, x))));
+          return s * (1.0 - s);
+        },
+        name: 'Sigmoid'
+      }
+    };
+
+    class NeuralNetwork {
+      constructor(layerDims, actName = 'tanh') {
+        this.layerDims = layerDims; // e.g. [2, 6, 6, 1]
+        this.actName = actName;
+        this.weights = [];
+        this.biases = [];
+
+        // Adam state
+        this.m_w = [];
+        this.v_w = [];
+        this.m_b = [];
+        this.v_b = [];
+        this.t = 0;
+
+        this.initWeights();
+      }
+
+      initWeights() {
+        this.weights = [];
+        this.biases = [];
+        this.m_w = [];
+        this.v_w = [];
+        this.m_b = [];
+        this.v_b = [];
+        this.t = 0;
+
+        for (let l = 0; l < this.layerDims.length - 1; l++) {
+          const nIn = this.layerDims[l];
+          const nOut = this.layerDims[l + 1];
+
+          // He / Xavier initialization
+          const std = Math.sqrt(2.0 / (nIn + nOut));
+          const wMatrix = [];
+          const mwMatrix = [];
+          const vwMatrix = [];
+
+          for (let i = 0; i < nOut; i++) {
+            const row = [];
+            const mwRow = [];
+            const vwRow = [];
+            for (let j = 0; j < nIn; j++) {
+              row.push((Math.random() * 2 - 1) * std);
+              mwRow.push(0);
+              vwRow.push(0);
+            }
+            wMatrix.push(row);
+            mwMatrix.push(mwRow);
+            vwRow.push(vwRow);
+          }
+
+          const bVector = new Array(nOut).fill(0.0);
+          const mbVector = new Array(nOut).fill(0.0);
+          const vbVector = new Array(nOut).fill(0.0);
+
+          this.weights.push(wMatrix);
+          this.biases.push(bVector);
+          this.m_w.push(mwMatrix);
+          this.v_w.push(vwMatrix);
+          this.m_b.push(mbVector);
+          this.v_b.push(vbVector);
+        }
+      }
+
+      forward(x1, x2) {
+        let a = [x1, x2];
+        const activationsList = [a];
+        const preActivationsList = [];
+
+        const act = activations[this.actName];
+
+        for (let l = 0; l < this.weights.length; l++) {
+          const W = this.weights[l];
+          const b = this.biases[l];
+          const isOutput = (l === this.weights.length - 1);
+
+          const nextZ = [];
+          const nextA = [];
+
+          for (let i = 0; i < W.length; i++) {
+            let sum = b[i];
+            for (let j = 0; j < a.length; j++) {
+              sum += W[i][j] * a[j];
+            }
+            nextZ.push(sum);
+            // Output layer uses sigmoid for binary cross-entropy probabilities
+            const val = isOutput ? activations.sigmoid.fn(sum) : act.fn(sum);
+            nextA.push(val);
+          }
+
+          preActivationsList.push(nextZ);
+          activationsList.push(nextA);
+          a = nextA;
+        }
+
+        return {
+          output: a[0],
+          activations: activationsList,
+          preActivations: preActivationsList
+        };
+      }
+
+      trainBatch(dataPoints, lr = 0.05, l2 = 0.0001, opt = 'adam') {
+        this.t += 1;
+        const numLayers = this.weights.length;
+        const act = activations[this.actName];
+
+        // Zero gradients accumulators
+        const gradW = this.weights.map(W => W.map(row => new Array(row.length).fill(0)));
+        const gradB = this.biases.map(b => new Array(b.length).fill(0));
+
+        let totalLoss = 0.0;
+        let correct = 0;
+
+        for (let p = 0; p < dataPoints.length; p++) {
+          const { x, y, label } = dataPoints[p];
+          const fwd = this.forward(x, y);
+          const prob = Math.max(1e-7, Math.min(1.0 - 1e-7, fwd.output));
+
+          // Binary Cross Entropy Loss: -(label * log(prob) + (1-label) * log(1-prob))
+          const loss = -(label * Math.log(prob) + (1.0 - label) * Math.log(1.0 - prob));
+          totalLoss += loss;
+
+          if ((prob >= 0.5 ? 1 : 0) === label) correct++;
+
+          // --- Backward Propagation ---
+          // Output layer gradient: dL/dz = prob - label (standard sigmoid + BCE simplification)
+          let delta = [prob - label];
+
+          for (let l = numLayers - 1; l >= 0; l--) {
+            const prevA = fwd.activations[l];
+            const W = this.weights[l];
+
+            // Accumulate grads for weights and biases
+            for (let i = 0; i < W.length; i++) {
+              gradB[l][i] += delta[i];
+              for (let j = 0; j < prevA.length; j++) {
+                gradW[l][i][j] += delta[i] * prevA[j];
+              }
+            }
+
+            // Propagate delta to previous layer if not input
+            if (l > 0) {
+              const prevZ = fwd.preActivations[l - 1];
+              const nextDelta = new Array(prevA.length).fill(0.0);
+
+              for (let j = 0; j < prevA.length; j++) {
+                let sum = 0.0;
+                for (let i = 0; i < W.length; i++) {
+                  sum += delta[i] * W[i][j];
+                }
+                nextDelta[j] = sum * act.grad(prevZ[j]);
+              }
+              delta = nextDelta;
+            }
+          }
+        }
+
+        const N = dataPoints.length;
+        const beta1 = 0.9, beta2 = 0.999, eps = 1e-8;
+
+        // Apply parameter updates with Adam or Momentum
+        for (let l = 0; l < numLayers; l++) {
+          for (let i = 0; i < this.weights[l].length; i++) {
+            // Biases
+            const gB = gradB[l][i] / N;
+            if (opt === 'adam') {
+              this.m_b[l][i] = beta1 * this.m_b[l][i] + (1 - beta1) * gB;
+              this.v_b[l][i] = beta2 * this.v_b[l][i] + (1 - beta2) * gB * gB;
+              const mHat = this.m_b[l][i] / (1 - Math.pow(beta1, this.t));
+              const vHat = this.v_b[l][i] / (1 - Math.pow(beta2, this.t));
+              this.biases[l][i] -= (lr * mHat) / (Math.sqrt(vHat) + eps);
+            } else {
+              this.m_b[l][i] = 0.9 * this.m_b[l][i] + gB;
+              this.biases[l][i] -= lr * this.m_b[l][i];
+            }
+
+            // Weights
+            for (let j = 0; j < this.weights[l][i].length; j++) {
+              let gW = gradW[l][i][j] / N + l2 * this.weights[l][i][j]; // L2 regularizer
+              if (opt === 'adam') {
+                this.m_w[l][i][j] = beta1 * this.m_w[l][i][j] + (1 - beta1) * gW;
+                this.v_w[l][i][j] = beta2 * this.v_w[l][i][j] + (1 - beta2) * gW * gW;
+                const mHat = this.m_w[l][i][j] / (1 - Math.pow(beta1, this.t));
+                const vHat = this.v_w[l][i][j] / (1 - Math.pow(beta2, this.t));
+                this.weights[l][i][j] -= (lr * mHat) / (Math.sqrt(vHat) + eps);
+              } else {
+                this.m_w[l][i][j] = 0.9 * this.m_w[l][i][j] + gW;
+                this.weights[l][i][j] -= lr * this.m_w[l][i][j];
+              }
+            }
+          }
+        }
+
+        return {
+          loss: totalLoss / N,
+          accuracy: (correct / N) * 100.0,
+          gradW
+        };
+      }
+    }
+
+    // --- Synthetic Benchmark Datasets ---
+    function generateDataset(type, noise = 0.10) {
+      const points = [];
+      const numPts = 180;
+
+      if (type === 'spiral') {
+        for (let i = 0; i < numPts; i++) {
+          const r = (i / numPts) * 5.0;
+          const t = 1.75 * (i / numPts) * 2 * Math.PI;
+
+          // Arm 1 (Class 0)
+          const n1x = (Math.random() - 0.5) * noise * 2;
+          const n1y = (Math.random() - 0.5) * noise * 2;
+          points.push({ x: (r * Math.sin(t) + n1x) / 5.5, y: (r * Math.cos(t) + n1y) / 5.5, label: 0 });
+
+          // Arm 2 (Class 1)
+          const n2x = (Math.random() - 0.5) * noise * 2;
+          const n2y = (Math.random() - 0.5) * noise * 2;
+          points.push({ x: (-r * Math.sin(t) + n2x) / 5.5, y: (-r * Math.cos(t) + n2y) / 5.5, label: 1 });
+        }
+      } else if (type === 'circles') {
+        for (let i = 0; i < numPts * 2; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const isInner = Math.random() < 0.5;
+          const r = isInner ? (0.25 + Math.random() * 0.25) : (0.65 + Math.random() * 0.3);
+          const nx = (Math.random() - 0.5) * noise;
+          const ny = (Math.random() - 0.5) * noise;
+          points.push({
+            x: (r * Math.cos(angle) + nx),
+            y: (r * Math.sin(angle) + ny),
+            label: isInner ? 1 : 0
+          });
+        }
+      } else if (type === 'moons') {
+        for (let i = 0; i < numPts; i++) {
+          const t = (i / numPts) * Math.PI;
+          // Upper moon
+          points.push({
+            x: (Math.cos(t) + (Math.random() - 0.5) * noise) * 0.5 - 0.2,
+            y: (Math.sin(t) + (Math.random() - 0.5) * noise) * 0.5 + 0.1,
+            label: 0
+          });
+          // Lower moon
+          points.push({
+            x: (1.0 - Math.cos(t) + (Math.random() - 0.5) * noise) * 0.5 - 0.2,
+            y: (1.0 - Math.sin(t) - 0.5 + (Math.random() - 0.5) * noise) * 0.5 - 0.3,
+            label: 1
+          });
+        }
+      } else if (type === 'xor') {
+        for (let i = 0; i < numPts * 2; i++) {
+          const qx = Math.random() > 0.5 ? 0.45 : -0.45;
+          const qy = Math.random() > 0.5 ? 0.45 : -0.45;
+          const x = qx + (Math.random() - 0.5) * 0.35 + (Math.random() - 0.5) * noise;
+          const y = qy + (Math.random() - 0.5) * 0.35 + (Math.random() - 0.5) * noise;
+          const label = (qx * qy > 0) ? 0 : 1;
+          points.push({ x, y, label });
+        }
+      }
+
+      return points;
+    }
+
+    // --- Studio State & Setup ---
+    let currentDatasetName = 'spiral';
+    let noiseLevel = 0.10;
+    let dataset = generateDataset(currentDatasetName, noiseLevel);
+
+    let hiddenDims = [6, 6];
+    let activationType = 'tanh';
+    let learningRate = 0.05;
+    let l2Reg = 0.0001;
+    let optimizerType = 'adam';
+
+    let net = new NeuralNetwork([2, ...hiddenDims, 1], activationType);
+
+    let isTraining = false;
+    let epoch = 0;
+    let lossHistory = [];
+    let accHistory = [];
+    let lastGradW = null;
+
+    // Canvas Elements
+    const cvsBoundary = document.getElementById('canvas-boundary');
+    const ctxBoundary = cvsBoundary.getContext('2d');
+    const cvsGraph = document.getElementById('canvas-graph');
+    const ctxGraph = cvsGraph.getContext('2d');
+    const cvsLoss = document.getElementById('canvas-loss');
+    const ctxLoss = cvsLoss.getContext('2d');
+
+    function resizeAll() {
+      const dpr = window.devicePixelRatio || 1;
+
+      const wb = document.getElementById('wrap-boundary');
+      cvsBoundary.width = wb.clientWidth * dpr;
+      cvsBoundary.height = wb.clientHeight * dpr;
+
+      const wg = document.getElementById('wrap-graph');
+      cvsGraph.width = wg.clientWidth * dpr;
+      cvsGraph.height = wg.clientHeight * dpr;
+
+      const wl = document.getElementById('wrap-loss');
+      cvsLoss.width = wl.clientWidth * dpr;
+      cvsLoss.height = wl.clientHeight * dpr;
+    }
+    window.addEventListener('resize', resizeAll);
+    resizeAll();
+
+    // Custom point addition
+    cvsBoundary.addEventListener('mousedown', (e) => {
+      const rect = cvsBoundary.getBoundingClientRect();
+      const clickX = ((e.clientX - rect.left) / rect.width) * 2.0 - 1.0;
+      const clickY = -(((e.clientY - rect.top) / rect.height) * 2.0 - 1.0);
+      const label = (e.button === 2 || e.shiftKey) ? 1 : 0;
+      dataset.push({ x: clickX, y: clickY, label });
+    });
+    cvsBoundary.addEventListener('contextmenu', e => e.preventDefault());
+
+    // --- UI Handlers ---
+    function selectDataset(name, el) {
+      currentDatasetName = name;
+      dataset = generateDataset(name, noiseLevel);
+      document.querySelectorAll('.dataset-btn').forEach(b => b.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+      document.getElementById('dataset-name-hud').textContent = `${name.toUpperCase()} Dataset`;
+      resetMetrics();
+    }
+
+    function regenerateDataset() {
+      noiseLevel = parseFloat(document.getElementById('slider-noise').value);
+      document.getElementById('val-noise').textContent = Math.round(noiseLevel * 100) + '%';
+      dataset = generateDataset(currentDatasetName, noiseLevel);
+    }
+
+    function setArchitecture(hidden, label, el) {
+      hiddenDims = hidden;
+      document.querySelectorAll('#val-layers + .btn-group button').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      document.getElementById('val-layers').textContent = label;
+      document.getElementById('arch-hud').textContent = `2 -> [${hidden.join(', ')}] -> 1`;
+      resetNetwork();
+    }
+
+    function setActivation(act, el) {
+      activationType = act;
+      document.querySelectorAll('#val-act + .btn-group button').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      document.getElementById('val-act').textContent = activations[act].name;
+      net.actName = act;
+      resetMetrics();
+    }
+
+    function setOptimizer(opt, el) {
+      optimizerType = opt;
+      document.querySelectorAll('#val-opt + .btn-group button').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+      document.getElementById('val-opt').textContent = opt === 'adam' ? 'Adam' : 'SGD + Mom';
+    }
+
+    function updateHyperparams() {
+      learningRate = parseFloat(document.getElementById('slider-lr').value);
+      l2Reg = parseFloat(document.getElementById('slider-l2').value);
+      document.getElementById('val-lr').textContent = learningRate.toFixed(3);
+      document.getElementById('val-l2').textContent = l2Reg.toFixed(4);
+    }
+
+    function toggleTraining() {
+      isTraining = !isTraining;
+      const btn = document.getElementById('btn-play');
+      btn.querySelector('span').textContent = isTraining ? 'Pause' : 'Train';
+      btn.classList.toggle('active', isTraining);
+    }
+
+    function stepTraining() {
+      trainStep();
+    }
+
+    function resetNetwork() {
+      net = new NeuralNetwork([2, ...hiddenDims, 1], activationType);
+      resetMetrics();
+    }
+
+    function resetMetrics() {
+      epoch = 0;
+      lossHistory = [];
+      accHistory = [];
+      lastGradW = null;
+      document.getElementById('hud-epoch').textContent = '0';
+      document.getElementById('hud-loss').textContent = '0.6931';
+      document.getElementById('hud-acc').textContent = '50.0%';
+    }
+
+    // --- Training Step ---
+    function trainStep() {
+      const stats = net.trainBatch(dataset, learningRate, l2Reg, optimizerType);
+      epoch++;
+      lastGradW = stats.gradW;
+
+      lossHistory.push(stats.loss);
+      accHistory.push(stats.accuracy);
+      if (lossHistory.length > 250) {
+        lossHistory.shift();
+        accHistory.shift();
+      }
+
+      document.getElementById('hud-epoch').textContent = epoch;
+      document.getElementById('hud-loss').textContent = stats.loss.toFixed(4);
+      document.getElementById('hud-acc').textContent = stats.accuracy.toFixed(1) + '%';
+    }
+
+    // --- Rendering Pipelines ---
+    let animPulse = 0;
+
+    function renderDecisionBoundary() {
+      const w = cvsBoundary.width;
+      const h = cvsBoundary.height;
+      ctxBoundary.clearRect(0, 0, w, h);
+
+      // Low-res coarse grid evaluation for smooth 60 FPS boundary heatmap
+      const gridRes = 54;
+      const cellW = w / gridRes;
+      const cellH = h / gridRes;
+
+      for (let i = 0; i < gridRes; i++) {
+        for (let j = 0; j < gridRes; j++) {
+          const normX = (i / gridRes) * 2.0 - 1.0;
+          const normY = -((j / gridRes) * 2.0 - 1.0);
+
+          const pred = net.forward(normX, normY).output;
+
+          // Color blend: Class 0 (Cyan #06B6D4) vs Class 1 (Pink #EC4899)
+          const r = Math.round(6 * (1.0 - pred) + 236 * pred);
+          const g = Math.round(182 * (1.0 - pred) + 72 * pred);
+          const b = Math.round(212 * (1.0 - pred) + 153 * pred);
+          const alpha = 0.28 + 0.35 * Math.abs(pred - 0.5) * 2.0;
+
+          ctxBoundary.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          ctxBoundary.fillRect(i * cellW, j * cellH, cellW + 1, cellH + 1);
+        }
+      }
+
+      // Draw coordinate crosshair axes
+      ctxBoundary.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctxBoundary.lineWidth = 1;
+      ctxBoundary.beginPath();
+      ctxBoundary.moveTo(w * 0.5, 0); ctxBoundary.lineTo(w * 0.5, h);
+      ctxBoundary.moveTo(0, h * 0.5); ctxBoundary.lineTo(w, h * 0.5);
+      ctxBoundary.stroke();
+
+      // Render training data points
+      for (let i = 0; i < dataset.length; i++) {
+        const pt = dataset[i];
+        const px = ((pt.x + 1.0) * 0.5) * w;
+        const py = ((-pt.y + 1.0) * 0.5) * h;
+
+        ctxBoundary.beginPath();
+        ctxBoundary.arc(px, py, 4.5, 0, Math.PI * 2);
+        ctxBoundary.fillStyle = (pt.label === 0) ? '#06B6D4' : '#EC4899';
+        ctxBoundary.fill();
+        ctxBoundary.strokeStyle = '#FFFFFF';
+        ctxBoundary.lineWidth = 1.2;
+        ctxBoundary.stroke();
+      }
+    }
+
+    function renderComputationalGraph() {
+      const w = cvsGraph.width;
+      const h = cvsGraph.height;
+      ctxGraph.clearRect(0, 0, w, h);
+
+      const layers = net.layerDims;
+      const numLayers = layers.length;
+      const layerSpacing = w / (numLayers + 0.5);
+
+      // Node layout positions
+      const nodeCoords = [];
+      for (let l = 0; l < numLayers; l++) {
+        const nNodes = layers[l];
+        const layerX = (l + 0.8) * layerSpacing;
+        const coords = [];
+        const nodeSpacing = Math.min(48, (h - 60) / (nNodes + 1));
+        const startY = (h - (nNodes - 1) * nodeSpacing) * 0.5;
+
+        for (let i = 0; i < nNodes; i++) {
+          coords.push({ x: layerX, y: startY + i * nodeSpacing });
+        }
+        nodeCoords.push(coords);
+      }
+
+      // 1. Draw Synaptic Weights & Gradient Flow Pulses
+      for (let l = 0; l < net.weights.length; l++) {
+        const W = net.weights[l];
+        for (let i = 0; i < W.length; i++) {
+          for (let j = 0; j < W[i].length; j++) {
+            const p1 = nodeCoords[l][j];
+            const p2 = nodeCoords[l + 1][i];
+            const weightVal = W[i][j];
+
+            // Weight line
+            const absW = Math.min(1.0, Math.abs(weightVal) / 2.0);
+            ctxGraph.beginPath();
+            ctxGraph.moveTo(p1.x, p1.y);
+            ctxGraph.lineTo(p2.x, p2.y);
+            ctxGraph.strokeStyle = weightVal >= 0
+              ? `rgba(6, 182, 212, ${0.15 + 0.65 * absW})`
+              : `rgba(236, 72, 153, ${0.15 + 0.65 * absW})`;
+            ctxGraph.lineWidth = 0.8 + 2.5 * absW;
+            ctxGraph.stroke();
+
+            // Animated forward signal pulse when training
+            if (isTraining) {
+              const pulseT = (animPulse + (j * 0.15 + i * 0.2)) % 1.0;
+              const px = p1.x + (p2.x - p1.x) * pulseT;
+              const py = p1.y + (p2.y - p1.y) * pulseT;
+              ctxGraph.beginPath();
+              ctxGraph.arc(px, py, 1.8, 0, Math.PI * 2);
+              ctxGraph.fillStyle = '#38BDF8';
+              ctxGraph.fill();
+            }
+          }
+        }
+      }
+
+      // 2. Draw Neuron Nodes & Activation Spheres
+      for (let l = 0; l < nodeCoords.length; l++) {
+        for (let i = 0; i < nodeCoords[l].length; i++) {
+          const pt = nodeCoords[l][i];
+
+          ctxGraph.beginPath();
+          ctxGraph.arc(pt.x, pt.y, 11, 0, Math.PI * 2);
+          ctxGraph.fillStyle = '#111827';
+          ctxGraph.fill();
+          ctxGraph.strokeStyle = (l === 0) ? '#06B6D4' : (l === numLayers - 1) ? '#8B5CF6' : '#64748B';
+          ctxGraph.lineWidth = 2;
+          ctxGraph.stroke();
+
+          // Inner glow
+          ctxGraph.beginPath();
+          ctxGraph.arc(pt.x, pt.y, 5.5, 0, Math.PI * 2);
+          ctxGraph.fillStyle = (l === 0) ? '#06B6D4' : (l === numLayers - 1) ? '#8B5CF6' : '#38BDF8';
+          ctxGraph.fill();
+        }
+      }
+    }
+
+    function renderLossHistory() {
+      const w = cvsLoss.width;
+      const h = cvsLoss.height;
+      ctxLoss.clearRect(0, 0, w, h);
+
+      if (lossHistory.length < 2) return;
+
+      const padL = 40, padR = 20, padT = 16, padB = 24;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      // Draw grid
+      ctxLoss.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctxLoss.lineWidth = 1;
+      for (let step = 0; step <= 4; step++) {
+        const gy = padT + (step / 4) * plotH;
+        ctxLoss.beginPath();
+        ctxLoss.moveTo(padL, gy); ctxLoss.lineTo(w - padR, gy);
+        ctxLoss.stroke();
+      }
+
+      // Loss Curve
+      ctxLoss.beginPath();
+      for (let i = 0; i < lossHistory.length; i++) {
+        const x = padL + (i / (lossHistory.length - 1)) * plotW;
+        const normLoss = Math.min(1.0, Math.max(0.0, lossHistory[i] / 1.0));
+        const y = padT + (1.0 - normLoss) * plotH;
+        if (i === 0) ctxLoss.moveTo(x, y);
+        else ctxLoss.lineTo(x, y);
+      }
+      ctxLoss.strokeStyle = '#06B6D4';
+      ctxLoss.lineWidth = 2.0;
+      ctxLoss.stroke();
+
+      // Accuracy Curve
+      ctxLoss.beginPath();
+      for (let i = 0; i < accHistory.length; i++) {
+        const x = padL + (i / (accHistory.length - 1)) * plotW;
+        const normAcc = Math.min(1.0, Math.max(0.0, accHistory[i] / 100.0));
+        const y = padT + (1.0 - normAcc) * plotH;
+        if (i === 0) ctxLoss.moveTo(x, y);
+        else ctxLoss.lineTo(x, y);
+      }
+      ctxLoss.strokeStyle = '#8B5CF6';
+      ctxLoss.lineWidth = 1.5;
+      ctxLoss.stroke();
+
+      // Legend
+      ctxLoss.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+      ctxLoss.fillStyle = '#06B6D4';
+      ctxLoss.fillText('Loss (BCE)', padL + 10, padT + 12);
+      ctxLoss.fillStyle = '#8B5CF6';
+      ctxLoss.fillText('Accuracy (%)', padL + 80, padT + 12);
+    }
+
+    // --- Main Studio Render Loop ---
+    function mainLoop() {
+      if (isTraining) {
+        trainStep();
+        animPulse = (animPulse + 0.04) % 1.0;
+      }
+
+      renderDecisionBoundary();
+      renderComputationalGraph();
+      renderLossHistory();
+
+      requestAnimationFrame(mainLoop);
+    }
+
+    requestAnimationFrame(mainLoop);
+  </script>
+</body>
+</html>

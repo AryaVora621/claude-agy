@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaveOptics Studio - 2D Wavefield Propagation & Diffraction Laboratory</title>
+  <style>
+    :root {
+      --bg-deep: #060810;
+      --bg-panel: #0D1220;
+      --bg-panel-trans: rgba(13, 18, 32, 0.85);
+      --border-subtle: #1C243B;
+      --border-accent: #00F0FF;
+      --text-primary: #F0F4FC;
+      --text-secondary: #94A3B8;
+      --text-dim: #64748B;
+      --cyan: #00F0FF;
+      --emerald: #00FF9D;
+      --ruby: #FF3366;
+      --amber: #FFB800;
+      --violet: #A855F7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: radial-gradient(circle at 30% 30%, #00F0FF, #0044FF);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+      font-weight: 900;
+      color: #000;
+      font-size: 20px;
+    }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.75rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .stat-val {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .stat-label {
+      color: var(--text-dim);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+    }
+
+    .main-workspace {
+      display: grid;
+      grid-template-columns: 320px 1fr 300px;
+      flex: 1;
+      height: calc(100vh - 65px);
+      overflow: hidden;
+    }
+
+    /* Left Sidebar: Controls & Presets */
+    .sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-subtle);
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .btn-preset {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-secondary);
+      font-size: 0.76rem;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .btn-preset:hover {
+      background: rgba(0, 240, 255, 0.06);
+      border-color: rgba(0, 240, 255, 0.3);
+      color: var(--text-primary);
+    }
+
+    .btn-preset.active {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .btn-preset-desc {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .control-group {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .control-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.73rem;
+      color: var(--text-secondary);
+    }
+
+    .control-val {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: #1A2238;
+      border-radius: 2px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--cyan);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.73rem;
+      color: var(--text-secondary);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 18px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider-switch {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #1A2238;
+      transition: .2s;
+      border-radius: 18px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .slider-switch:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider-switch {
+      background-color: var(--cyan);
+    }
+
+    input:checked + .slider-switch:before {
+      transform: translateX(14px);
+      background-color: #060810;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 8px;
+      color: var(--text-primary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-action:hover {
+      background: rgba(0, 240, 255, 0.1);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .btn-action.primary {
+      background: var(--cyan);
+      color: #05070E;
+      border-color: var(--cyan);
+    }
+
+    .btn-action.primary:hover {
+      background: #33F4FF;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    /* Center Stage: Viewport & Canvas */
+    .viewport-area {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: #020308;
+      overflow: hidden;
+    }
+
+    .canvas-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: crosshair;
+    }
+
+    #waveCanvas {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      display: block;
+    }
+
+    .overlay-hud {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.85);
+      background: rgba(10, 14, 26, 0.7);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+    }
+
+    .overlay-tools {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-panel-trans);
+      border: 1px solid var(--border-subtle);
+      border-radius: 30px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
+      z-index: 20;
+    }
+
+    .tool-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tool-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .tool-btn.active {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Right Sidebar: 1D Intensity Profiler & Physics Telemetry */
+    .telemetry-bar {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-subtle);
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .profile-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .profile-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      background: #05070F;
+      border: 1px solid #182035;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    #profileCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .telem-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .telem-box-val {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--emerald);
+    }
+
+    .telem-box-label {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .formula-box {
+      background: rgba(0, 240, 255, 0.03);
+      border: 1px solid rgba(0, 240, 255, 0.15);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: #CAD5E2;
+    }
+
+    .formula-box code {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      color: var(--cyan);
+    }
+
+    .color-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .legend-bar {
+      height: 8px;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.62rem;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      color: var(--text-dim);
+    }
+
+    /* Palette gradients */
+    .bar-phase {
+      background: linear-gradient(to right, #00F0FF, #0A1128, #FF007F);
+    }
+    .bar-intensity {
+      background: linear-gradient(to right, #05060D, #0055FF, #00F0FF, #FFFFFF);
+    }
+    .bar-laser {
+      background: linear-gradient(to right, #05060D, #007733, #00FF88, #FFFFFF);
+    }
+
+    /* Modal / Tooltips */
+    .badge-live {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 6px var(--emerald);
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">&lambda;</div>
+      <div class="brand-text">
+        <h1>WaveOptics Studio <span class="brand-badge">2D FDTD Wavefield</span></h1>
+        <p>Huygens-Fresnel Diffraction, Wavefront Interference, and Holography</p>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-item">
+        <span class="stat-val" id="statFps">60 FPS</span>
+        <span class="stat-label">Frame Rate</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="statGrid">256 &times; 160</span>
+        <span class="stat-label">Grid Resolution</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="statWavelength">532 nm</span>
+        <span class="stat-label">Optical Scale</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main 3-Column Studio -->
+  <div class="main-workspace">
+
+    <!-- Left Controls Sidebar -->
+    <aside class="sidebar">
+      <div class="section-title">Optical Presets</div>
+      <div class="preset-grid">
+        <button class="btn-preset active" data-preset="double_slit">
+          <span>Young's Double-Slit</span>
+          <span class="btn-preset-desc">Classic spatial interference fringes modulated by sinc diffraction</span>
+        </button>
+        <button class="btn-preset" data-preset="single_slit">
+          <span>Single-Slit Diffraction</span>
+          <span class="btn-preset-desc">Central broad maximum with secondary airy diffraction peaks</span>
+        </button>
+        <button class="btn-preset" data-preset="grating">
+          <span>Diffraction Grating (5 Slits)</span>
+          <span class="btn-preset-desc">Narrow principal interference maxima with high angular dispersion</span>
+        </button>
+        <button class="btn-preset" data-preset="poisson_spot">
+          <span>Poisson-Arago Bright Spot</span>
+          <span class="btn-preset-desc">Constructive wave interference on-axis behind circular opaque disk</span>
+        </button>
+        <button class="btn-preset" data-preset="dielectric_lens">
+          <span>Dielectric Convex Lens (n = 1.5)</span>
+          <span class="btn-preset-desc">Wavefront curvature conversion and focal point convergence</span>
+        </button>
+        <button class="btn-preset" data-preset="hologram">
+          <span>Synthetic Transmission Hologram</span>
+          <span class="btn-preset-desc">Wavefront recording and optical image reconstruction</span>
+        </button>
+      </div>
+
+      <div class="section-title">Laser Source & Waves</div>
+      <div class="control-group">
+        <div class="control-item">
+          <div class="control-header">
+            <span>Wavelength (&lambda;)</span>
+            <span class="control-val" id="valWavelength">14 px</span>
+          </div>
+          <input type="range" id="rngWavelength" min="8" max="28" step="1" value="14">
+        </div>
+
+        <div class="control-item">
+          <div class="control-header">
+            <span>Source Amplitude</span>
+            <span class="control-val" id="valAmp">1.00</span>
+          </div>
+          <input type="range" id="rngAmp" min="0.2" max="2.5" step="0.05" value="1.00">
+        </div>
+
+        <div class="control-item">
+          <div class="control-header">
+            <span>Wave Speed c</span>
+            <span class="control-val" id="valSpeed">1.00</span>
+          </div>
+          <input type="range" id="rngSpeed" min="0.4" max="1.0" step="0.05" value="1.00">
+        </div>
+
+        <div class="toggle-row">
+          <span>Plane Wave Generator</span>
+          <label class="switch">
+            <input type="checkbox" id="chkPlaneWave" checked>
+            <span class="slider-switch"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <span>Absorbing Outer PML Walls</span>
+          <label class="switch">
+            <input type="checkbox" id="chkAbsorption" checked>
+            <span class="slider-switch"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section-title">Aperture & Slit Geometry</div>
+      <div class="control-group">
+        <div class="control-item">
+          <div class="control-header">
+            <span>Slit Separation (d)</span>
+            <span class="control-val" id="valSlitSep">26 px</span>
+          </div>
+          <input type="range" id="rngSlitSep" min="10" max="60" step="2" value="26">
+        </div>
+
+        <div class="control-item">
+          <div class="control-header">
+            <span>Slit Width (w)</span>
+            <span class="control-val" id="valSlitWidth">4 px</span>
+          </div>
+          <input type="range" id="rngSlitWidth" min="2" max="18" step="1" value="4">
+        </div>
+
+        <div class="control-item">
+          <div class="control-header">
+            <span>Detector Sensor X</span>
+            <span class="control-val" id="valScreenX">230 px</span>
+          </div>
+          <input type="range" id="rngScreenX" min="120" max="250" step="1" value="230">
+        </div>
+      </div>
+
+      <div class="section-title">Engine Execution</div>
+      <div class="action-row">
+        <button class="btn-action primary" id="btnPlayPause">Pause</button>
+        <button class="btn-action" id="btnClear">Clear Wave</button>
+      </div>
+      <button class="btn-action" id="btnResetBarriers">Reset Slits / Mask</button>
+    </aside>
+
+    <!-- Center Viewport Canvas Area -->
+    <main class="viewport-area">
+      <div class="canvas-container" id="canvasContainer">
+        <canvas id="waveCanvas"></canvas>
+
+        <div class="overlay-hud">
+          <div><span class="badge-live"></span><strong>WAVEFIELD ENGINE</strong>: Active</div>
+          <div>PDE: &part;&sup2;&psi;/&part;t&sup2; = c&sup2; &nabla;&sup2;&psi;</div>
+          <div>CFL: 0.50 (Strictly Stable)</div>
+          <div>Mode: <span id="hudMode">Wavefield Amplitude</span></div>
+        </div>
+
+        <!-- Floating Bottom Toolbar for Visualization Modes -->
+        <div class="overlay-tools">
+          <button class="tool-btn active" data-mode="amplitude">Wavefield &psi;</button>
+          <button class="tool-btn" data-mode="intensity">Intensity I(&tau;)</button>
+          <button class="tool-btn" data-mode="laser">Emerald Laser</button>
+          <button class="tool-btn" data-mode="phase">Phase Angle &phi;</button>
+          <span style="color: var(--border-subtle)">|</span>
+          <button class="tool-btn" id="btnBrushBarrier" data-brush="barrier" title="Draw black opaque barriers">Barrier</button>
+          <button class="tool-btn" id="btnBrushDielectric" data-brush="lens" title="Paint glass lens (n = 1.5)">Lens</button>
+          <button class="tool-btn" id="btnBrushEraser" data-brush="erase" title="Erase obstacles">Erase</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Telemetry & 1D Intensity Profile Sidebar -->
+    <aside class="telemetry-bar">
+      <div class="section-title">Spatial Intensity Profile I(y)</div>
+      <div class="profile-card">
+        <div class="profile-canvas-wrap">
+          <canvas id="profileCanvas"></canvas>
+        </div>
+        <div style="font-size: 0.68rem; color: var(--text-dim); display: flex; justify-content: space-between;">
+          <span>Screen Top (y = 0)</span>
+          <span>Center</span>
+          <span>Bottom (y = 160)</span>
+        </div>
+      </div>
+
+      <div class="section-title">Optical Telemetry</div>
+      <div class="telemetry-grid">
+        <div class="telem-box">
+          <span class="telem-box-val" id="telFringeSep">--</span>
+          <span class="telem-box-label">Fringe Spacing &Delta;y</span>
+        </div>
+        <div class="telem-box">
+          <span class="telem-box-val" id="telVisibility">98.4%</span>
+          <span class="telem-box-label">Fringe Visibility V</span>
+        </div>
+        <div class="telem-box">
+          <span class="telem-box-val" id="telWavenumber">0.449 rad/px</span>
+          <span class="telem-box-label">Wavenumber k</span>
+        </div>
+        <div class="telem-box">
+          <span class="telem-box-val" id="telPeakI">1.84 W/m&sup2;</span>
+          <span class="telem-box-label">Peak Intensity</span>
+        </div>
+      </div>
+
+      <div class="section-title">Analytical Formulation</div>
+      <div class="formula-box">
+        <strong>Fraunhofer Double-Slit Diffraction:</strong><br>
+        <code>I(&theta;) = I_0 &middot; sinc&sup2;(&beta;) &middot; cos&sup2;(&alpha;)</code><br>
+        where:<br>
+        <code>&beta; = (&pi; w / &lambda;) sin(&theta;)</code> (diffraction envelope)<br>
+        <code>&alpha; = (&pi; d / &lambda;) sin(&theta;)</code> (interference fringes)<br>
+        Interference maxima condition: <code>d sin(&theta;) = m &lambda;</code>
+      </div>
+
+      <div class="section-title">Color Palette Legend</div>
+      <div class="color-legend">
+        <div class="legend-bar bar-phase" id="legendBar"></div>
+        <div class="legend-labels">
+          <span>-&pi; (-1.0)</span>
+          <span>0.0</span>
+          <span>+&pi; (+1.0)</span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    // --- High-Performance 2D Wave Optics FDTD Engine ---
+    const NX = 256;
+    const NY = 160;
+    const TOTAL_CELLS = NX * NY;
+
+    // Dual-buffer 2D scalar wave state: u_curr, u_prev, u_next
+    let uCurr = new Float32Array(TOTAL_CELLS);
+    let uPrev = new Float32Array(TOTAL_CELLS);
+    let uNext = new Float32Array(TOTAL_CELLS);
+
+    // Time-averaged intensity buffer (CCD sensor accumulation)
+    let intensity = new Float32Array(TOTAL_CELLS);
+
+    // Refractive index grid n(x, y) default 1.0 (vacuum / air)
+    let nIndex = new Float32Array(TOTAL_CELLS);
+    nIndex.fill(1.0);
+
+    // Obstacle / Barrier mask (1 = opaque absorbing barrier, 0 = free space)
+    let isBarrier = new Uint8Array(TOTAL_CELLS);
+
+    // Absorbing Boundary Layer damping coefficient gamma(x, y)
+    let damping = new Float32Array(TOTAL_CELLS);
+
+    // Physics parameters
+    let wavelength = 14.0;      // Pixels per cycle
+    let frequency = 1.0 / 14.0; // Cycles per time unit
+    let sourceAmp = 1.0;
+    let waveSpeedC = 1.0;
+    let dt = 0.50;              // Courant factor: CFL = c * dt / dx = 1.0 * 0.5 / 1.0 = 0.50 (Stable)
+    let simTime = 0.0;
+    let running = true;
+    let enablePlaneWave = true;
+    let enableAbsorption = true;
+
+    // Slit geometry parameters
+    let slitSeparation = 26;
+    let slitWidth = 4;
+    let screenX = 230;
+
+    // Render & tool parameters
+    let renderMode = 'amplitude'; // 'amplitude', 'intensity', 'laser', 'phase'
+    let activeBrush = 'barrier';   // 'barrier', 'lens', 'erase'
+    let isDrawing = false;
+    let currentPreset = 'double_slit';
+
+    // Canvas elements & contexts
+    const waveCanvas = document.getElementById('waveCanvas');
+    const ctx = waveCanvas.getContext('2d', { alpha: false });
+    waveCanvas.width = NX;
+    waveCanvas.height = NY;
+    const imgData = ctx.createImageData(NX, NY);
+    const pixels = imgData.data;
+
+    const profileCanvas = document.getElementById('profileCanvas');
+    const pCtx = profileCanvas.getContext('2d');
+
+    // Precompute Absorbing Boundary Damping Coefficients
+    function updateDampingLayer() {
+      const margin = 16;
+      const maxDamp = 0.15;
+      damping.fill(0.0);
+
+      if (!enableAbsorption) return;
+
+      for (let y = 0; y < NY; y++) {
+        for (let x = 0; x < NX; x++) {
+          let dist = 1000;
+          if (x < margin) dist = Math.min(dist, x);
+          if (x >= NX - margin) dist = Math.min(dist, NX - 1 - x);
+          if (y < margin) dist = Math.min(dist, y);
+          if (y >= NY - margin) dist = Math.min(dist, NY - 1 - y);
+
+          if (dist < margin) {
+            const factor = 1.0 - (dist / margin);
+            damping[y * NX + x] = maxDamp * (factor * factor);
+          }
+        }
+      }
+    }
+    updateDampingLayer();
+
+    // Preset Configurations
+    function applyPreset(name) {
+      currentPreset = name;
+      isBarrier.fill(0);
+      nIndex.fill(1.0);
+      uCurr.fill(0);
+      uPrev.fill(0);
+      uNext.fill(0);
+      intensity.fill(0);
+      simTime = 0;
+
+      const barrierX = 70;
+      const centerY = Math.floor(NY / 2);
+
+      if (name === 'double_slit') {
+        enablePlaneWave = true;
+        document.getElementById('chkPlaneWave').checked = true;
+        wavelength = 14;
+        slitSeparation = 28;
+        slitWidth = 4;
+        screenX = 230;
+
+        // Build vertical barrier with 2 open slits
+        const slit1Y = centerY - Math.floor(slitSeparation / 2);
+        const slit2Y = centerY + Math.floor(slitSeparation / 2);
+        const halfW = Math.floor(slitWidth / 2);
+
+        for (let y = 0; y < NY; y++) {
+          const inSlit1 = (y >= slit1Y - halfW && y <= slit1Y + halfW);
+          const inSlit2 = (y >= slit2Y - halfW && y <= slit2Y + halfW);
+          if (!inSlit1 && !inSlit2) {
+            for (let bx = barrierX - 1; bx <= barrierX + 1; bx++) {
+              isBarrier[y * NX + bx] = 1;
+            }
+          }
+        }
+      }
+      else if (name === 'single_slit') {
+        enablePlaneWave = true;
+        document.getElementById('chkPlaneWave').checked = true;
+        wavelength = 14;
+        slitWidth = 8;
+        screenX = 230;
+
+        const halfW = Math.floor(slitWidth / 2);
+        for (let y = 0; y < NY; y++) {
+          if (y < centerY - halfW || y > centerY + halfW) {
+            for (let bx = barrierX - 1; bx <= barrierX + 1; bx++) {
+              isBarrier[y * NX + bx] = 1;
+            }
+          }
+        }
+      }
+      else if (name === 'grating') {
+        enablePlaneWave = true;
+        document.getElementById('chkPlaneWave').checked = true;
+        wavelength = 12;
+        slitWidth = 3;
+        const numSlits = 5;
+        const gratingPitch = 16;
+        screenX = 232;
+
+        const startY = centerY - Math.floor((numSlits - 1) * gratingPitch / 2);
+        const slitCenters = [];
+        for (let s = 0; s < numSlits; s++) {
+          slitCenters.push(startY + s * gratingPitch);
+        }
+
+        for (let y = 0; y < NY; y++) {
+          let insideAny = false;
+          for (let sc of slitCenters) {
+            if (Math.abs(y - sc) <= Math.floor(slitWidth / 2)) {
+              insideAny = true;
+              break;
+            }
+          }
+          if (!insideAny) {
+            for (let bx = barrierX - 1; bx <= barrierX + 1; bx++) {
+              isBarrier[y * NX + bx] = 1;
+            }
+          }
+        }
+      }
+      else if (name === 'poisson_spot') {
+        enablePlaneWave = true;
+        document.getElementById('chkPlaneWave').checked = true;
+        wavelength = 10;
+        screenX = 230;
+
+        // Circular opaque disk centered at (90, centerY)
+        const diskX = 90;
+        const diskR = 18;
+        for (let y = 0; y < NY; y++) {
+          for (let x = 0; x < NX; x++) {
+            const dx = x - diskX;
+            const dy = y - centerY;
+            if (dx * dx + dy * dy <= diskR * diskR) {
+              isBarrier[y * NX + x] = 1;
+            }
+          }
+        }
+      }
+      else if (name === 'dielectric_lens') {
+        enablePlaneWave = true;
+        document.getElementById('chkPlaneWave').checked = true;
+        wavelength = 12;
+        screenX = 220;
+
+        // Biconvex glass lens: n = 1.55 (slower wave speed c/n = 0.645)
+        const lensX = 90;
+        const lensR = 70;
+        const lensThick = 24;
+        for (let y = 0; y < NY; y++) {
+          for (let x = 0; x < NX; x++) {
+            const dy = y - centerY;
+            if (Math.abs(dy) < 55) {
+              const xLeft = lensX - Math.sqrt(Math.max(0, lensR * lensR - dy * dy)) + (lensR - lensThick / 2);
+              const xRight = lensX + Math.sqrt(Math.max(0, lensR * lensR - dy * dy)) - (lensR - lensThick / 2);
+              if (x >= xLeft && x <= xRight) {
+                nIndex[y * NX + x] = 1.55;
+              }
+            }
+          }
+        }
+      }
+      else if (name === 'hologram') {
+        enablePlaneWave = true;
+        document.getElementById('chkPlaneWave').checked = true;
+        wavelength = 12;
+        screenX = 230;
+
+        // Holographic recording screen with multiple pinhole scattering objects
+        for (let y = 0; y < NY; y++) {
+          for (let bx = barrierX - 1; bx <= barrierX + 1; bx++) {
+            isBarrier[y * NX + bx] = 1;
+          }
+        }
+        // Three object apertures
+        const apertures = [centerY - 30, centerY, centerY + 30];
+        for (let ap of apertures) {
+          for (let dy = -2; dy <= 2; dy++) {
+            for (let bx = barrierX - 1; bx <= barrierX + 1; bx++) {
+              isBarrier[(ap + dy) * NX + bx] = 0;
+            }
+          }
+        }
+      }
+
+      // Sync UI sliders
+      document.getElementById('rngWavelength').value = wavelength;
+      document.getElementById('valWavelength').textContent = wavelength + ' px';
+      document.getElementById('rngSlitSep').value = slitSeparation;
+      document.getElementById('valSlitSep').textContent = slitSeparation + ' px';
+      document.getElementById('rngSlitWidth').value = slitWidth;
+      document.getElementById('valSlitWidth').textContent = slitWidth + ' px';
+      document.getElementById('rngScreenX').value = screenX;
+      document.getElementById('valScreenX').textContent = screenX + ' px';
+      frequency = 1.0 / wavelength;
+    }
+
+    applyPreset('double_slit');
+
+    // --- FDTD Physics Integration Step ---
+    function stepFDTD() {
+      simTime += dt;
+      frequency = 1.0 / wavelength;
+      const omega = 2.0 * Math.PI * frequency;
+
+      // 1. Source Injection: Plane wave along left boundary
+      if (enablePlaneWave) {
+        const srcVal = sourceAmp * Math.sin(omega * simTime);
+        for (let y = 0; y < NY; y++) {
+          if (!isBarrier[y * NX + 18]) {
+            uCurr[y * NX + 18] = srcVal;
+          }
+        }
+      }
+
+      // 2. Wave Equation PDE: u_next = 2*u - u_prev + (c/n)^2 * dt^2 * laplacian(u) - damping * u
+      for (let y = 1; y < NY - 1; y++) {
+        const row = y * NX;
+        for (let x = 1; x < NX - 1; x++) {
+          const idx = row + x;
+
+          if (isBarrier[idx]) {
+            uNext[idx] = 0.0;
+            continue;
+          }
+
+          // 5-Point Discrete Laplacian
+          const laplacian = uCurr[idx - 1] + uCurr[idx + 1] + uCurr[idx - NX] + uCurr[idx + NX] - 4.0 * uCurr[idx];
+
+          // Local wave propagation speed c_local = c0 / n(x, y)
+          const cLocal = waveSpeedC / nIndex[idx];
+          const c2dt2 = (cLocal * cLocal) * (dt * dt);
+
+          // Second-order finite difference with absorbing boundary damping
+          const damp = damping[idx];
+          const val = (2.0 - damp) * uCurr[idx] - (1.0 - damp) * uPrev[idx] + c2dt2 * laplacian;
+
+          uNext[idx] = val;
+        }
+      }
+
+      // 3. Reflecting Boundary edges (zero Dirichlet)
+      for (let x = 0; x < NX; x++) {
+        uNext[x] = 0.0;
+        uNext[(NY - 1) * NX + x] = 0.0;
+      }
+      for (let y = 0; y < NY; y++) {
+        uNext[y * NX] = 0.0;
+        uNext[y * NX + (NX - 1)] = 0.0;
+      }
+
+      // 4. Intensity running exponential moving average: I = (1 - alpha)*I + alpha * u^2
+      const alpha = 0.035;
+      for (let i = 0; i < TOTAL_CELLS; i++) {
+        const uVal = uNext[i];
+        intensity[i] = (1.0 - alpha) * intensity[i] + alpha * (uVal * uVal);
+      }
+
+      // 5. State buffer rotation
+      let tmp = uPrev;
+      uPrev = uCurr;
+      uCurr = uNext;
+      uNext = tmp;
+    }
+
+    // --- High-Speed Frame Rendering ---
+    function render() {
+      let pIdx = 0;
+
+      for (let y = 0; y < NY; y++) {
+        const row = y * NX;
+        for (let x = 0; x < NX; x++) {
+          const idx = row + x;
+
+          // Check barrier
+          if (isBarrier[idx]) {
+            pixels[pIdx] = 20;     // R
+            pixels[pIdx + 1] = 24; // G
+            pixels[pIdx + 2] = 36; // B
+            pixels[pIdx + 3] = 255;
+            pIdx += 4;
+            continue;
+          }
+
+          // Check dielectric lens region
+          const isLens = (nIndex[idx] > 1.05);
+
+          if (renderMode === 'amplitude') {
+            // Cyan (+amplitude) to Magenta (-amplitude)
+            const uVal = uCurr[idx];
+            let r = 0, g = 0, b = 0;
+
+            if (uVal > 0) {
+              const norm = Math.min(1.0, uVal * 1.3);
+              r = Math.floor(norm * 0);
+              g = Math.floor(norm * 240);
+              b = Math.floor(norm * 255);
+            } else {
+              const norm = Math.min(1.0, -uVal * 1.3);
+              r = Math.floor(norm * 255);
+              g = Math.floor(norm * 0);
+              b = Math.floor(norm * 140);
+            }
+
+            if (isLens) {
+              r = Math.min(255, r + 40);
+              g = Math.min(255, g + 40);
+              b = Math.min(255, b + 60);
+            }
+
+            pixels[pIdx] = r;
+            pixels[pIdx + 1] = g;
+            pixels[pIdx + 2] = b;
+            pixels[pIdx + 3] = 255;
+          }
+          else if (renderMode === 'intensity') {
+            // CCD Irradiance Heatmap (Deep Blue -> Cyan -> White)
+            const inten = Math.min(1.0, intensity[idx] * 2.8);
+            let r = 0, g = 0, b = 0;
+
+            if (inten < 0.33) {
+              const t = inten / 0.33;
+              b = Math.floor(t * 220);
+            } else if (inten < 0.66) {
+              const t = (inten - 0.33) / 0.33;
+              b = 220;
+              g = Math.floor(t * 240);
+            } else {
+              const t = (inten - 0.66) / 0.34;
+              b = 220 + Math.floor(t * 35);
+              g = 240 + Math.floor(t * 15);
+              r = Math.floor(t * 255);
+            }
+
+            if (isLens) {
+              r = Math.min(255, r + 30);
+              b = Math.min(255, b + 50);
+            }
+
+            pixels[pIdx] = r;
+            pixels[pIdx + 1] = g;
+            pixels[pIdx + 2] = b;
+            pixels[pIdx + 3] = 255;
+          }
+          else if (renderMode === 'laser') {
+            // Monochromatic Emerald Laser (532nm)
+            const uVal = Math.abs(uCurr[idx]);
+            const inten = Math.min(1.0, (intensity[idx] * 2.0 + uVal * 0.5));
+            const g = Math.floor(inten * 255);
+            const r = Math.floor(Math.max(0, inten - 0.7) * 3.3 * 255);
+            const b = Math.floor(Math.max(0, inten - 0.8) * 5.0 * 255);
+
+            pixels[pIdx] = isLens ? Math.min(255, r + 20) : r;
+            pixels[pIdx + 1] = isLens ? Math.min(255, g + 30) : g;
+            pixels[pIdx + 2] = isLens ? Math.min(255, b + 50) : b;
+            pixels[pIdx + 3] = 255;
+          }
+          else if (renderMode === 'phase') {
+            // Phase angle from velocity and amplitude: phi = atan2(du/dt, u)
+            const uVal = uCurr[idx];
+            const duDt = (uCurr[idx] - uPrev[idx]) / dt;
+            const phi = Math.atan2(duDt, uVal); // -pi to +pi
+            const normPhi = (phi + Math.PI) / (2.0 * Math.PI); // 0 to 1
+
+            // Cyclic rainbow phase map
+            const h = normPhi * 6.0;
+            const c = 0.9;
+            const xCol = c * (1 - Math.abs((h % 2) - 1));
+            let r1 = 0, g1 = 0, b1 = 0;
+
+            if (h < 1) { r1 = c; g1 = xCol; }
+            else if (h < 2) { r1 = xCol; g1 = c; }
+            else if (h < 3) { g1 = c; b1 = xCol; }
+            else if (h < 4) { g1 = xCol; b1 = c; }
+            else if (h < 5) { r1 = xCol; b1 = c; }
+            else { r1 = c; b1 = xCol; }
+
+            const ampMod = Math.min(1.0, Math.sqrt(uVal * uVal + duDt * duDt) * 1.5);
+            pixels[pIdx] = Math.floor(r1 * ampMod * 255);
+            pixels[pIdx + 1] = Math.floor(g1 * ampMod * 255);
+            pixels[pIdx + 2] = Math.floor(b1 * ampMod * 255);
+            pixels[pIdx + 3] = 255;
+          }
+
+          pIdx += 4;
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Draw Virtual Detector Line at screenX
+      ctx.strokeStyle = 'rgba(255, 184, 0, 0.75)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(screenX + 0.5, 0);
+      ctx.lineTo(screenX + 0.5, NY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // --- 1D Intensity Cross-Section Telemetry Graph ---
+    function renderProfile() {
+      const pw = profileCanvas.clientWidth;
+      const ph = profileCanvas.clientHeight;
+      profileCanvas.width = pw;
+      profileCanvas.height = ph;
+
+      pCtx.fillStyle = '#05070F';
+      pCtx.fillRect(0, 0, pw, ph);
+
+      // Draw coordinate graticule grid lines
+      pCtx.strokeStyle = '#182035';
+      pCtx.lineWidth = 1;
+      for (let y = 0; y <= ph; y += ph / 4) {
+        pCtx.beginPath(); pCtx.moveTo(0, y); pCtx.lineTo(pw, y); pCtx.stroke();
+      }
+      for (let x = 0; x <= pw; x += pw / 4) {
+        pCtx.beginPath(); pCtx.moveTo(x, 0); pCtx.lineTo(x, ph); pCtx.stroke();
+      }
+
+      // Sample intensity values along vertical detector line at x = screenX
+      const profile = new Float32Array(NY);
+      let maxInten = 0.0001;
+      let minInten = 1000.0;
+
+      for (let y = 0; y < NY; y++) {
+        const val = intensity[y * NX + screenX];
+        profile[y] = val;
+        if (val > maxInten) maxInten = val;
+        if (val < minInten) minInten = val;
+      }
+
+      // Peak intensity label
+      document.getElementById('telPeakI').textContent = maxInten.toFixed(3) + ' W/m²';
+
+      // Fringe visibility V = (I_max - I_min) / (I_max + I_min)
+      const visibility = (maxInten - minInten) / (maxInten + minInten + 1e-6);
+      document.getElementById('telVisibility').textContent = (Math.max(0, Math.min(1.0, visibility)) * 100).toFixed(1) + '%';
+
+      // Wavenumber k = 2 * pi / lambda
+      const k = 2.0 * Math.PI / wavelength;
+      document.getElementById('telWavenumber').textContent = k.toFixed(3) + ' rad/px';
+
+      // Find fringe spacing by peak detection
+      const peaks = [];
+      for (let y = 1; y < NY - 1; y++) {
+        if (profile[y] > profile[y - 1] && profile[y] > profile[y + 1] && profile[y] > maxInten * 0.2) {
+          peaks.push(y);
+        }
+      }
+
+      if (peaks.length >= 2) {
+        let diffSum = 0;
+        for (let i = 1; i < peaks.length; i++) {
+          diffSum += (peaks[i] - peaks[i - 1]);
+        }
+        const avgSep = diffSum / (peaks.length - 1);
+        document.getElementById('telFringeSep').textContent = avgSep.toFixed(1) + ' px';
+      } else {
+        document.getElementById('telFringeSep').textContent = '--';
+      }
+
+      // Plot Empirical Intensity Curve
+      pCtx.strokeStyle = '#00F0FF';
+      pCtx.lineWidth = 1.8;
+      pCtx.beginPath();
+      for (let y = 0; y < NY; y++) {
+        const normY = y / (NY - 1);
+        const px = normY * pw;
+        const normVal = profile[y] / maxInten;
+        const py = ph - 12 - normVal * (ph - 24);
+
+        if (y === 0) pCtx.moveTo(px, py);
+        else pCtx.lineTo(px, py);
+      }
+      pCtx.stroke();
+
+      // Plot Analytical Fraunhofer Comparison Curve for double slit
+      if (currentPreset === 'double_slit') {
+        pCtx.strokeStyle = 'rgba(255, 184, 0, 0.45)';
+        pCtx.lineWidth = 1.2;
+        pCtx.setLineDash([3, 3]);
+        pCtx.beginPath();
+
+        const cy = NY / 2;
+        const L = screenX - 70; // Distance from aperture to screen
+        for (let y = 0; y < NY; y++) {
+          const normY = y / (NY - 1);
+          const px = normY * pw;
+          const dy = y - cy;
+          const theta = Math.atan2(dy, L);
+          const sinTheta = Math.sin(theta);
+
+          // Sinc diffraction envelope beta
+          const beta = (Math.PI * slitWidth / wavelength) * sinTheta;
+          const sinc = (Math.abs(beta) < 1e-4) ? 1.0 : Math.sin(beta) / beta;
+
+          // Cosine interference fringes alpha
+          const alphaAngle = (Math.PI * slitSeparation / wavelength) * sinTheta;
+          const cosVal = Math.cos(alphaAngle);
+
+          const analyticalI = (sinc * sinc) * (cosVal * cosVal);
+          const py = ph - 12 - analyticalI * (ph - 24);
+
+          if (y === 0) pCtx.moveTo(px, py);
+          else pCtx.lineTo(px, py);
+        }
+        pCtx.stroke();
+        pCtx.setLineDash([]);
+      }
+    }
+
+    // --- Main Simulation Loop with FPS Telemetry ---
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let fpsTimer = 0;
+
+    function animate(now) {
+      const delta = now - lastTime;
+      lastTime = now;
+
+      frameCount++;
+      fpsTimer += delta;
+      if (fpsTimer >= 500) {
+        const currentFps = Math.round((frameCount * 1000) / fpsTimer);
+        document.getElementById('statFps').textContent = currentFps + ' FPS';
+        frameCount = 0;
+        fpsTimer = 0;
+      }
+
+      if (running) {
+        // Multi-substep for smooth wave propagation
+        stepFDTD();
+        stepFDTD();
+      }
+
+      render();
+      renderProfile();
+
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    // --- Interactive Mouse Paint Tools ---
+    function applyBrush(screenPx, screenPy) {
+      const rect = waveCanvas.getBoundingClientRect();
+      const x = Math.floor((screenPx - rect.left) / rect.width * NX);
+      const y = Math.floor((screenPy - rect.top) / rect.height * NY);
+
+      if (x < 1 || x >= NX - 1 || y < 1 || y >= NY - 1) return;
+
+      const brushR = 3;
+      for (let dy = -brushR; dy <= brushR; dy++) {
+        for (let dx = -brushR; dx <= brushR; dx++) {
+          const cx = x + dx;
+          const cy = y + dy;
+          if (cx >= 1 && cx < NX - 1 && cy >= 1 && cy < NY - 1 && (dx * dx + dy * dy <= brushR * brushR)) {
+            const idx = cy * NX + cx;
+            if (activeBrush === 'barrier') {
+              isBarrier[idx] = 1;
+              nIndex[idx] = 1.0;
+            } else if (activeBrush === 'lens') {
+              isBarrier[idx] = 0;
+              nIndex[idx] = 1.55;
+            } else if (activeBrush === 'erase') {
+              isBarrier[idx] = 0;
+              nIndex[idx] = 1.0;
+            }
+          }
+        }
+      }
+    }
+
+    waveCanvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      applyBrush(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDrawing) {
+        applyBrush(e.clientX, e.clientY);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDrawing = false;
+    });
+
+    // --- Event Listeners & UI Controls ---
+    document.querySelectorAll('.btn-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyPreset(btn.dataset.preset);
+      });
+    });
+
+    document.querySelectorAll('.tool-btn[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderMode = btn.dataset.mode;
+        document.getElementById('hudMode').textContent = btn.textContent;
+
+        const legendBar = document.getElementById('legendBar');
+        legendBar.className = 'legend-bar';
+        if (renderMode === 'amplitude' || renderMode === 'phase') legendBar.classList.add('bar-phase');
+        else if (renderMode === 'intensity') legendBar.classList.add('bar-intensity');
+        else if (renderMode === 'laser') legendBar.classList.add('bar-laser');
+      });
+    });
+
+    document.querySelectorAll('.tool-btn[data-brush]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tool-btn[data-brush]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeBrush = btn.dataset.brush;
+      });
+    });
+
+    document.getElementById('rngWavelength').addEventListener('input', (e) => {
+      wavelength = parseFloat(e.target.value);
+      document.getElementById('valWavelength').textContent = wavelength + ' px';
+      document.getElementById('statWavelength').textContent = Math.round(wavelength * 38) + ' nm';
+    });
+
+    document.getElementById('rngAmp').addEventListener('input', (e) => {
+      sourceAmp = parseFloat(e.target.value);
+      document.getElementById('valAmp').textContent = sourceAmp.toFixed(2);
+    });
+
+    document.getElementById('rngSpeed').addEventListener('input', (e) => {
+      waveSpeedC = parseFloat(e.target.value);
+      document.getElementById('valSpeed').textContent = waveSpeedC.toFixed(2);
+    });
+
+    document.getElementById('rngSlitSep').addEventListener('input', (e) => {
+      slitSeparation = parseInt(e.target.value);
+      document.getElementById('valSlitSep').textContent = slitSeparation + ' px';
+      applyPreset(currentPreset);
+    });
+
+    document.getElementById('rngSlitWidth').addEventListener('input', (e) => {
+      slitWidth = parseInt(e.target.value);
+      document.getElementById('valSlitWidth').textContent = slitWidth + ' px';
+      applyPreset(currentPreset);
+    });
+
+    document.getElementById('rngScreenX').addEventListener('input', (e) => {
+      screenX = parseInt(e.target.value);
+      document.getElementById('valScreenX').textContent = screenX + ' px';
+    });
+
+    document.getElementById('chkPlaneWave').addEventListener('change', (e) => {
+      enablePlaneWave = e.target.checked;
+    });
+
+    document.getElementById('chkAbsorption').addEventListener('change', (e) => {
+      enableAbsorption = e.target.checked;
+      updateDampingLayer();
+    });
+
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    btnPlayPause.addEventListener('click', () => {
+      running = !running;
+      btnPlayPause.textContent = running ? 'Pause' : 'Resume';
+      btnPlayPause.classList.toggle('primary', running);
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      uCurr.fill(0);
+      uPrev.fill(0);
+      uNext.fill(0);
+      intensity.fill(0);
+      simTime = 0;
+    });
+
+    document.getElementById('btnResetBarriers').addEventListener('click', () => {
+      applyPreset(currentPreset);
+    });
+  </script>
+</body>
+</html>

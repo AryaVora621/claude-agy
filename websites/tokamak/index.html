@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TokamakCockpit - Magnetic Confinement Fusion Reactor Simulator</title>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --panel-bg: rgba(17, 24, 39, 0.85);
+      --panel-border: #1F293D;
+      --accent: #8B5CF6;
+      --accent-glow: rgba(139, 92, 246, 0.35);
+      --accent-cyan: #06B6D4;
+      --accent-orange: #F97316;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --card-bg: #161F30;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 56px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #FFF;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 10px;
+      margin-left: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1F293D;
+      border-color: var(--accent);
+    }
+
+    .btn.active {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFF;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #A78BFA;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reactor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .poloidal-view {
+      flex: 1.4;
+      position: relative;
+      background: radial-gradient(circle at center, #131128 0%, #080712 100%);
+    }
+
+    .reactor-sub-strip {
+      flex: 1;
+      border-top: 1px solid var(--panel-border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg);
+    }
+
+    .strip-pane {
+      position: relative;
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .strip-pane:last-child {
+      border-right: none;
+    }
+
+    .pane-header {
+      height: 32px;
+      background: rgba(17, 24, 39, 0.6);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .pane-canvas-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .control-label {
+      color: var(--text-muted);
+    }
+
+    .control-value {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--card-bg);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    .hud-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .hud-row {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-key {
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .hud-val.accent {
+      color: var(--accent-cyan);
+    }
+
+    .hud-val.fire {
+      color: var(--accent-orange);
+    }
+
+    .btn-group {
+      display: flex;
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .btn-group button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-group button.active {
+      background: rgba(139, 92, 246, 0.25);
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">FUS</div>
+      <div class="brand-title">Tokamak<span>Cockpit</span></div>
+      <div class="tagline">Grad-Shafranov Magnetic Equilibrium & Boris Ion Pusher Simulator</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" id="btn-ignite" onclick="toggleIgnition()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1.1 0 2 .9 2 2 0 .74-.4 1.38-1 1.72v2.45c3.08.64 5.43 3.32 5.5 6.58.09 3.86-3.03 7-6.9 7-3.87 0-7-3.13-7-7 0-3.32 2.35-6.07 5.5-6.6V5.72C9.4 5.38 9 4.74 9 4c0-1.1.9-2 2-2z"/></svg>
+        <span>Ignite Plasma</span>
+      </button>
+      <button class="btn" onclick="spawnBananaParticle()">Trace Banana Orbit</button>
+      <button class="btn" onclick="resetPlasma()">Flush Chamber</button>
+    </div>
+  </header>
+
+  <div class="main-workspace">
+    <div class="reactor-container">
+      <!-- Main Poloidal Cross-Section & Boris Particle Pusher -->
+      <div class="poloidal-view" id="wrap-poloidal">
+        <canvas id="canvas-poloidal"></canvas>
+
+        <div class="hud-overlay">
+          <div class="hud-row">
+            <div class="hud-item">
+              <span class="hud-key">Fusion Power (Q)</span>
+              <span class="hud-val fire" id="hud-q">Q = 14.8</span>
+            </div>
+            <div class="hud-item">
+              <span class="hud-key">Thermal Power</span>
+              <span class="hud-val" id="hud-pfus">520 MW</span>
+            </div>
+            <div class="hud-item">
+              <span class="hud-key">Core Temp (Ti)</span>
+              <span class="hud-val accent" id="hud-temp">16.4 keV</span>
+            </div>
+            <div class="hud-item">
+              <span class="hud-key">Plasma Beta (&beta;)</span>
+              <span class="hud-val" id="hud-beta">3.8%</span>
+            </div>
+            <div class="hud-item">
+              <span class="hud-key">Safety Factor (q95)</span>
+              <span class="hud-val accent" id="hud-q95">3.24</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lower Diagnostics Strip: q(r) Profile & Lawson Criterion -->
+      <div class="reactor-sub-strip">
+        <div class="strip-pane">
+          <div class="pane-header">
+            <span>Safety Factor Profile q(&psi;)</span>
+            <span style="color: var(--accent-cyan); font-family: var(--font-mono);">Kink Mode Stability (q > 1)</span>
+          </div>
+          <div class="pane-canvas-wrap" id="wrap-qprof">
+            <canvas id="canvas-qprof"></canvas>
+          </div>
+        </div>
+
+        <div class="strip-pane">
+          <div class="pane-header">
+            <span>Lawson Criterion Ignition Diagram (n&tau; vs T)</span>
+            <span style="color: var(--accent-orange); font-family: var(--font-mono);" id="hud-lawson">Ignition Reached</span>
+          </div>
+          <div class="pane-canvas-wrap" id="wrap-lawson">
+            <canvas id="canvas-lawson"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Control Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Magnetic Field Coils</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Toroidal Field B0 (Tesla)</span>
+            <span class="control-value" id="val-bt">5.30 T</span>
+          </div>
+          <input type="range" min="2.0" max="8.0" step="0.1" value="5.3" id="slider-bt" oninput="updateCoils()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Plasma Current Ip (MA)</span>
+            <span class="control-value" id="val-ip">15.0 MA</span>
+          </div>
+          <input type="range" min="5.0" max="22.0" step="0.5" value="15.0" id="slider-ip" oninput="updateCoils()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Elongation (&kappa;)</span>
+            <span class="control-value" id="val-kappa">1.75</span>
+          </div>
+          <input type="range" min="1.0" max="2.2" step="0.05" value="1.75" id="slider-kappa" oninput="updateCoils()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Triangularity (&delta;)</span>
+            <span class="control-value" id="val-delta">0.35</span>
+          </div>
+          <input type="range" min="0.0" max="0.7" step="0.05" value="0.35" id="slider-delta" oninput="updateCoils()">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Ion Species Selection</div>
+        <div class="btn-group">
+          <button class="active" onclick="setIon('dt', this)">D-T Fuel</button>
+          <button onclick="setIon('alpha', this)">Alpha Ion</button>
+          <button onclick="setIon('beam', this)">NBI Beam</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Neoclassical Transport</div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--font-mono);">
+          <div style="color: var(--accent-cyan);">Trapped Fraction: f_t ~ sqrt(2*epsilon)</div>
+          <div style="color: var(--accent-orange);">Banana Width: Delta_b ~ q * rho_i / sqrt(epsilon)</div>
+          <div style="color: #A78BFA;">Bounce Frequency: omega_b ~ v_th * sqrt(epsilon) / (q*R)</div>
+          <div style="margin-top: 6px; color: var(--text-dim);">ITER Scale Parameters: R0 = 6.2m, a = 2.0m</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // --- Tokamak Geometry & Equilibrium Constants ---
+    const R0 = 6.2; // Major radius (m)
+    const a0 = 2.0; // Minor radius (m)
+    let B0 = 5.3;   // Toroidal field on axis (T)
+    let Ip = 15.0;  // Plasma current (MA)
+    let kappa = 1.75; // Elongation
+    let delta = 0.35; // Triangularity
+
+    let isIgnited = true;
+    let currentIonType = 'dt'; // 'dt', 'alpha', 'beam'
+
+    // --- Boris Relativistic Particle Pusher State ---
+    class Ion {
+      constructor(R, Z, phi, vR, vZ, vPhi, q, m, color) {
+        this.R = R;
+        this.Z = Z;
+        this.phi = phi;
+        this.vR = vR;
+        this.vZ = vZ;
+        this.vPhi = vPhi;
+        this.q = q; // Coulombs
+        this.m = m; // kg
+        this.color = color;
+        this.trail = [];
+      }
+    }
+
+    let ions = [];
+
+    function initIons() {
+      ions = [];
+      // Spawn standard thermal trapped and passing ions
+      for (let i = 0; i < 28; i++) {
+        const theta = Math.random() * Math.PI * 2;
+        const rNorm = 0.2 + Math.random() * 0.7;
+        const R = R0 + rNorm * a0 * Math.cos(theta);
+        const Z = rNorm * a0 * kappa * Math.sin(theta);
+
+        // Velocity pitch angle
+        const isTrapped = Math.random() < 0.6;
+        const vTot = 1.2e6; // thermal velocity
+        const pitch = isTrapped ? (Math.random() * 0.25) : (0.7 + Math.random() * 0.3);
+        const vPhi = vTot * pitch;
+        const vPerp = vTot * Math.sqrt(Math.max(0.0, 1.0 - pitch*pitch));
+        const vR = vPerp * Math.cos(theta + Math.PI/2);
+        const vZ = vPerp * Math.sin(theta + Math.PI/2);
+
+        ions.push(new Ion(R, Z, 0, vR, vZ, vPhi, 1.6e-19, 3.34e-27, isTrapped ? '#F97316' : '#06B6D4'));
+      }
+    }
+
+    function spawnBananaParticle() {
+      // Guaranteed banana orbit particle starting at low-field outer midplane
+      const R = R0 + 0.65 * a0;
+      const Z = 0.0;
+      const vTot = 1.3e6;
+      const pitch = 0.18; // mostly perpendicular, will reflect at mirror point
+      const vPhi = vTot * pitch;
+      const vR = 0.0;
+      const vZ = vTot * Math.sqrt(1.0 - pitch*pitch);
+
+      const bananaIon = new Ion(R, Z, 0, vR, vZ, vPhi, 1.6e-19, 3.34e-27, '#EC4899');
+      ions.push(bananaIon);
+    }
+
+    // --- Magnetic Field Evaluator (Solov'ev / Grad-Shafranov Model) ---
+    function getMagneticField(R, Z) {
+      // 1. Toroidal field B_phi = B0 * R0 / R
+      const B_phi = (B0 * R0) / Math.max(0.5, R);
+
+      // 2. Poloidal flux psi(R, Z) = (Ip * mu0 / (2*pi)) * Solov'ev
+      // Poloidal field B_R = -(1/R) * d(psi)/dZ, B_Z = (1/R) * d(psi)/dR
+      const x = (R - R0) / a0;
+      const y = Z / (a0 * kappa);
+
+      // Shafranov shifted elliptical flux surfaces
+      const dPsi_dZ = (Z / (a0 * a0 * kappa * kappa)) * (Ip * 0.12);
+      const dPsi_dR = ((R - R0) / (a0 * a0)) * (Ip * 0.12);
+
+      const B_R = -dPsi_dZ / R;
+      const B_Z = dPsi_dR / R;
+
+      return { B_R, B_Z, B_phi };
+    }
+
+    // --- Boris Algorithm Step ---
+    function borisStep(ion, dt) {
+      const { B_R, B_Z, B_phi } = getMagneticField(ion.R, ion.Z);
+
+      // Convert (R, phi, Z) cylindrical coords to local Cartesian (x, y, z)
+      // vMinus = v + q*E/(2*m) * dt  (E = 0 for pure magnetic confinement)
+      const q_m_factor = (ion.q / ion.m) * 0.5 * dt;
+
+      // Magnetic vector B in local frame
+      const Bx = B_R;
+      const By = B_phi;
+      const Bz = B_Z;
+
+      // t vector: t = (q/m) * B * dt/2
+      const tx = q_m_factor * Bx;
+      const ty = q_m_factor * By;
+      const tz = q_m_factor * Bz;
+      const tSq = tx*tx + ty*ty + tz*tz;
+
+      // s vector: s = 2*t / (1 + t^2)
+      const sFac = 2.0 / (1.0 + tSq);
+      const sx = tx * sFac;
+      const sy = ty * sFac;
+      const sz = tz * sFac;
+
+      // vPrime = v + v x t
+      const vpx = ion.vR + (ion.vPhi * tz - ion.vZ * ty);
+      const vpy = ion.vPhi + (ion.vZ * tx - ion.vR * tz);
+      const vpz = ion.vZ + (ion.vR * ty - ion.vPhi * tx);
+
+      // vPlus = v + vPrime x s
+      ion.vR += (vpy * sz - vpz * sy);
+      ion.vPhi += (vpz * sx - vpx * sz);
+      ion.vZ += (vpx * sy - vpy * sx);
+
+      // Update positions
+      ion.R += ion.vR * dt;
+      ion.Z += ion.vZ * dt;
+      ion.phi += (ion.vPhi / ion.R) * dt;
+
+      // Store trail
+      ion.trail.push({ R: ion.R, Z: ion.Z });
+      if (ion.trail.length > 120) ion.trail.shift();
+
+      // Boundary reflection / confinement loss
+      const rDist = Math.sqrt((ion.R - R0)**2 + (ion.Z / kappa)**2);
+      if (rDist > a0 * 1.05 || ion.R < 1.5) {
+        ion.R = R0 + (Math.random() * 0.3) * a0;
+        ion.Z = (Math.random() - 0.5) * a0;
+        ion.trail = [];
+      }
+    }
+
+    // --- Canvases ---
+    const cvsPol = document.getElementById('canvas-poloidal');
+    const ctxPol = cvsPol.getContext('2d');
+    const cvsQ = document.getElementById('canvas-qprof');
+    const ctxQ = cvsQ.getContext('2d');
+    const cvsLawson = document.getElementById('canvas-lawson');
+    const ctxLawson = cvsLawson.getContext('2d');
+
+    function resizeAll() {
+      const dpr = window.devicePixelRatio || 1;
+
+      const wp = document.getElementById('wrap-poloidal');
+      cvsPol.width = wp.clientWidth * dpr;
+      cvsPol.height = wp.clientHeight * dpr;
+
+      const wq = document.getElementById('wrap-qprof');
+      cvsQ.width = wq.clientWidth * dpr;
+      cvsQ.height = wq.clientHeight * dpr;
+
+      const wl = document.getElementById('wrap-lawson');
+      cvsLawson.width = wl.clientWidth * dpr;
+      cvsLawson.height = wl.clientHeight * dpr;
+    }
+    window.addEventListener('resize', resizeAll);
+    resizeAll();
+
+    // --- UI Controls ---
+    function updateCoils() {
+      B0 = parseFloat(document.getElementById('slider-bt').value);
+      Ip = parseFloat(document.getElementById('slider-ip').value);
+      kappa = parseFloat(document.getElementById('slider-kappa').value);
+      delta = parseFloat(document.getElementById('slider-delta').value);
+
+      document.getElementById('val-bt').textContent = B0.toFixed(2) + ' T';
+      document.getElementById('val-ip').textContent = Ip.toFixed(1) + ' MA';
+      document.getElementById('val-kappa').textContent = kappa.toFixed(2);
+      document.getElementById('val-delta').textContent = delta.toFixed(2);
+
+      updateTelemetry();
+    }
+
+    function setIon(type, el) {
+      currentIonType = type;
+      document.querySelectorAll('.btn-group button').forEach(b => b.classList.remove('active'));
+      if (el) el.classList.add('active');
+    }
+
+    function toggleIgnition() {
+      isIgnited = !isIgnited;
+      const btn = document.getElementById('btn-ignite');
+      btn.querySelector('span').textContent = isIgnited ? 'Extinguish' : 'Ignite Plasma';
+      btn.classList.toggle('active', isIgnited);
+    }
+
+    function resetPlasma() {
+      initIons();
+    }
+
+    function updateTelemetry() {
+      const qVal = isIgnited ? (10.0 + (B0 / 5.3) * (Ip / 15.0) * 4.8) : 0.8;
+      const pFus = Math.round(520 * (B0 / 5.3)**2 * (Ip / 15.0));
+      const beta = ((Ip / (a0 * B0)) * 2.2).toFixed(1);
+      const q95 = (5.0 * a0 * a0 * B0 / (R0 * Ip) * (1.0 + kappa*kappa) * 0.5).toFixed(2);
+
+      document.getElementById('hud-q').textContent = `Q = ${qVal.toFixed(1)}`;
+      document.getElementById('hud-pfus').textContent = `${pFus} MW`;
+      document.getElementById('hud-beta').textContent = `${beta}%`;
+      document.getElementById('hud-q95').textContent = q95;
+    }
+
+    // --- Rendering Pipelines ---
+    function renderPoloidal() {
+      const w = cvsPol.width;
+      const h = cvsPol.height;
+      ctxPol.clearRect(0, 0, w, h);
+
+      // Coordinate Transform: Tokamak Major Axis R is X, Vertical Z is Y
+      const scale = Math.min(w / 12.0, h / 10.0);
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+
+      const toScreen = (R, Z) => ({
+        x: cx + (R - R0) * scale,
+        y: cy - Z * scale
+      });
+
+      // 1. Draw Vacuum Vessel First Wall & Divertor Armor
+      ctxPol.strokeStyle = '#334155';
+      ctxPol.lineWidth = 3;
+      ctxPol.beginPath();
+      const wallPts = 80;
+      for (let i = 0; i <= wallPts; i++) {
+        const theta = (i / wallPts) * Math.PI * 2;
+        const R_wall = R0 + a0 * 1.15 * Math.cos(theta + delta * Math.sin(theta));
+        const Z_wall = a0 * 1.15 * kappa * Math.sin(theta);
+        const p = toScreen(R_wall, Z_wall);
+        if (i === 0) ctxPol.moveTo(p.x, p.y);
+        else ctxPol.lineTo(p.x, p.y);
+      }
+      ctxPol.stroke();
+
+      // 2. Draw Grad-Shafranov Nested Magnetic Flux Surfaces (psi contours)
+      const numFlux = 8;
+      for (let f = 1; f <= numFlux; f++) {
+        const rFrac = f / numFlux;
+        const shafranovShift = (1.0 - rFrac) * 0.35; // outward Shafranov shift of magnetic axis
+
+        ctxPol.beginPath();
+        for (let i = 0; i <= 60; i++) {
+          const theta = (i / 60) * Math.PI * 2;
+          const R_flux = (R0 + shafranovShift) + rFrac * a0 * Math.cos(theta + delta * Math.sin(theta));
+          const Z_flux = rFrac * a0 * kappa * Math.sin(theta);
+          const p = toScreen(R_flux, Z_flux);
+          if (i === 0) ctxPol.moveTo(p.x, p.y);
+          else ctxPol.lineTo(p.x, p.y);
+        }
+
+        const alpha = isIgnited ? (0.2 + 0.6 * (1.0 - rFrac)) : 0.15;
+        ctxPol.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
+        ctxPol.lineWidth = (f === numFlux) ? 2.0 : 1.0;
+        ctxPol.stroke();
+
+        if (isIgnited && f <= 3) {
+          ctxPol.fillStyle = `rgba(249, 115, 22, ${0.12 * (4 - f)})`;
+          ctxPol.fill();
+        }
+      }
+
+      // 3. Render Particles & Guiding-Center Trails
+      for (let i = 0; i < ions.length; i++) {
+        const ion = ions[i];
+
+        // Draw trail
+        if (ion.trail.length > 1) {
+          ctxPol.beginPath();
+          for (let t = 0; t < ion.trail.length; t++) {
+            const sc = toScreen(ion.trail[t].R, ion.trail[t].Z);
+            if (t === 0) ctxPol.moveTo(sc.x, sc.y);
+            else ctxPol.lineTo(sc.x, sc.y);
+          }
+          ctxPol.strokeStyle = ion.color;
+          ctxPol.lineWidth = 1.4;
+          ctxPol.stroke();
+        }
+
+        // Particle head
+        const head = toScreen(ion.R, ion.Z);
+        ctxPol.beginPath();
+        ctxPol.arc(head.x, head.y, 3.5, 0, Math.PI * 2);
+        ctxPol.fillStyle = ion.color;
+        ctxPol.fill();
+      }
+    }
+
+    function renderQProfile() {
+      const w = cvsQ.width;
+      const h = cvsQ.height;
+      ctxQ.clearRect(0, 0, w, h);
+
+      const padL = 36, padR = 20, padT = 16, padB = 24;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      // Draw grid
+      ctxQ.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctxQ.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (i / 4) * plotH;
+        ctxQ.beginPath();
+        ctxQ.moveTo(padL, y); ctxQ.lineTo(w - padR, y);
+        ctxQ.stroke();
+      }
+
+      // q = 1 sawteeth stability boundary line
+      const q1_y = padT + (1.0 - 1.0 / 5.0) * plotH;
+      ctxQ.strokeStyle = '#EF4444';
+      ctxQ.setLineDash([3, 3]);
+      ctxQ.beginPath();
+      ctxQ.moveTo(padL, q1_y); ctxQ.lineTo(w - padR, q1_y);
+      ctxQ.stroke();
+      ctxQ.setLineDash([]);
+
+      // Safety factor curve q(r) = q0 + (q95 - q0) * (r/a)^2
+      const q0 = 1.05;
+      const q95 = parseFloat(document.getElementById('hud-q95').textContent);
+
+      ctxQ.beginPath();
+      for (let step = 0; step <= 50; step++) {
+        const rho = step / 50;
+        const qVal = q0 + (q95 - q0) * Math.pow(rho, 2.2);
+        const x = padL + rho * plotW;
+        const y = padT + (1.0 - Math.min(1.0, qVal / 5.0)) * plotH;
+        if (step === 0) ctxQ.moveTo(x, y);
+        else ctxQ.lineTo(x, y);
+      }
+      ctxQ.strokeStyle = '#06B6D4';
+      ctxQ.lineWidth = 2.0;
+      ctxQ.stroke();
+
+      // Labels
+      ctxQ.fillStyle = '#9CA3AF';
+      ctxQ.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+      ctxQ.fillText('r/a = 0', padL, h - 8);
+      ctxQ.fillText('r/a = 1.0', w - padR - 45, h - 8);
+      ctxQ.fillText('q=1.0', padL + 4, q1_y - 4);
+    }
+
+    function renderLawson() {
+      const w = cvsLawson.width;
+      const h = cvsLawson.height;
+      ctxLawson.clearRect(0, 0, w, h);
+
+      const padL = 36, padR = 20, padT = 16, padB = 24;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      // Draw grid
+      ctxLawson.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctxLawson.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (i / 4) * plotH;
+        ctxLawson.beginPath();
+        ctxLawson.moveTo(padL, y); ctxLawson.lineTo(w - padR, y);
+        ctxLawson.stroke();
+      }
+
+      // D-T Ignition Curve (Minimum near 14 keV)
+      ctxLawson.beginPath();
+      for (let step = 0; step <= 50; step++) {
+        const tKev = 2.0 + (step / 50) * 38.0; // 2 to 40 keV
+        // Lawson curve ~ 1 / <sigma v>
+        const curve = 3.0e20 * (1.0 + Math.pow(Math.log(tKev / 14.0), 2) * 1.5);
+        const normY = Math.min(1.0, Math.max(0.0, Math.log10(curve / 1e19) / 3.0));
+
+        const x = padL + (step / 50) * plotW;
+        const y = padT + (1.0 - normY) * plotH;
+        if (step === 0) ctxLawson.moveTo(x, y);
+        else ctxLawson.lineTo(x, y);
+      }
+      ctxLawson.strokeStyle = '#F97316';
+      ctxLawson.lineWidth = 2.0;
+      ctxLawson.stroke();
+
+      // Current Operating Point (16.4 keV)
+      const opX = padL + ((16.4 - 2.0) / 38.0) * plotW;
+      const opY = padT + (1.0 - 0.72) * plotH;
+
+      ctxLawson.beginPath();
+      ctxLawson.arc(opX, opY, 5, 0, Math.PI * 2);
+      ctxLawson.fillStyle = '#10B981';
+      ctxLawson.fill();
+      ctxLawson.strokeStyle = '#FFF';
+      ctxLawson.lineWidth = 1.5;
+      ctxLawson.stroke();
+
+      ctxLawson.fillStyle = '#10B981';
+      ctxLawson.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+      ctxLawson.fillText('ITER Operating Point', opX + 8, opY + 4);
+    }
+
+    // --- Main Simulation Loop ---
+    function mainLoop() {
+      // 8 Boris integrator substeps per frame
+      for (let s = 0; s < 8; s++) {
+        for (let i = 0; i < ions.length; i++) {
+          borisStep(ions[i], 1.2e-8);
+        }
+      }
+
+      renderPoloidal();
+      renderQProfile();
+      renderLawson();
+
+      requestAnimationFrame(mainLoop);
+    }
+
+    // Initialize
+    initIons();
+    updateTelemetry();
+    requestAnimationFrame(mainLoop);
+  </script>
+</body>
+</html>

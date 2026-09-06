@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroTunnel - 2D Lattice Boltzmann Wind Tunnel & Aerodynamics CFD Studio</title>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --panel-bg: rgba(17, 24, 39, 0.85);
+      --panel-border: #1F293D;
+      --accent: #06B6D4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --accent-pink: #EC4899;
+      --accent-emerald: #10B981;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --card-bg: #161F30;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 56px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #06B6D4, #10B981);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #FFF;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 10px;
+      margin-left: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1F293D;
+      border-color: var(--accent);
+    }
+
+    .btn.active {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0B0F19;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #22D3EE;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tunnel-container {
+      flex: 1;
+      position: relative;
+      background: #080C14;
+      cursor: crosshair;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .preset-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .preset-btn.selected {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--accent);
+    }
+
+    .preset-btn-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .preset-btn-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .control-label {
+      color: var(--text-muted);
+    }
+
+    .control-value {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--card-bg);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    .btn-group {
+      display: flex;
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .btn-group button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-group button.active {
+      background: rgba(6, 182, 212, 0.2);
+      color: var(--accent);
+    }
+
+    .hud-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .hud-row {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-key {
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .hud-val.accent {
+      color: var(--accent);
+    }
+
+    .click-hint {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      background: rgba(11, 15, 25, 0.7);
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .click-hint kbd {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">CFD</div>
+      <div class="brand-title">Aero<span>Tunnel</span></div>
+      <div class="tagline">2D Lattice Boltzmann Wind Tunnel & Fluid Dynamics Studio</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" id="btn-run" onclick="toggleSimulation()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>Pause</span>
+      </button>
+      <button class="btn" onclick="stepSimulation()">Step</button>
+      <button class="btn" onclick="resetFluid()">Reset Flow</button>
+      <button class="btn" onclick="clearObstacles()">Clear Geometry</button>
+    </div>
+  </header>
+
+  <div class="main-workspace">
+    <div class="tunnel-container" id="tunnel-wrap">
+      <canvas id="cfd-canvas"></canvas>
+
+      <div class="hud-overlay">
+        <div class="hud-row">
+          <div class="hud-item">
+            <span class="hud-key">Reynolds Number</span>
+            <span class="hud-val accent" id="hud-re">Re = 1450</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-key">Mach Number</span>
+            <span class="hud-val" id="hud-mach">M = 0.12</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-key">Lift Coeff (CL)</span>
+            <span class="hud-val" id="hud-cl">0.42</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-key">Drag Coeff (CD)</span>
+            <span class="hud-val accent" id="hud-cd">0.08</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-key">L / D Ratio</span>
+            <span class="hud-val" id="hud-ld">5.25</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="click-hint">
+        <span><kbd>Left-Click Drag</kbd> Draw Obstacle Wall</span> •
+        <span><kbd>Right-Click / Shift</kbd> Erase Obstacle</span>
+      </div>
+    </div>
+
+    <!-- Sidebar Control Panel -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Aerodynamic Obstacles</div>
+        <div class="preset-grid">
+          <div class="preset-btn selected" onclick="loadPreset('cylinder', this)">
+            <div class="preset-btn-name">Cylinder Wake</div>
+            <div class="preset-btn-desc">von Kármán vortex street shedding</div>
+          </div>
+          <div class="preset-btn" onclick="loadPreset('airfoil', this)">
+            <div class="preset-btn-name">NACA 0012 Airfoil</div>
+            <div class="preset-btn-desc">Symmetric aerodynamic wing section</div>
+          </div>
+          <div class="preset-btn" onclick="loadPreset('plate', this)">
+            <div class="preset-btn-name">Flat Plate</div>
+            <div class="preset-btn-desc">Blunt body boundary separation</div>
+          </div>
+          <div class="preset-btn" onclick="loadPreset('wedge', this)">
+            <div class="preset-btn-name">Wedge Ramp</div>
+            <div class="preset-btn-desc">Oblique compression shock diffuser</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Color Visualization</div>
+        <div class="btn-group">
+          <button class="active" id="vis-vort" onclick="setVisMode('vorticity')">Vorticity</button>
+          <button id="vis-speed" onclick="setVisMode('speed')">Speed</button>
+          <button id="vis-press" onclick="setVisMode('pressure')">Pressure</button>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+            <input type="checkbox" id="chk-tracers" checked onchange="toggleTracers()">
+            Enable Streamline Tracer Particles
+          </label>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Tunnel Flow Dynamics</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Inlet Airspeed (u0)</span>
+            <span class="control-value" id="val-speed">0.10 c</span>
+          </div>
+          <input type="range" min="0.02" max="0.18" step="0.01" value="0.10" id="slider-speed" oninput="updateFlowParams()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Fluid Viscosity (&nu;)</span>
+            <span class="control-value" id="val-visc">0.018</span>
+          </div>
+          <input type="range" min="0.005" max="0.06" step="0.002" value="0.018" id="slider-visc" oninput="updateFlowParams()">
+        </div>
+
+        <div class="control-group" id="group-aoa">
+          <div class="control-header">
+            <span class="control-label">Airfoil Angle of Attack</span>
+            <span class="control-value" id="val-aoa">8.0 deg</span>
+          </div>
+          <input type="range" min="-15" max="25" step="1" value="8" id="slider-aoa" oninput="updateAoA()">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">LBM Mathematical Spec</div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--font-mono);">
+          <div>Model: 2D Lattice Boltzmann D2Q9</div>
+          <div>Equilibrium: f_i^eq = w_i * rho * [1 + 3(c_i.u) + 4.5(c_i.u)^2 - 1.5 u^2]</div>
+          <div>Collision: f_i^* = f_i - (f_i - f_i^eq) / tau</div>
+          <div>Boundary: Half-way bounce-back rule</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // --- 2D Lattice Boltzmann Method (LBM D2Q9) Engine ---
+    // Grid Dimensions
+    const NX = 240;
+    const NY = 90;
+    const NUM_CELLS = NX * NY;
+
+    // D2Q9 Discrete Velocity Vectors: c_i = [[0,0], [1,0], [0,1], [-1,0], [0,-1], [1,1], [-1,1], [-1,-1], [1,-1]]
+    const cx = [0, 1, 0, -1, 0, 1, -1, -1, 1];
+    const cy = [0, 0, 1, 0, -1, 1, 1, -1, -1];
+    const weights = [4/9, 1/9, 1/9, 1/9, 1/9, 1/36, 1/36, 1/36, 1/36];
+    const opp = [0, 3, 4, 1, 2, 7, 8, 5, 6];
+
+    // Population arrays
+    let f = new Float32Array(NUM_CELLS * 9);
+    let fNew = new Float32Array(NUM_CELLS * 9);
+    let rho = new Float32Array(NUM_CELLS);
+    let ux = new Float32Array(NUM_CELLS);
+    let uy = new Float32Array(NUM_CELLS);
+    let barrier = new Uint8Array(NUM_CELLS);
+
+    // Flow Parameters
+    let u0 = 0.10;          // inlet velocity
+    let viscosity = 0.018;  // kinematic viscosity nu
+    let tau = 3.0 * viscosity + 0.5; // BGK relaxation time
+    let omega = 1.0 / tau;
+    let aoaDeg = 8.0;
+
+    let visMode = 'vorticity'; // 'vorticity', 'speed', 'pressure'
+    let isRunning = true;
+    let showTracers = true;
+
+    // Massless Smoke Tracer Particles
+    const NUM_TRACERS = 300;
+    const tracers = [];
+    for (let i = 0; i < NUM_TRACERS; i++) {
+      tracers.push({
+        x: Math.random() * NX,
+        y: Math.random() * NY,
+        age: Math.random() * 100
+      });
+    }
+
+    // Geometry Presets
+    function setAirfoil(aoa) {
+      barrier.fill(0);
+      const chord = 55.0;
+      const tMax = 0.12; // NACA 0012 (12% thickness)
+      const rad = (aoa * Math.PI) / 180.0;
+      const cosA = Math.cos(rad);
+      const sinA = Math.sin(rad);
+
+      const pivotX = NX * 0.35;
+      const pivotY = NY * 0.5;
+
+      for (let x = 10; x < NX - 10; x++) {
+        for (let y = 5; y < NY - 5; y++) {
+          // Rotate into airfoil chord frame
+          const dx = x - pivotX;
+          const dy = y - pivotY;
+          const xc = (dx * cosA + dy * sinA) / chord;
+          const yc = (-dx * sinA + dy * cosA) / chord;
+
+          if (xc >= 0.0 && xc <= 1.0) {
+            // NACA 4-digit symmetric half-thickness formula
+            const yt = 5.0 * tMax * (
+              0.2969 * Math.sqrt(xc) -
+              0.1260 * xc -
+              0.3516 * Math.pow(xc, 2) +
+              0.2843 * Math.pow(xc, 3) -
+              0.1015 * Math.pow(xc, 4)
+            );
+            if (Math.abs(yc) <= yt) {
+              barrier[y * NX + x] = 1;
+            }
+          }
+        }
+      }
+    }
+
+    function setCylinder() {
+      barrier.fill(0);
+      const cx0 = NX * 0.28;
+      const cy0 = NY * 0.5;
+      const radius = 11.5;
+
+      for (let x = 0; x < NX; x++) {
+        for (let y = 0; y < NY; y++) {
+          const d2 = (x - cx0)**2 + (y - cy0)**2;
+          if (d2 <= radius**2) {
+            barrier[y * NX + x] = 1;
+          }
+        }
+      }
+    }
+
+    function setFlatPlate() {
+      barrier.fill(0);
+      const px = Math.round(NX * 0.32);
+      const py = Math.round(NY * 0.5);
+      for (let y = py - 16; y <= py + 16; y++) {
+        barrier[y * NX + px] = 1;
+        barrier[y * NX + px + 1] = 1;
+      }
+    }
+
+    function setWedge() {
+      barrier.fill(0);
+      const startX = Math.round(NX * 0.25);
+      const len = 40;
+      for (let i = 0; i < len; i++) {
+        const x = startX + i;
+        const halfH = Math.round(i * 0.35);
+        for (let y = Math.round(NY*0.5) - halfH; y <= Math.round(NY*0.5) + halfH; y++) {
+          barrier[y * NX + x] = 1;
+        }
+      }
+    }
+
+    // Initialize Equilibrium Flow Field
+    function initFlow() {
+      for (let y = 0; y < NY; y++) {
+        for (let x = 0; x < NX; x++) {
+          const idx = y * NX + x;
+          rho[idx] = 1.0;
+          ux[idx] = barrier[idx] ? 0.0 : u0;
+          uy[idx] = 0.0;
+
+          const u2 = ux[idx] * ux[idx];
+          for (let i = 0; i < 9; i++) {
+            const cu = cx[i] * ux[idx];
+            f[idx * 9 + i] = weights[i] * (1.0 + 3.0 * cu + 4.5 * cu * cu - 1.5 * u2);
+          }
+        }
+      }
+    }
+
+    // --- LBM Simulation Step (Collision & Streaming) ---
+    function lbmStep() {
+      tau = 3.0 * viscosity + 0.5;
+      omega = 1.0 / tau;
+
+      // 1. Collision (BGK relaxation)
+      for (let idx = 0; idx < NUM_CELLS; idx++) {
+        if (barrier[idx]) continue;
+
+        let r = 0.0;
+        let vx = 0.0;
+        let vy = 0.0;
+
+        for (let i = 0; i < 9; i++) {
+          const fi = f[idx * 9 + i];
+          r += fi;
+          vx += fi * cx[i];
+          vy += fi * cy[i];
+        }
+
+        rho[idx] = r;
+        const invR = 1.0 / r;
+        ux[idx] = vx * invR;
+        uy[idx] = vy * invR;
+
+        const uSq = ux[idx] * ux[idx] + uy[idx] * uy[idx];
+
+        for (let i = 0; i < 9; i++) {
+          const cu = cx[i] * ux[idx] + cy[i] * uy[idx];
+          const feq = weights[i] * r * (1.0 + 3.0 * cu + 4.5 * cu * cu - 1.5 * uSq);
+          f[idx * 9 + i] += omega * (feq - f[idx * 9 + i]);
+        }
+      }
+
+      // 2. Streaming step with Boundary Conditions
+      for (let y = 0; y < NY; y++) {
+        for (let x = 0; x < NX; x++) {
+          const idx = y * NX + x;
+
+          for (let i = 0; i < 9; i++) {
+            // Source coordinates
+            const sx = x - cx[i];
+            const sy = y - cy[i];
+
+            if (sx >= 0 && sx < NX && sy >= 0 && sy < NY) {
+              const srcIdx = sy * NX + sx;
+              if (barrier[idx]) {
+                // Bounce-back from obstacle
+                fNew[srcIdx * 9 + opp[i]] = f[idx * 9 + i];
+              } else {
+                fNew[idx * 9 + i] = f[srcIdx * 9 + i];
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Wind Tunnel Inflow & Outflow Boundary Conditions
+      // Left Inflow: Zou-He prescribed velocity u = (u0, 0)
+      for (let y = 0; y < NY; y++) {
+        const idx = y * NX + 0;
+        const rIn = (fNew[idx*9+0] + fNew[idx*9+2] + fNew[idx*9+4] + 2*(fNew[idx*9+3] + fNew[idx*9+6] + fNew[idx*9+7])) / (1.0 - u0);
+        rho[idx] = rIn;
+        ux[idx] = u0;
+        uy[idx] = 0.0;
+        fNew[idx*9+1] = fNew[idx*9+3] + (2/3) * rIn * u0;
+        fNew[idx*9+5] = fNew[idx*9+7] - 0.5*(fNew[idx*9+2] - fNew[idx*9+4]) + (1/6) * rIn * u0;
+        fNew[idx*9+8] = fNew[idx*9+6] + 0.5*(fNew[idx*9+2] - fNew[idx*9+4]) + (1/6) * rIn * u0;
+      }
+
+      // Right Outflow: Convective zero-gradient copy
+      for (let y = 0; y < NY; y++) {
+        const lastIdx = y * NX + (NX - 1);
+        const prevIdx = y * NX + (NX - 2);
+        for (let i = 0; i < 9; i++) {
+          fNew[lastIdx * 9 + i] = fNew[prevIdx * 9 + i];
+        }
+      }
+
+      // Swap buffers
+      const temp = f;
+      f = fNew;
+      fNew = temp;
+    }
+
+    // --- Momentum Exchange Aerodynamic Force Calculation ---
+    function computeAeroForces() {
+      let fLift = 0.0;
+      let fDrag = 0.0;
+
+      for (let y = 1; y < NY - 1; y++) {
+        for (let x = 1; x < NX - 1; x++) {
+          const idx = y * NX + x;
+          if (!barrier[idx]) continue;
+
+          for (let i = 1; i < 9; i++) {
+            const nx = x + cx[i];
+            const ny = y + cy[i];
+            const nIdx = ny * NX + nx;
+
+            if (!barrier[nIdx]) {
+              // Momentum exchange force on obstacle wall: F = sum( (c_i - c_opp) * f )
+              const momentumX = cx[i] * (f[nIdx * 9 + opp[i]] + f[idx * 9 + i]);
+              const momentumY = cy[i] * (f[nIdx * 9 + opp[i]] + f[idx * 9 + i]);
+              fDrag += momentumX;
+              fLift += momentumY;
+            }
+          }
+        }
+      }
+
+      const qInf = 0.5 * 1.0 * u0 * u0 * 30.0; // dynamic pressure * chord
+      const cl = qInf > 0 ? (fLift / qInf) : 0.0;
+      const cd = qInf > 0 ? Math.max(0.01, Math.abs(fDrag / qInf)) : 0.05;
+      const ld = cd > 0 ? (cl / cd) : 0.0;
+
+      document.getElementById('hud-cl').textContent = cl.toFixed(2);
+      document.getElementById('hud-cd').textContent = cd.toFixed(3);
+      document.getElementById('hud-ld').textContent = ld.toFixed(2);
+      document.getElementById('hud-re').textContent = `Re = ${Math.round((u0 * 25.0) / viscosity)}`;
+      document.getElementById('hud-mach').textContent = `M = ${(u0 / 0.577).toFixed(2)}`;
+    }
+
+    // --- Canvas Setup & Rendering ---
+    const canvas = document.getElementById('cfd-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('tunnel-wrap');
+
+    let imgData = null;
+
+    function resizeCanvas() {
+      canvas.width = NX;
+      canvas.height = NY;
+      imgData = ctx.createImageData(NX, NY);
+    }
+    resizeCanvas();
+
+    // Mouse Obstacle Drawing
+    let isDrawing = false;
+    let isErasing = false;
+
+    container.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      isErasing = e.button === 2 || e.shiftKey;
+      paintObstacle(e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDrawing) paintObstacle(e);
+    });
+
+    window.addEventListener('mouseup', () => { isDrawing = false; });
+    container.addEventListener('contextmenu', e => e.preventDefault());
+
+    function paintObstacle(e) {
+      const rect = canvas.getBoundingClientRect();
+      const gx = Math.round(((e.clientX - rect.left) / rect.width) * NX);
+      const gy = Math.round(((e.clientY - rect.top) / rect.height) * NY);
+      const r = 3;
+
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          const x = gx + dx;
+          const y = gy + dy;
+          if (x >= 0 && x < NX && y >= 0 && y < NY && dx*dx + dy*dy <= r*r) {
+            barrier[y * NX + x] = isErasing ? 0 : 1;
+          }
+        }
+      }
+    }
+
+    // --- Color Maps ---
+    function renderField() {
+      const data = imgData.data;
+
+      for (let y = 0; y < NY; y++) {
+        for (let x = 0; x < NX; x++) {
+          const idx = y * NX + x;
+          const pIdx = idx * 4;
+
+          if (barrier[idx]) {
+            // Dark solid obstacle
+            data[pIdx] = 17;
+            data[pIdx + 1] = 24;
+            data[pIdx + 2] = 39;
+            data[pIdx + 3] = 255;
+            continue;
+          }
+
+          if (visMode === 'vorticity') {
+            // Curl / Vorticity: omega = dUy/dx - dUx/dy
+            const uy_r = (x < NX - 1) ? uy[idx + 1] : uy[idx];
+            const uy_l = (x > 0) ? uy[idx - 1] : uy[idx];
+            const ux_d = (y < NY - 1) ? ux[idx + NX] : ux[idx];
+            const ux_u = (y > 0) ? ux[idx - NX] : ux[idx];
+
+            const curl = (uy_r - uy_l) - (ux_d - ux_u);
+            const scaleCurl = Math.max(-1.0, Math.min(1.0, curl * 24.0));
+
+            if (scaleCurl > 0) {
+              // Positive vorticity: Cyan #06B6D4
+              data[pIdx] = Math.round(11 + 230 * scaleCurl);
+              data[pIdx + 1] = Math.round(15 + 167 * scaleCurl);
+              data[pIdx + 2] = Math.round(25 + 187 * scaleCurl);
+            } else {
+              // Negative vorticity: Magenta #EC4899
+              const neg = -scaleCurl;
+              data[pIdx] = Math.round(11 + 225 * neg);
+              data[pIdx + 1] = Math.round(15 + 57 * neg);
+              data[pIdx + 2] = Math.round(25 + 128 * neg);
+            }
+            data[pIdx + 3] = 255;
+          } else if (visMode === 'speed') {
+            // Speed magnitude |u|
+            const spd = Math.sqrt(ux[idx]**2 + uy[idx]**2);
+            const normSpd = Math.min(1.0, spd / (u0 * 1.8));
+
+            data[pIdx] = Math.round(8 + 240 * Math.pow(normSpd, 2));
+            data[pIdx + 1] = Math.round(12 + 180 * normSpd);
+            data[pIdx + 2] = Math.round(20 + 230 * normSpd);
+            data[pIdx + 3] = 255;
+          } else {
+            // Pressure p = rho * cs^2
+            const pressNorm = Math.max(0.0, Math.min(1.0, (rho[idx] - 0.98) / 0.04));
+            data[pIdx] = Math.round(255 * pressNorm);
+            data[pIdx + 1] = Math.round(120 * (1.0 - Math.abs(pressNorm - 0.5)*2));
+            data[pIdx + 2] = Math.round(255 * (1.0 - pressNorm));
+            data[pIdx + 3] = 255;
+          }
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Render smoke streamlines
+      if (showTracers) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        for (let i = 0; i < tracers.length; i++) {
+          const t = tracers[i];
+          const ix = Math.floor(t.x);
+          const iy = Math.floor(t.y);
+
+          if (ix >= 0 && ix < NX && iy >= 0 && iy < NY && !barrier[iy * NX + ix]) {
+            t.x += ux[iy * NX + ix] * 3.5;
+            t.y += uy[iy * NX + ix] * 3.5;
+            t.age += 1;
+
+            ctx.fillRect(Math.round(t.x), Math.round(t.y), 1.2, 1.2);
+          }
+
+          if (t.x >= NX || t.y < 0 || t.y >= NY || t.age > 180) {
+            t.x = 0;
+            t.y = Math.random() * NY;
+            t.age = 0;
+          }
+        }
+      }
+    }
+
+    // --- UI Controls ---
+    function loadPreset(name, el) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+      document.getElementById('group-aoa').style.display = (name === 'airfoil') ? 'block' : 'none';
+
+      if (name === 'cylinder') setCylinder();
+      else if (name === 'airfoil') setAirfoil(aoaDeg);
+      else if (name === 'plate') setFlatPlate();
+      else if (name === 'wedge') setWedge();
+
+      initFlow();
+    }
+
+    function setVisMode(mode) {
+      visMode = mode;
+      document.querySelectorAll('#vis-vort, #vis-speed, #vis-press').forEach(b => b.classList.remove('active'));
+      document.getElementById(`vis-${mode === 'vorticity' ? 'vort' : mode === 'speed' ? 'speed' : 'press'}`).classList.add('active');
+    }
+
+    function toggleTracers() {
+      showTracers = document.getElementById('chk-tracers').checked;
+    }
+
+    function updateFlowParams() {
+      u0 = parseFloat(document.getElementById('slider-speed').value);
+      viscosity = parseFloat(document.getElementById('slider-visc').value);
+      document.getElementById('val-speed').textContent = u0.toFixed(2) + ' c';
+      document.getElementById('val-visc').textContent = viscosity.toFixed(3);
+    }
+
+    function updateAoA() {
+      aoaDeg = parseFloat(document.getElementById('slider-aoa').value);
+      document.getElementById('val-aoa').textContent = aoaDeg.toFixed(1) + ' deg';
+      setAirfoil(aoaDeg);
+      initFlow();
+    }
+
+    function toggleSimulation() {
+      isRunning = !isRunning;
+      const btn = document.getElementById('btn-run');
+      btn.querySelector('span').textContent = isRunning ? 'Pause' : 'Resume';
+      btn.classList.toggle('active', isRunning);
+    }
+
+    function stepSimulation() {
+      lbmStep();
+      computeAeroForces();
+      renderField();
+    }
+
+    function resetFluid() {
+      initFlow();
+    }
+
+    function clearObstacles() {
+      barrier.fill(0);
+      initFlow();
+    }
+
+    // --- Main Simulation Loop ---
+    let frameStep = 0;
+    function mainLoop() {
+      if (isRunning) {
+        // Run 4 LBM sub-steps per frame for high fluid speed & stability
+        for (let s = 0; s < 4; s++) {
+          lbmStep();
+        }
+        frameStep++;
+        if (frameStep % 3 === 0) computeAeroForces();
+      }
+
+      renderField();
+      requestAnimationFrame(mainLoop);
+    }
+
+    // Initialize
+    setCylinder();
+    initFlow();
+    document.getElementById('group-aoa').style.display = 'none';
+    requestAnimationFrame(mainLoop);
+  </script>
+</body>
+</html>

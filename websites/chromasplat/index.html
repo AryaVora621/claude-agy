@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChromaSplat Studio - 3D Gaussian Splatting & Radiance Field Laboratory</title>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --panel-bg: rgba(17, 24, 39, 0.85);
+      --panel-border: #1F293D;
+      --accent: #06B6D4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --card-bg: #161F30;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 56px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #FFF;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 10px;
+      margin-left: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1F293D;
+      border-color: var(--accent);
+    }
+
+    .btn.active {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0B0F19;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #22D3EE;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(circle at center, #111827 0%, #080C14 100%);
+      cursor: grab;
+    }
+
+    .canvas-container:active {
+      cursor: grabbing;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .scene-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .scene-card {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .scene-card:hover {
+      border-color: var(--accent);
+    }
+
+    .scene-card.selected {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--accent);
+    }
+
+    .scene-card-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .scene-card-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .control-label {
+      color: var(--text-muted);
+    }
+
+    .control-value {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--card-bg);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    .btn-group {
+      display: flex;
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .btn-group button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 0;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .btn-group button.active {
+      background: rgba(6, 182, 212, 0.2);
+      color: var(--accent);
+    }
+
+    .hud-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(11, 15, 25, 0.8);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(8px);
+      padding: 12px 16px;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .hud-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+
+    .hud-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-key {
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hud-val.accent {
+      color: var(--accent);
+    }
+
+    .camera-hint {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(11, 15, 25, 0.7);
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .camera-hint kbd {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">3D</div>
+      <div class="brand-title">Chroma<span>Splat</span> Studio</div>
+      <div class="tagline">3D Gaussian Splatting & Volume Radiance Laboratory</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btn-turntable" onclick="toggleTurntable()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        Turntable Orbit
+      </button>
+      <button class="btn" onclick="resetCamera()">Reset Camera</button>
+      <button class="btn btn-primary" onclick="exportSnapshot()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Capture PNG
+      </button>
+    </div>
+  </header>
+
+  <div class="main-workspace">
+    <div class="canvas-container" id="canvas-wrap">
+      <canvas id="splat-canvas"></canvas>
+
+      <div class="hud-overlay">
+        <div class="hud-row">
+          <div class="hud-item">
+            <span class="hud-key">FPS</span>
+            <span class="hud-val accent" id="hud-fps">60.0</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-key">Frame Time</span>
+            <span class="hud-val" id="hud-frame-ms">16.6 ms</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-key">Gaussians</span>
+            <span class="hud-val" id="hud-splats">350</span>
+          </div>
+          <div class="hud-item">
+            <span class="hud-key">Projected</span>
+            <span class="hud-val accent" id="hud-projected">350</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="camera-hint">
+        <span><kbd>Drag</kbd> Rotate</span> •
+        <span><kbd>Wheel</kbd> Zoom</span> •
+        <span><kbd>Shift+Drag</kbd> Pan</span>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Procedural Scenes</div>
+        <div class="scene-grid">
+          <div class="scene-card selected" onclick="loadScene('rings', this)">
+            <div class="scene-card-name">Saturnian Rings</div>
+            <div class="scene-card-desc">Atmospheric planet & tilted orbital rings</div>
+          </div>
+          <div class="scene-card" onclick="loadScene('cornell', this)">
+            <div class="scene-card-name">Cornell Box</div>
+            <div class="scene-card-desc">Diffuse colored walls & specular sphere</div>
+          </div>
+          <div class="scene-card" onclick="loadScene('dna', this)">
+            <div class="scene-card-name">DNA Double Helix</div>
+            <div class="scene-card-desc">Intertwined base pairs & backbone</div>
+          </div>
+          <div class="scene-card" onclick="loadScene('galaxy', this)">
+            <div class="scene-card-name">Particle Nebula</div>
+            <div class="scene-card-desc">Keplerian swirling stellar accretion</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Rendering Mode</div>
+        <div class="btn-group">
+          <button class="active" id="mode-splat" onclick="setRenderMode('splat')">Volume Splats</button>
+          <button id="mode-wire" onclick="setRenderMode('wireframe')">Ellipses</button>
+          <button id="mode-depth" onclick="setRenderMode('depth')">Depth Map</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Gaussian Properties</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Splat Scale Multiplier</span>
+            <span class="control-value" id="val-scale">1.00x</span>
+          </div>
+          <input type="range" min="0.2" max="3.0" step="0.05" value="1.0" id="slider-scale" oninput="updateControls()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Base Opacity Factor</span>
+            <span class="control-value" id="val-opacity">0.85</span>
+          </div>
+          <input type="range" min="0.1" max="1.0" step="0.05" value="0.85" id="slider-opacity" oninput="updateControls()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Spherical Harmonics Lobe</span>
+            <span class="control-value" id="val-sh">Degree 2</span>
+          </div>
+          <div class="btn-group">
+            <button id="sh-0" onclick="setSHDegree(0)">Deg 0</button>
+            <button id="sh-1" onclick="setSHDegree(1)">Deg 1</button>
+            <button class="active" id="sh-2" onclick="setSHDegree(2)">Deg 2 (Specular)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Camera & Projection</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Azimuth Orbit</span>
+            <span class="control-value" id="val-azimuth">35 deg</span>
+          </div>
+          <input type="range" min="0" max="360" step="1" value="35" id="slider-azimuth" oninput="updateCameraSliders()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Elevation Angle</span>
+            <span class="control-value" id="val-elevation">20 deg</span>
+          </div>
+          <input type="range" min="-85" max="85" step="1" value="20" id="slider-elevation" oninput="updateCameraSliders()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Camera Distance</span>
+            <span class="control-value" id="val-dist">3.50 m</span>
+          </div>
+          <input type="range" min="1.0" max="10.0" step="0.1" value="3.5" id="slider-dist" oninput="updateCameraSliders()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Field of View (FOV)</span>
+            <span class="control-value" id="val-fov">60 deg</span>
+          </div>
+          <input type="range" min="20" max="110" step="1" value="60" id="slider-fov" oninput="updateCameraSliders()">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Mathematical Spec</div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--font-mono);">
+          <div>Sigma_3D = R * S * S^T * R^T</div>
+          <div>J = [[fx/z, 0, -fx*x/z^2], [0, fy/z, -fy*y/z^2]]</div>
+          <div>Sigma_2D = J * Sigma_cam * J^T + nu * I</div>
+          <div>C = sum(c_i * alpha_i * T_i)</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // --- 3D Vector & Quaternion Math ---
+    function quatToMat3(q) {
+      const w = q[0], x = q[1], y = q[2], z = q[3];
+      return [
+        [1 - 2*(y*y + z*z), 2*(x*y - w*z), 2*(x*z + w*y)],
+        [2*(x*y + w*z), 1 - 2*(x*x + z*z), 2*(y*z - w*x)],
+        [2*(x*z - w*y), 2*(y*z + w*x), 1 - 2*(x*x + y*y)]
+      ];
+    }
+
+    function eulerToQuat(roll, pitch, yaw) {
+      const cr = Math.cos(roll * 0.5), sr = Math.sin(roll * 0.5);
+      const cp = Math.cos(pitch * 0.5), sp = Math.sin(pitch * 0.5);
+      const cy = Math.cos(yaw * 0.5), sy = Math.sin(yaw * 0.5);
+      return [
+        cr * cp * cy + sr * sp * sy,
+        sr * cp * cy - cr * sp * sy,
+        cr * sp * cy + sr * cp * sy,
+        cr * cp * sy - sr * sp * cy
+      ];
+    }
+
+    // --- Procedural 3D Gaussian Splat Generator ---
+    class Gaussian {
+      constructor(pos, scale, rotQuat, colorRgb, opacity, shLobe = null) {
+        this.pos = pos;         // [x, y, z]
+        this.scale = scale;     // [sx, sy, sz]
+        this.rot = rotQuat;     // [w, x, y, z]
+        this.color = colorRgb;   // [r, g, b] 0..1
+        this.opacity = opacity; // 0..1
+        this.shLobe = shLobe;   // view-dependent specular highlight direction
+      }
+    }
+
+    const scenes = {
+      rings: () => {
+        const list = [];
+        // Central planet sphere
+        const numPlanet = 90;
+        for (let i = 0; i < numPlanet; i++) {
+          const phi = Math.acos(-1 + (2 * i) / numPlanet);
+          const theta = Math.sqrt(numPlanet * Math.PI) * phi;
+          const r = 0.85;
+          const x = r * Math.sin(phi) * Math.cos(theta);
+          const y = r * Math.sin(phi) * Math.sin(theta);
+          const z = r * Math.cos(phi);
+          // Banded color: gold and cyan atmospheric stripes
+          const band = Math.sin(y * 6.0);
+          const cr = 0.85 + 0.15 * band;
+          const cg = 0.65 + 0.25 * band;
+          const cb = 0.35 + 0.40 * Math.abs(band);
+          list.push(new Gaussian([x, y, z], [0.12, 0.12, 0.12], [1, 0, 0, 0], [cr, cg, cb], 0.95));
+        }
+
+        // Tilted orbital rings
+        const numRing = 260;
+        const tilt = 0.45; // rad
+        for (let i = 0; i < numRing; i++) {
+          const theta = Math.random() * Math.PI * 2;
+          const rad = 1.35 + Math.random() * 0.95;
+          const px = rad * Math.cos(theta);
+          const py_flat = 0.0 + (Math.random() - 0.5) * 0.05;
+          const pz_flat = rad * Math.sin(theta);
+
+          // Rotate around X axis for orbital inclination
+          const py = py_flat * Math.cos(tilt) - pz_flat * Math.sin(tilt);
+          const pz = py_flat * Math.sin(tilt) + pz_flat * Math.cos(tilt);
+
+          const bright = 0.5 + 0.5 * Math.sin(rad * 18.0);
+          const cr = 0.4 + 0.5 * bright;
+          const cg = 0.6 + 0.4 * bright;
+          const cb = 0.9;
+          list.push(new Gaussian([px, py, pz], [0.08, 0.03, 0.08], eulerToQuat(tilt, 0, theta), [cr, cg, cb], 0.85));
+        }
+        return list;
+      },
+
+      cornell: () => {
+        const list = [];
+        // Box walls
+        const wallSize = 1.8;
+        const steps = 10;
+        for (let i = 0; i <= steps; i++) {
+          for (let j = 0; j <= steps; j++) {
+            const u = -wallSize + (2 * wallSize * i) / steps;
+            const v = -wallSize + (2 * wallSize * j) / steps;
+            // Back wall (White)
+            list.push(new Gaussian([u, v, wallSize], [0.25, 0.25, 0.04], [1, 0, 0, 0], [0.9, 0.9, 0.9], 0.8));
+            // Floor (White)
+            list.push(new Gaussian([u, -wallSize, v], [0.25, 0.04, 0.25], [1, 0, 0, 0], [0.85, 0.85, 0.85], 0.8));
+            // Ceiling with light
+            const isLight = Math.abs(u) < 0.5 && Math.abs(v) < 0.5;
+            list.push(new Gaussian([u, wallSize, v], [0.25, 0.04, 0.25], [1, 0, 0, 0], isLight ? [1.0, 1.0, 0.9] : [0.7, 0.7, 0.7], isLight ? 1.0 : 0.75));
+            // Left wall (Red)
+            list.push(new Gaussian([-wallSize, u, v], [0.04, 0.25, 0.25], [1, 0, 0, 0], [0.95, 0.2, 0.2], 0.8));
+            // Right wall (Green)
+            list.push(new Gaussian([wallSize, u, v], [0.04, 0.25, 0.25], [1, 0, 0, 0], [0.2, 0.85, 0.3], 0.8));
+          }
+        }
+        // Central glossy sphere with specular highlights
+        const numSphere = 80;
+        for (let i = 0; i < numSphere; i++) {
+          const phi = Math.acos(-1 + (2 * i) / numSphere);
+          const theta = Math.sqrt(numSphere * Math.PI) * phi;
+          const r = 0.65;
+          const x = r * Math.sin(phi) * Math.cos(theta);
+          const y = -0.5 + r * Math.sin(phi) * Math.sin(theta);
+          const z = 0.2 + r * Math.cos(phi);
+          const normal = [x / r, (y + 0.5) / r, (z - 0.2) / r];
+          list.push(new Gaussian([x, y, z], [0.14, 0.14, 0.14], [1, 0, 0, 0], [0.95, 0.8, 0.3], 0.95, normal));
+        }
+        return list;
+      },
+
+      dna: () => {
+        const list = [];
+        const numPoints = 140;
+        const totalHeight = 3.6;
+        const radius = 0.85;
+        const turns = 2.5;
+        for (let i = 0; i < numPoints; i++) {
+          const t = (i / numPoints) * turns * Math.PI * 2;
+          const y = -totalHeight * 0.5 + (totalHeight * i) / numPoints;
+          const x1 = radius * Math.cos(t);
+          const z1 = radius * Math.sin(t);
+          const x2 = radius * Math.cos(t + Math.PI);
+          const z2 = radius * Math.sin(t + Math.PI);
+
+          // Backbone 1 (Cyan)
+          list.push(new Gaussian([x1, y, z1], [0.09, 0.09, 0.09], [1, 0, 0, 0], [0.0, 0.85, 0.95], 0.95));
+          // Backbone 2 (Magenta)
+          list.push(new Gaussian([x2, y, z2], [0.09, 0.09, 0.09], [1, 0, 0, 0], [0.95, 0.15, 0.65], 0.95));
+
+          // Base pair rungs every 4 steps
+          if (i % 4 === 0) {
+            for (let step = 1; step <= 5; step++) {
+              const alpha = step / 6.0;
+              const bx = (1 - alpha) * x1 + alpha * x2;
+              const bz = (1 - alpha) * z1 + alpha * z2;
+              const cr = 0.8 + 0.2 * Math.sin(t);
+              const cg = 0.9;
+              const cb = 0.3 + 0.5 * Math.cos(t);
+              list.push(new Gaussian([bx, y, bz], [0.06, 0.06, 0.06], [1, 0, 0, 0], [cr, cg, cb], 0.85));
+            }
+          }
+        }
+        return list;
+      },
+
+      galaxy: () => {
+        const list = [];
+        const numStars = 450;
+        for (let i = 0; i < numStars; i++) {
+          const arm = i % 3;
+          const armOffset = (arm * Math.PI * 2) / 3;
+          const dist = 0.2 + Math.pow(Math.random(), 1.5) * 2.2;
+          const angle = dist * 2.4 + armOffset + (Math.random() - 0.5) * 0.45;
+          const x = dist * Math.cos(angle);
+          const z = dist * Math.sin(angle);
+          const y = (Math.random() - 0.5) * 0.35 * Math.exp(-dist * 0.7);
+
+          const coreProximity = Math.exp(-dist * 1.5);
+          const cr = 0.3 + 0.7 * coreProximity;
+          const cg = 0.4 + 0.5 * Math.sin(dist * 3.0);
+          const cb = 0.95 - 0.4 * coreProximity;
+          const sz = 0.04 + Math.random() * 0.06;
+
+          list.push(new Gaussian([x, y, z], [sz, sz * 0.5, sz], [1, 0, 0, 0], [cr, cg, cb], 0.85));
+        }
+        return list;
+      }
+    };
+
+    // --- State & Camera ---
+    let currentSceneName = 'rings';
+    let currentGaussians = scenes.rings();
+    let renderMode = 'splat'; // 'splat', 'wireframe', 'depth'
+    let shDegree = 2;
+    let splatScaleMultiplier = 1.0;
+    let baseOpacityFactor = 0.85;
+
+    let camera = {
+      azimuth: 35.0,
+      elevation: 20.0,
+      distance: 3.5,
+      fov: 60.0,
+      target: [0, 0, 0]
+    };
+
+    let isTurntable = false;
+    let isDragging = false;
+    let isPanning = false;
+    let prevMouseX = 0;
+    let prevMouseY = 0;
+
+    const canvas = document.getElementById('splat-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-wrap');
+
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = container.clientWidth * dpr;
+      canvas.height = container.clientHeight * dpr;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Mouse Interaction
+    container.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      isPanning = e.shiftKey || e.button === 2;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - prevMouseX;
+      const dy = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+
+      if (isPanning) {
+        const panSpeed = 0.003 * camera.distance;
+        camera.target[0] -= dx * panSpeed;
+        camera.target[1] += dy * panSpeed;
+      } else {
+        camera.azimuth = (camera.azimuth - dx * 0.5 + 360) % 360;
+        camera.elevation = Math.max(-85, Math.min(85, camera.elevation + dy * 0.5));
+        syncSliders();
+      }
+    });
+
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camera.distance = Math.max(1.0, Math.min(10.0, camera.distance + e.deltaY * 0.003));
+      syncSliders();
+    }, { passive: false });
+
+    // UI Controls
+    function syncSliders() {
+      document.getElementById('slider-azimuth').value = Math.round(camera.azimuth);
+      document.getElementById('slider-elevation').value = Math.round(camera.elevation);
+      document.getElementById('slider-dist').value = camera.distance.toFixed(1);
+      document.getElementById('val-azimuth').textContent = Math.round(camera.azimuth) + ' deg';
+      document.getElementById('val-elevation').textContent = Math.round(camera.elevation) + ' deg';
+      document.getElementById('val-dist').textContent = camera.distance.toFixed(2) + ' m';
+    }
+
+    function updateCameraSliders() {
+      camera.azimuth = parseFloat(document.getElementById('slider-azimuth').value);
+      camera.elevation = parseFloat(document.getElementById('slider-elevation').value);
+      camera.distance = parseFloat(document.getElementById('slider-dist').value);
+      camera.fov = parseFloat(document.getElementById('slider-fov').value);
+      document.getElementById('val-azimuth').textContent = Math.round(camera.azimuth) + ' deg';
+      document.getElementById('val-elevation').textContent = Math.round(camera.elevation) + ' deg';
+      document.getElementById('val-dist').textContent = camera.distance.toFixed(2) + ' m';
+      document.getElementById('val-fov').textContent = Math.round(camera.fov) + ' deg';
+    }
+
+    function updateControls() {
+      splatScaleMultiplier = parseFloat(document.getElementById('slider-scale').value);
+      baseOpacityFactor = parseFloat(document.getElementById('slider-opacity').value);
+      document.getElementById('val-scale').textContent = splatScaleMultiplier.toFixed(2) + 'x';
+      document.getElementById('val-opacity').textContent = baseOpacityFactor.toFixed(2);
+    }
+
+    function setRenderMode(mode) {
+      renderMode = mode;
+      document.querySelectorAll('#mode-splat, #mode-wire, #mode-depth').forEach(b => b.classList.remove('active'));
+      document.getElementById(`mode-${mode === 'wireframe' ? 'wire' : mode}`).classList.add('active');
+    }
+
+    function setSHDegree(deg) {
+      shDegree = deg;
+      document.querySelectorAll('#sh-0, #sh-1, #sh-2').forEach(b => b.classList.remove('active'));
+      document.getElementById(`sh-${deg}`).classList.add('active');
+      document.getElementById('val-sh').textContent = `Degree ${deg}`;
+    }
+
+    function loadScene(name, el) {
+      currentSceneName = name;
+      currentGaussians = scenes[name]();
+      document.querySelectorAll('.scene-card').forEach(c => c.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+      document.getElementById('hud-splats').textContent = currentGaussians.length;
+    }
+
+    function toggleTurntable() {
+      isTurntable = !isTurntable;
+      document.getElementById('btn-turntable').classList.toggle('active', isTurntable);
+    }
+
+    function resetCamera() {
+      camera.azimuth = 35.0;
+      camera.elevation = 20.0;
+      camera.distance = 3.5;
+      camera.target = [0, 0, 0];
+      syncSliders();
+    }
+
+    function exportSnapshot() {
+      const link = document.createElement('a');
+      link.download = `chromasplat-${currentSceneName}-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // --- Core 3D Gaussian Splatting Rasterizer Engine ---
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let fpsTimer = 0;
+
+    function renderLoop() {
+      const now = performance.now();
+      const dt = (now - lastTime) / 1000.0;
+      lastTime = now;
+
+      // Turntable animation
+      if (isTurntable) {
+        camera.azimuth = (camera.azimuth + 24.0 * dt) % 360;
+        syncSliders();
+      }
+
+      // Telemetry
+      frameCount++;
+      fpsTimer += dt;
+      if (fpsTimer >= 0.25) {
+        const curFps = frameCount / fpsTimer;
+        document.getElementById('hud-fps').textContent = curFps.toFixed(1);
+        document.getElementById('hud-frame-ms').textContent = (1000.0 / curFps).toFixed(1) + ' ms';
+        frameCount = 0;
+        fpsTimer = 0;
+      }
+
+      // --- Camera Matrix Synthesis ---
+      const azRad = (camera.azimuth * Math.PI) / 180.0;
+      const elRad = (camera.elevation * Math.PI) / 180.0;
+
+      // Eye position in world space
+      const eyeX = camera.target[0] + camera.distance * Math.cos(elRad) * Math.sin(azRad);
+      const eyeY = camera.target[1] + camera.distance * Math.sin(elRad);
+      const eyeZ = camera.target[2] + camera.distance * Math.cos(elRad) * Math.cos(azRad);
+
+      // Camera view basis: forward, right, down
+      const fx = camera.target[0] - eyeX;
+      const fy = camera.target[1] - eyeY;
+      const fz = camera.target[2] - eyeZ;
+      const fLen = Math.sqrt(fx*fx + fy*fy + fz*fz) || 1.0;
+      const fwd = [fx/fLen, fy/fLen, fz/fLen];
+
+      // World Up = (0, 1, 0)
+      const rx = fwd[2] * 1.0 - 0.0;
+      const rz = -fwd[0] * 1.0;
+      const rLen = Math.sqrt(rx*rx + rz*rz) || 1.0;
+      const right = [rx/rLen, 0.0, rz/rLen];
+
+      // Down = Cross(Right, Forward)
+      const down = [
+        right[1]*fwd[2] - right[2]*fwd[1],
+        right[2]*fwd[0] - right[0]*fwd[2],
+        right[0]*fwd[1] - right[1]*fwd[0]
+      ];
+
+      const w = canvas.width;
+      const h = canvas.height;
+      const fovRad = (camera.fov * Math.PI) / 180.0;
+      const focal = 0.5 * h / Math.tan(0.5 * fovRad);
+
+      ctx.clearRect(0, 0, w, h);
+
+      // --- Project 3D Gaussians to 2D Screen Space ---
+      const projected = [];
+      let minDepth = 1e9, maxDepth = -1e9;
+
+      for (let i = 0; i < currentGaussians.length; i++) {
+        const g = currentGaussians[i];
+
+        // World to Camera transformation: t = R_view * (pos - eye)
+        const dx = g.pos[0] - eyeX;
+        const dy = g.pos[1] - eyeY;
+        const dz = g.pos[2] - eyeZ;
+
+        const tx = right[0]*dx + right[1]*dy + right[2]*dz;
+        const ty = down[0]*dx + down[1]*dy + down[2]*dz;
+        const tz = fwd[0]*dx + fwd[1]*dy + fwd[2]*dz;
+
+        // Near-plane clipping
+        if (tz <= 0.1) continue;
+
+        // Pinhole perspective projection: (u, v)
+        const u = w * 0.5 + (tx / tz) * focal;
+        const v = h * 0.5 + (ty / tz) * focal;
+
+        // Early screen bounds culling
+        if (u < -100 || u > w + 100 || v < -100 || v > h + 100) continue;
+
+        minDepth = Math.min(minDepth, tz);
+        maxDepth = Math.max(maxDepth, tz);
+
+        // 3D Covariance Matrix Sigma_3D = R * S * S^T * R^T
+        const rMat = quatToMat3(g.rot);
+        const sx = g.scale[0] * splatScaleMultiplier;
+        const sy = g.scale[1] * splatScaleMultiplier;
+        const sz = g.scale[2] * splatScaleMultiplier;
+        const sx2 = sx*sx, sy2 = sy*sy, sz2 = sz*sz;
+
+        // Sigma_3D upper triangle entries
+        const s00 = rMat[0][0]*rMat[0][0]*sx2 + rMat[0][1]*rMat[0][1]*sy2 + rMat[0][2]*rMat[0][2]*sz2;
+        const s01 = rMat[0][0]*rMat[1][0]*sx2 + rMat[0][1]*rMat[1][1]*sy2 + rMat[0][2]*rMat[1][2]*sz2;
+        const s02 = rMat[0][0]*rMat[2][0]*sx2 + rMat[0][1]*rMat[2][1]*sy2 + rMat[0][2]*rMat[2][2]*sz2;
+        const s11 = rMat[1][0]*rMat[1][0]*sx2 + rMat[1][1]*rMat[1][1]*sy2 + rMat[1][2]*rMat[1][2]*sz2;
+        const s12 = rMat[1][0]*rMat[2][0]*sx2 + rMat[1][1]*rMat[2][1]*sy2 + rMat[1][2]*rMat[2][2]*sz2;
+        const s22 = rMat[2][0]*rMat[2][0]*sx2 + rMat[2][1]*rMat[2][1]*sy2 + rMat[2][2]*rMat[2][2]*sz2;
+
+        // Transform Sigma_3D to Camera Space: Sigma_cam = R_view * Sigma_3D * R_view^T
+        // For isotropic or aligned approximations:
+        const sc00 = right[0]*s00 + right[1]*s01 + right[2]*s02;
+        const sc11 = down[0]*s01 + down[1]*s11 + down[2]*s12;
+
+        // EWA Projective Jacobian J = [[fx/tz, 0, -fx*tx/tz^2], [0, fy/tz, -fy*ty/tz^2]]
+        const j00 = focal / tz;
+        const j11 = focal / tz;
+        const tz2 = tz * tz;
+        const j02 = -(focal * tx) / tz2;
+        const j12 = -(focal * ty) / tz2;
+
+        // 2D Screen Covariance Sigma_2D = J * Sigma_cam * J^T + nu * I
+        const nu = 0.3; // low-pass anti-aliasing filter
+        const covA = Math.max(1.0, (j00 * j00 * s00 + 2.0 * j00 * j02 * s02 + j02 * j02 * s22) + nu);
+        const covB = (j00 * j11 * s01 + j00 * j12 * s02 + j11 * j02 * s12 + j02 * j12 * s22);
+        const covC = Math.max(1.0, (j11 * j11 * s11 + 2.0 * j11 * j12 * s12 + j12 * j12 * s22) + nu);
+
+        // Eigenvalue decomposition of Sigma_2D for ellipse axes
+        const mid = 0.5 * (covA + covC);
+        const diff = 0.5 * (covA - covC);
+        const disc = Math.sqrt(Math.max(0.0, diff*diff + covB*covB));
+        const lambda1 = mid + disc;
+        const lambda2 = Math.max(0.1, mid - disc);
+
+        // Radii for 3-sigma bounding
+        const r1 = Math.max(2.0, Math.ceil(3.0 * Math.sqrt(lambda1)));
+        const r2 = Math.max(2.0, Math.ceil(3.0 * Math.sqrt(lambda2)));
+        const angle = 0.5 * Math.atan2(2.0 * covB, covA - covC);
+
+        // Directional color with Spherical Harmonics specular glint
+        let cr = g.color[0];
+        let cg = g.color[1];
+        let cb = g.color[2];
+
+        if (g.shLobe && shDegree > 0) {
+          // Ray view direction from splat to camera
+          const rx = -fwd[0], ry = -fwd[1], rz = -fwd[2];
+          const dot = Math.max(0.0, g.shLobe[0]*rx + g.shLobe[1]*ry + g.shLobe[2]*rz);
+          const spec = (shDegree === 1) ? Math.pow(dot, 4.0) * 0.45 : Math.pow(dot, 12.0) * 0.95;
+          cr = Math.min(1.0, cr + spec);
+          cg = Math.min(1.0, cg + spec);
+          cb = Math.min(1.0, cb + spec * 0.7);
+        }
+
+        projected.push({
+          u, v, tz, r1, r2, angle,
+          cr, cg, cb,
+          opacity: g.opacity * baseOpacityFactor
+        });
+      }
+
+      document.getElementById('hud-projected').textContent = projected.length;
+
+      // Front-to-back depth sorting along camera axis tz ascending
+      projected.sort((a, b) => b.tz - a.tz); // painter's back-to-front for standard 2D canvas blend
+
+      // --- Volume Rasterization ---
+      for (let i = 0; i < projected.length; i++) {
+        const p = projected[i];
+
+        ctx.save();
+        ctx.translate(p.u, p.v);
+        ctx.rotate(p.angle);
+
+        if (renderMode === 'wireframe') {
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.r1, p.r2, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${Math.round(p.cr*255)}, ${Math.round(p.cg*255)}, ${Math.round(p.cb*255)}, ${p.opacity * 0.6})`;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        } else if (renderMode === 'depth') {
+          const depthNorm = Math.max(0.0, Math.min(1.0, (p.tz - minDepth) / (maxDepth - minDepth || 1.0)));
+          // Color gradient: cyan (near) to deep purple (far)
+          const dr = Math.round(255 * (1.0 - depthNorm) * 0.1 + 255 * depthNorm * 0.6);
+          const dg = Math.round(255 * (1.0 - depthNorm) * 0.8 + 255 * depthNorm * 0.1);
+          const db = Math.round(255 * (1.0 - depthNorm) * 0.9 + 255 * depthNorm * 0.9);
+
+          const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, p.r1);
+          grad.addColorStop(0.0, `rgba(${dr}, ${dg}, ${db}, ${p.opacity})`);
+          grad.addColorStop(0.5, `rgba(${dr}, ${dg}, ${db}, ${p.opacity * 0.4})`);
+          grad.addColorStop(1.0, `rgba(${dr}, ${dg}, ${db}, 0.0)`);
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.r1, p.r2, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Full Volumetric Gaussian Splatting with radial Mahalanobis falloff
+          const ir = Math.round(p.cr * 255);
+          const ig = Math.round(p.cg * 255);
+          const ib = Math.round(p.cb * 255);
+
+          const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, p.r1);
+          grad.addColorStop(0.0, `rgba(${ir}, ${ig}, ${ib}, ${p.opacity})`);
+          grad.addColorStop(0.4, `rgba(${ir}, ${ig}, ${ib}, ${p.opacity * 0.55})`);
+          grad.addColorStop(0.8, `rgba(${ir}, ${ig}, ${ib}, ${p.opacity * 0.15})`);
+          grad.addColorStop(1.0, `rgba(${ir}, ${ig}, ${ib}, 0.0)`);
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.r1, p.r2, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Initialize
+    syncSliders();
+    requestAnimationFrame(renderLoop);
+  </script>
+</body>
+</html>

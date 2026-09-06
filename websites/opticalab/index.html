@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpticaLab - Interactive Optical Bench & Lens Design Studio</title>
+  <style>
+    :root {
+      --bg: #0B0F19;
+      --panel-bg: rgba(17, 24, 39, 0.85);
+      --panel-border: #1F293D;
+      --accent: #06B6D4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --accent-yellow: #F59E0B;
+      --accent-red: #EF4444;
+      --accent-blue: #3B82F6;
+      --text: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --text-dim: #6B7280;
+      --card-bg: #161F30;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 56px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #06B6D4, #F59E0B);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: #FFF;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-left: 1px solid var(--panel-border);
+      padding-left: 10px;
+      margin-left: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: #1F293D;
+      border-color: var(--accent);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0B0F19;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: #22D3EE;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bench-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .bench-top {
+      flex: 1.4;
+      position: relative;
+      background: radial-gradient(circle at center, #111827 0%, #080C14 100%);
+    }
+
+    .bench-bottom-strip {
+      flex: 1;
+      border-top: 1px solid var(--panel-border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: var(--bg);
+    }
+
+    .strip-pane {
+      position: relative;
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .strip-pane:last-child {
+      border-right: none;
+    }
+
+    .pane-header {
+      height: 32px;
+      background: rgba(17, 24, 39, 0.6);
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .pane-canvas-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-left: 1px solid var(--panel-border);
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .preset-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--panel-border);
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+    }
+
+    .preset-btn.selected {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--accent);
+    }
+
+    .preset-btn-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .preset-btn-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .control-label {
+      color: var(--text-muted);
+    }
+
+    .control-value {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--card-bg);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-glow);
+    }
+
+    .hud-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .hud-row {
+      display: flex;
+      gap: 16px;
+      font-size: 11px;
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-key {
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+    }
+
+    .hud-val {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .hud-val.accent {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">OL</div>
+      <div class="brand-title">Optica<span>Lab</span></div>
+      <div class="tagline">Optical Bench & Aspheric Lens Design Studio</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="optimizeDLS()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        DLS Optimize Focus
+      </button>
+      <button class="btn" onclick="autofocusImagePlane()">Set Paraxial Focus</button>
+    </div>
+  </header>
+
+  <div class="main-workspace">
+    <div class="bench-container">
+      <!-- 2D Optical Bench Cross-Section -->
+      <div class="bench-top" id="wrap-bench">
+        <canvas id="canvas-bench"></canvas>
+
+        <div class="hud-overlay">
+          <div class="hud-row">
+            <div class="hud-item">
+              <span class="hud-key">EFL</span>
+              <span class="hud-val accent" id="hud-efl">100.0 mm</span>
+            </div>
+            <div class="hud-item">
+              <span class="hud-key">Working F/#</span>
+              <span class="hud-val" id="hud-fnum">F/2.8</span>
+            </div>
+            <div class="hud-item">
+              <span class="hud-key">Back Focal Length</span>
+              <span class="hud-val" id="hud-bfl">85.4 mm</span>
+            </div>
+            <div class="hud-item">
+              <span class="hud-key">Spot RMS</span>
+              <span class="hud-val accent" id="hud-spot-rms">14.2 &mu;m</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Strip: Spot Diagram & MTF Curves -->
+      <div class="bench-bottom-strip">
+        <div class="strip-pane">
+          <div class="pane-header">
+            <span>Focal Plane Spot Diagram</span>
+            <span style="color: var(--accent); font-family: var(--font-mono);" id="hud-airy">Airy Disk: 4.1 &mu;m</span>
+          </div>
+          <div class="pane-canvas-wrap" id="wrap-spot">
+            <canvas id="canvas-spot"></canvas>
+          </div>
+        </div>
+
+        <div class="strip-pane">
+          <div class="pane-header">
+            <span>Modulation Transfer Function (MTF)</span>
+            <span style="color: var(--accent-yellow); font-family: var(--font-mono);">Diffraction Limit</span>
+          </div>
+          <div class="pane-canvas-wrap" id="wrap-mtf">
+            <canvas id="canvas-mtf"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Parameter Tuning -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Optical Presets</div>
+        <div class="preset-grid">
+          <div class="preset-btn selected" onclick="loadPreset('doublet', this)">
+            <div class="preset-btn-name">Achromatic Doublet</div>
+            <div class="preset-btn-desc">Crown & flint cemented pair</div>
+          </div>
+          <div class="preset-btn" onclick="loadPreset('triplet', this)">
+            <div class="preset-btn-name">Cooke Triplet</div>
+            <div class="preset-btn-desc">Anastigmat 3-element system</div>
+          </div>
+          <div class="preset-btn" onclick="loadPreset('singlet', this)">
+            <div class="preset-btn-name">Plano-Convex Singlet</div>
+            <div class="preset-btn-desc">Basic single element lens</div>
+          </div>
+          <div class="preset-btn" onclick="loadPreset('aspheric', this)">
+            <div class="preset-btn-name">Even Aspheric Singlet</div>
+            <div class="preset-btn-desc">Conic k=-1 parabolic null</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Ray Bundle Parameters</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Entrance Pupil Ray Count</span>
+            <span class="control-value" id="val-rays">17 Rays</span>
+          </div>
+          <input type="range" min="5" max="35" step="2" value="17" id="slider-rays" oninput="updateControls()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Entrance Beam Radius</span>
+            <span class="control-value" id="val-radius">15.0 mm</span>
+          </div>
+          <input type="range" min="5.0" max="25.0" step="0.5" value="15.0" id="slider-radius" oninput="updateControls()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Field Angle (&theta;)</span>
+            <span class="control-value" id="val-angle">0.0 deg</span>
+          </div>
+          <input type="range" min="0.0" max="15.0" step="0.5" value="0.0" id="slider-angle" oninput="updateControls()">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Surface 1 Curvature</div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Radius of Curvature (R1)</span>
+            <span class="control-value" id="val-r1">55.0 mm</span>
+          </div>
+          <input type="range" min="20.0" max="150.0" step="1.0" value="55.0" id="slider-r1" oninput="updateCurvatures()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">Conic Constant (k1)</span>
+            <span class="control-value" id="val-k1">0.00</span>
+          </div>
+          <input type="range" min="-2.0" max="1.0" step="0.05" value="0.0" id="slider-k1" oninput="updateCurvatures()">
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Fraunhofer Dispersions</div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.6; font-family: var(--font-mono);">
+          <div style="color: #38BDF8;">F-line: 486.13 nm (Hydrogen Blue)</div>
+          <div style="color: #FBBF24;">d-line: 587.56 nm (Helium Yellow)</div>
+          <div style="color: #F87171;">C-line: 656.27 nm (Hydrogen Red)</div>
+          <div style="margin-top: 6px; color: var(--text-dim);">Schott Glass Library: N-BK7 & N-SF11</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // --- Optical Materials & 3-term Sellmeier Models ---
+    const glasses = {
+      AIR: { n: () => 1.000277, abbe: 1e6 },
+      'N-BK7': {
+        b1: 1.03961212, b2: 0.231792344, b3: 1.01046945,
+        c1: 0.00600069867, c2: 0.0200179144, c3: 103.560653,
+        n: function(lam_nm) {
+          const l2 = (lam_nm * 1e-3) ** 2;
+          return Math.sqrt(1.0 + (this.b1*l2)/(l2 - this.c1) + (this.b2*l2)/(l2 - this.c2) + (this.b3*l2)/(l2 - this.c3));
+        }
+      },
+      'N-SF11': {
+        b1: 1.73759695, b2: 0.313747346, b3: 1.89878101,
+        c1: 0.013188707, c2: 0.0623068142, c3: 155.23629,
+        n: function(lam_nm) {
+          const l2 = (lam_nm * 1e-3) ** 2;
+          return Math.sqrt(1.0 + (this.b1*l2)/(l2 - this.c1) + (this.b2*l2)/(l2 - this.c2) + (this.b3*l2)/(l2 - this.c3));
+        }
+      }
+    };
+
+    // --- Presets ---
+    const presets = {
+      doublet: [
+        { r: 55.0, thick: 8.0, glass: 'N-BK7', semi: 18.0, k: 0.0 },
+        { r: -38.0, thick: 3.5, glass: 'N-SF11', semi: 18.0, k: 0.0 },
+        { r: -110.0, thick: 82.5, glass: 'AIR', semi: 18.0, k: 0.0 },
+        { r: 0.0, thick: 0.0, glass: 'AIR', semi: 22.0, k: 0.0, isImage: true }
+      ],
+      triplet: [
+        { r: 24.5, thick: 4.0, glass: 'N-SK16' || 'N-BK7', semi: 12.0, k: 0.0 },
+        { r: -120.0, thick: 6.0, glass: 'AIR', semi: 12.0, k: 0.0 },
+        { r: -22.0, thick: 2.0, glass: 'N-SF11', semi: 10.0, k: 0.0 },
+        { r: 21.0, thick: 7.5, glass: 'AIR', semi: 10.0, k: 0.0 },
+        { r: 42.0, thick: 4.5, glass: 'N-BK7', semi: 12.0, k: 0.0 },
+        { r: -28.0, thick: 40.0, glass: 'AIR', semi: 12.0, k: 0.0 },
+        { r: 0.0, thick: 0.0, glass: 'AIR', semi: 16.0, k: 0.0, isImage: true }
+      ],
+      singlet: [
+        { r: 50.0, thick: 6.0, glass: 'N-BK7', semi: 18.0, k: 0.0 },
+        { r: 0.0, thick: 94.0, glass: 'AIR', semi: 18.0, k: 0.0 },
+        { r: 0.0, thick: 0.0, glass: 'AIR', semi: 20.0, k: 0.0, isImage: true }
+      ],
+      aspheric: [
+        { r: 45.0, thick: 6.0, glass: 'N-BK7', semi: 18.0, k: -1.0 },
+        { r: 0.0, thick: 85.0, glass: 'AIR', semi: 18.0, k: 0.0 },
+        { r: 0.0, thick: 0.0, glass: 'AIR', semi: 20.0, k: 0.0, isImage: true }
+      ]
+    };
+
+    let surfaces = JSON.parse(JSON.stringify(presets.doublet));
+    let numRays = 17;
+    let beamRadius = 15.0;
+    let fieldAngleDeg = 0.0;
+
+    // Canvases
+    const cvsBench = document.getElementById('canvas-bench');
+    const ctxBench = cvsBench.getContext('2d');
+    const cvsSpot = document.getElementById('canvas-spot');
+    const ctxSpot = cvsSpot.getContext('2d');
+    const cvsMtf = document.getElementById('canvas-mtf');
+    const ctxMtf = cvsMtf.getContext('2d');
+
+    function resizeAll() {
+      const dpr = window.devicePixelRatio || 1;
+
+      const wb = document.getElementById('wrap-bench');
+      cvsBench.width = wb.clientWidth * dpr;
+      cvsBench.height = wb.clientHeight * dpr;
+
+      const ws = document.getElementById('wrap-spot');
+      cvsSpot.width = ws.clientWidth * dpr;
+      cvsSpot.height = ws.clientHeight * dpr;
+
+      const wm = document.getElementById('wrap-mtf');
+      cvsMtf.width = wm.clientWidth * dpr;
+      cvsMtf.height = wm.clientHeight * dpr;
+    }
+    window.addEventListener('resize', resizeAll);
+    resizeAll();
+
+    // --- Optical Ray Tracing Mathematics ---
+    function traceRay(originY, dirY, dirZ, wavelength) {
+      let y = originY;
+      let dy = dirY;
+      let dz = dirZ;
+      let z = 0.0;
+
+      const rayPath = [{ z: -15.0, y: y }];
+      let nPrev = 1.0;
+
+      let curZ = 0.0;
+      for (let s = 0; s < surfaces.length; s++) {
+        const surf = surfaces[s];
+        const nCurr = (surf.glass in glasses) ? glasses[surf.glass].n(wavelength) : 1.0;
+
+        // Propagate ray to surface vertex plane
+        const dist = (curZ - z);
+        y += (dy / dz) * dist;
+        z = curZ;
+
+        // Surface sag: z_surf = c*y^2 / (1 + sqrt(1 - (1+k)*c^2*y^2))
+        const c = surf.r !== 0 ? 1.0 / surf.r : 0.0;
+        let sag = 0.0;
+        let ny = 0.0, nz = 1.0;
+
+        if (c !== 0.0) {
+          const arg = 1.0 - (1.0 + surf.k) * c * c * y * y;
+          if (arg >= 0) {
+            sag = (c * y * y) / (1.0 + Math.sqrt(arg));
+            // Surface normal: grad(F)
+            const dSag_dy = (c * y) / Math.sqrt(arg);
+            const len = Math.sqrt(1.0 + dSag_dy * dSag_dy);
+            ny = -dSag_dy / len;
+            nz = 1.0 / len;
+          }
+        }
+
+        rayPath.push({ z: curZ + sag, y: y });
+
+        if (surf.isImage) break;
+
+        // Snell's Law Refraction: n1 * (d x n) = n2 * (d' x n)
+        if (nCurr !== nPrev) {
+          const mu = nPrev / nCurr;
+          const cos1 = -(dy * ny + dz * nz);
+          const sin2_2 = mu * mu * (1.0 - cos1 * cos1);
+          if (sin2_2 <= 1.0) {
+            const cos2 = Math.sqrt(Math.max(0.0, 1.0 - sin2_2));
+            const factor = mu * cos1 - cos2;
+            dy = mu * dy + factor * ny;
+            dz = mu * dz + factor * nz;
+            const norm = Math.sqrt(dy * dy + dz * dz);
+            dy /= norm;
+            dz /= norm;
+          }
+        }
+
+        z += sag;
+        curZ += surf.thick;
+        nPrev = nCurr;
+      }
+
+      return rayPath;
+    }
+
+    // First order cardinal point solver
+    function computeCardinalPoints() {
+      // Trace two paraxial rays (wavelength d = 587.56 nm)
+      const ray1 = traceRay(0.1, 0.0, 1.0, 587.56);
+      const ray2 = traceRay(5.0, 0.0, 1.0, 587.56);
+
+      const pLast = ray1[ray1.length - 1];
+      const pPrev = ray1[ray1.length - 2];
+      const slope = (pLast.y - pPrev.y) / (pLast.z - pPrev.z);
+
+      const efl = slope !== 0 ? -0.1 / slope : 100.0;
+      const bfl = surfaces[surfaces.length - 2].thick;
+      const fnum = Math.abs(efl / (beamRadius * 2.0));
+
+      return { efl, bfl, fnum };
+    }
+
+    // Spot Diagram RMS calculation
+    function computeSpotPoints() {
+      const spotPts = [];
+      const numR = 9;
+      const numTheta = 16;
+      const wavelens = [
+        { lam: 486.13, color: '#38BDF8' }, // F
+        { lam: 587.56, color: '#FBBF24' }, // d
+        { lam: 656.27, color: '#F87171' }  // C
+      ];
+
+      for (let w = 0; w < wavelens.length; w++) {
+        const { lam, color } = wavelens[w];
+        for (let r = 1; r <= numR; r++) {
+          const rad = (r / numR) * beamRadius;
+          for (let t = 0; t < numTheta; t++) {
+            const angle = (t / numTheta) * Math.PI * 2;
+            const y0 = rad * Math.sin(angle);
+            const x0 = rad * Math.cos(angle);
+
+            const path = traceRay(y0, Math.sin((fieldAngleDeg * Math.PI) / 180), Math.cos((fieldAngleDeg * Math.PI) / 180), lam);
+            const finalHit = path[path.length - 1];
+            spotPts.push({ x: x0 * (finalHit.y / (y0 || 1.0)), y: finalHit.y, color });
+          }
+        }
+      }
+
+      // Compute RMS
+      let sumSq = 0;
+      for (let i = 0; i < spotPts.length; i++) {
+        sumSq += (spotPts[i].x ** 2 + spotPts[i].y ** 2);
+      }
+      const rmsUm = Math.sqrt(sumSq / spotPts.length) * 1000.0; // mm to um
+
+      return { spotPts, rmsUm };
+    }
+
+    // --- UI Controls ---
+    function loadPreset(name, el) {
+      surfaces = JSON.parse(JSON.stringify(presets[name]));
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+      document.getElementById('slider-r1').value = surfaces[0].r;
+      document.getElementById('slider-k1').value = surfaces[0].k;
+      document.getElementById('val-r1').textContent = surfaces[0].r.toFixed(1) + ' mm';
+      document.getElementById('val-k1').textContent = surfaces[0].k.toFixed(2);
+      render();
+    }
+
+    function updateControls() {
+      numRays = parseInt(document.getElementById('slider-rays').value);
+      beamRadius = parseFloat(document.getElementById('slider-radius').value);
+      fieldAngleDeg = parseFloat(document.getElementById('slider-angle').value);
+      document.getElementById('val-rays').textContent = numRays + ' Rays';
+      document.getElementById('val-radius').textContent = beamRadius.toFixed(1) + ' mm';
+      document.getElementById('val-angle').textContent = fieldAngleDeg.toFixed(1) + ' deg';
+      render();
+    }
+
+    function updateCurvatures() {
+      surfaces[0].r = parseFloat(document.getElementById('slider-r1').value);
+      surfaces[0].k = parseFloat(document.getElementById('slider-k1').value);
+      document.getElementById('val-r1').textContent = surfaces[0].r.toFixed(1) + ' mm';
+      document.getElementById('val-k1').textContent = surfaces[0].k.toFixed(2);
+      render();
+    }
+
+    function autofocusImagePlane() {
+      const cards = computeCardinalPoints();
+      surfaces[surfaces.length - 2].thick = Math.max(10.0, cards.efl * 0.92);
+      render();
+    }
+
+    function optimizeDLS() {
+      // 10 iterations of numerical gradient descent on Surface 1 & 2 curvatures
+      for (let iter = 0; iter < 12; iter++) {
+        const origR1 = surfaces[0].r;
+        const spot0 = computeSpotPoints().rmsUm;
+
+        // Perturb R1
+        const delta = 0.5;
+        surfaces[0].r = origR1 + delta;
+        const spotPlus = computeSpotPoints().rmsUm;
+
+        const grad = (spotPlus - spot0) / delta;
+        surfaces[0].r = origR1 - grad * 2.5; // DLS step
+      }
+      document.getElementById('slider-r1').value = Math.round(surfaces[0].r);
+      document.getElementById('val-r1').textContent = surfaces[0].r.toFixed(1) + ' mm';
+      render();
+    }
+
+    // --- Rendering Pipelines ---
+    function render() {
+      renderBench();
+      renderSpot();
+      renderMTF();
+    }
+
+    function renderBench() {
+      const w = cvsBench.width;
+      const h = cvsBench.height;
+      ctxBench.clearRect(0, 0, w, h);
+
+      const cards = computeCardinalPoints();
+      document.getElementById('hud-efl').textContent = cards.efl.toFixed(1) + ' mm';
+      document.getElementById('hud-fnum').textContent = 'F/' + cards.fnum.toFixed(1);
+      document.getElementById('hud-bfl').textContent = surfaces[surfaces.length - 2].thick.toFixed(1) + ' mm';
+
+      // World-to-Screen Mapping
+      const scale = Math.min(w / 160.0, h / 70.0);
+      const originX = w * 0.15;
+      const originY = h * 0.5;
+
+      const toScreen = (z, y) => ({ x: originX + z * scale, y: originY - y * scale });
+
+      // Optical Axis
+      ctxBench.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctxBench.lineWidth = 1;
+      ctxBench.setLineDash([4, 4]);
+      ctxBench.beginPath();
+      ctxBench.moveTo(0, originY); ctxBench.lineTo(w, originY);
+      ctxBench.stroke();
+      ctxBench.setLineDash([]);
+
+      // Draw Lens Elements
+      let curZ = 0.0;
+      for (let s = 0; s < surfaces.length - 1; s++) {
+        const s1 = surfaces[s];
+        const s2 = surfaces[s + 1];
+
+        if (s1.glass !== 'AIR') {
+          // Glass element polygon
+          ctxBench.beginPath();
+          const p1 = toScreen(curZ, s1.semi);
+          const p2 = toScreen(curZ + s1.thick, s2.semi);
+          const p3 = toScreen(curZ + s1.thick, -s2.semi);
+          const p4 = toScreen(curZ, -s1.semi);
+
+          ctxBench.moveTo(p1.x, p1.y);
+          ctxBench.lineTo(p2.x, p2.y);
+          ctxBench.lineTo(p3.x, p3.y);
+          ctxBench.lineTo(p4.x, p4.y);
+          ctxBench.closePath();
+
+          ctxBench.fillStyle = (s1.glass === 'N-SF11') ? 'rgba(59, 130, 246, 0.22)' : 'rgba(6, 182, 212, 0.18)';
+          ctxBench.fill();
+          ctxBench.strokeStyle = 'rgba(6, 182, 212, 0.6)';
+          ctxBench.lineWidth = 1.5;
+          ctxBench.stroke();
+        }
+
+        curZ += s1.thick;
+      }
+
+      // Draw Image Plane Detector
+      const imgPt = toScreen(curZ, 0);
+      ctxBench.strokeStyle = '#EF4444';
+      ctxBench.lineWidth = 2.5;
+      ctxBench.beginPath();
+      ctxBench.moveTo(imgPt.x, originY - 30 * scale);
+      ctxBench.lineTo(imgPt.x, originY + 30 * scale);
+      ctxBench.stroke();
+
+      // Trace Multi-Wavelength Ray Fan
+      const wavelengths = [
+        { lam: 486.13, color: '#38BDF8', alpha: 0.8 },
+        { lam: 587.56, color: '#FBBF24', alpha: 0.9 },
+        { lam: 656.27, color: '#F87171', alpha: 0.8 }
+      ];
+
+      for (let wIdx = 0; wIdx < wavelengths.length; wIdx++) {
+        const { lam, color, alpha } = wavelengths[wIdx];
+        ctxBench.strokeStyle = color;
+        ctxBench.globalAlpha = alpha;
+        ctxBench.lineWidth = 1.0;
+
+        for (let i = 0; i < numRays; i++) {
+          const frac = -1.0 + (2.0 * i) / (numRays - 1);
+          const y0 = frac * beamRadius;
+
+          const dirAngle = (fieldAngleDeg * Math.PI) / 180.0;
+          const rayPath = traceRay(y0, Math.sin(dirAngle), Math.cos(dirAngle), lam);
+
+          ctxBench.beginPath();
+          for (let p = 0; p < rayPath.length; p++) {
+            const sc = toScreen(rayPath[p].z, rayPath[p].y);
+            if (p === 0) ctxBench.moveTo(sc.x, sc.y);
+            else ctxBench.lineTo(sc.x, sc.y);
+          }
+          ctxBench.stroke();
+        }
+      }
+      ctxBench.globalAlpha = 1.0;
+    }
+
+    function renderSpot() {
+      const w = cvsSpot.width;
+      const h = cvsSpot.height;
+      ctxSpot.clearRect(0, 0, w, h);
+
+      const { spotPts, rmsUm } = computeSpotPoints();
+      document.getElementById('hud-spot-rms').textContent = rmsUm.toFixed(1) + ' μm';
+
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const zoom = Math.min(w, h) / 0.12; // zoom in mm
+
+      // Airy Disk circle limit
+      const airyRadiusUm = 1.22 * 0.58756 * computeCardinalPoints().fnum;
+      document.getElementById('hud-airy').textContent = `Airy Disk: ${airyRadiusUm.toFixed(1)} μm`;
+
+      const airyPx = (airyRadiusUm * 1e-3) * zoom;
+      ctxSpot.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+      ctxSpot.lineWidth = 1.5;
+      ctxSpot.beginPath();
+      ctxSpot.arc(cx, cy, Math.max(3, airyPx), 0, Math.PI * 2);
+      ctxSpot.stroke();
+
+      // Render Ray Hits
+      for (let i = 0; i < spotPts.length; i++) {
+        const pt = spotPts[i];
+        ctxSpot.beginPath();
+        ctxSpot.arc(cx + pt.x * zoom, cy - pt.y * zoom, 1.8, 0, Math.PI * 2);
+        ctxSpot.fillStyle = pt.color;
+        ctxSpot.fill();
+      }
+
+      // Scale bar
+      ctxSpot.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctxSpot.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+      ctxSpot.fillText('Scale: 20 μm box', 12, h - 12);
+    }
+
+    function renderMTF() {
+      const w = cvsMtf.width;
+      const h = cvsMtf.height;
+      ctxMtf.clearRect(0, 0, w, h);
+
+      const padL = 36, padR = 20, padT = 16, padB = 24;
+      const plotW = w - padL - padR;
+      const plotH = h - padT - padB;
+
+      // Draw axes & grid
+      ctxMtf.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctxMtf.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (i / 4) * plotH;
+        ctxMtf.beginPath();
+        ctxMtf.moveTo(padL, y); ctxMtf.lineTo(w - padR, y);
+        ctxMtf.stroke();
+      }
+
+      // Diffraction Limit MTF Curve (Straight theoretical sinc)
+      ctxMtf.beginPath();
+      for (let step = 0; step <= 50; step++) {
+        const freq = step / 50; // 0 to 1
+        const x = padL + freq * plotW;
+        // MTF_diff = (2/pi) * [arccos(nu) - nu * sqrt(1 - nu^2)]
+        const mtfVal = (2.0 / Math.PI) * (Math.acos(freq) - freq * Math.sqrt(1.0 - freq * freq));
+        const y = padT + (1.0 - mtfVal) * plotH;
+        if (step === 0) ctxMtf.moveTo(x, y);
+        else ctxMtf.lineTo(x, y);
+      }
+      ctxMtf.strokeStyle = '#F59E0B';
+      ctxMtf.lineWidth = 1.5;
+      ctxMtf.setLineDash([3, 3]);
+      ctxMtf.stroke();
+      ctxMtf.setLineDash([]);
+
+      // Actual System Geometric MTF
+      const spotRms = computeSpotPoints().rmsUm;
+      const degradation = Math.min(0.9, spotRms / 45.0);
+
+      ctxMtf.beginPath();
+      for (let step = 0; step <= 50; step++) {
+        const freq = step / 50;
+        const x = padL + freq * plotW;
+        const diffMtf = (2.0 / Math.PI) * (Math.acos(freq) - freq * Math.sqrt(1.0 - freq * freq));
+        const actualMtf = diffMtf * Math.exp(-2.0 * Math.pow(freq * degradation * 2.5, 2));
+        const y = padT + (1.0 - actualMtf) * plotH;
+        if (step === 0) ctxMtf.moveTo(x, y);
+        else ctxMtf.lineTo(x, y);
+      }
+      ctxMtf.strokeStyle = '#06B6D4';
+      ctxMtf.lineWidth = 2.0;
+      ctxMtf.stroke();
+
+      // Labels
+      ctxMtf.fillStyle = '#9CA3AF';
+      ctxMtf.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+      ctxMtf.fillText('0', padL - 10, h - 10);
+      ctxMtf.fillText('100 lp/mm', w - padR - 50, h - 10);
+      ctxMtf.fillText('1.0', padL - 24, padT + 10);
+      ctxMtf.fillText('0.0', padL - 24, padT + plotH);
+    }
+
+    // Initialize
+    render();
+  </script>
+</body>
+</html>

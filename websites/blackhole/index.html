@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlackHole Studio - General Relativistic Spacetime Raymarcher</title>
+  <style>
+    :root {
+      --bg: #080C14;
+      --surface: #0F172A;
+      --card: #162032;
+      --border: #1F2E47;
+      --border-hover: #334B6E;
+      --accent: #06B6D4;
+      --accent-glow: rgba(6, 182, 212, 0.35);
+      --accent-purple: #8B5CF6;
+      --accent-amber: #F59E0B;
+      --accent-rose: #F43F5E;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation */
+    header {
+      height: 54px;
+      background: rgba(15, 23, 42, 0.9);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+      color: #FFF;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-chip {
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+
+    .btn {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #080C14;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #22D3EE;
+      color: #080C14;
+    }
+
+    /* Main Split View */
+    .workspace {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .viewport-container {
+      flex: 1;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .viewport-container:active {
+      cursor: grabbing;
+    }
+
+    canvas#glcanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Floating HUD Overlays */
+    .viewport-hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .hud-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent);
+    }
+
+    .hud-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .metric-row span:first-child {
+      color: var(--text-muted);
+    }
+
+    .metric-row span:last-child {
+      color: var(--text);
+      font-weight: 600;
+      margin-left: 6px;
+    }
+
+    .controls-hint {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      backdrop-filter: blur(6px);
+      pointer-events: none;
+    }
+
+    /* Right Sidebar Control Deck */
+    .sidebar {
+      width: 360px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Presets Grid */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .preset-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .preset-btn.active {
+      border-color: var(--accent);
+      background: rgba(6, 182, 212, 0.12);
+      color: var(--accent);
+    }
+
+    /* Slider Group */
+    .param-group {
+      margin-bottom: 12px;
+    }
+
+    .param-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .param-label {
+      color: var(--text-muted);
+    }
+
+    .param-val {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: var(--card);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    /* Toggle Switches */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: background 0.2s;
+    }
+
+    .toggle-switch.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      background: #FFF;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle-switch.active .toggle-knob {
+      transform: translateX(16px);
+      background: #080C14;
+    }
+
+    /* Telemetry Diagnostics Cards */
+    .diag-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .diag-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .diag-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    /* Button Bar */
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="logo-badge">BLACKHOLE</div>
+      <div class="brand-title">Relativitas <span>Studio</span></div>
+      <span class="badge-chip">GR Geodesic Raymarcher</span>
+    </div>
+    <div class="header-links">
+      <button class="btn" onclick="captureSnapshot()">📷 Snapshot</button>
+      <a href="../index.html" class="btn">&larr; Showcase Hub</a>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- Viewport with WebGL Canvas -->
+    <div class="viewport-container" id="viewport">
+      <canvas id="glcanvas"></canvas>
+
+      <!-- Overlay Telemetry HUD -->
+      <div class="viewport-hud">
+        <div class="hud-title">SPACETIME TELEMETRY</div>
+        <div class="hud-metrics">
+          <div class="metric-row"><span>Event Horizon (r+):</span><span id="m-rh">2.00 M</span></div>
+          <div class="metric-row"><span>Photon Sphere (r_ph):</span><span id="m-rph">3.00 M</span></div>
+          <div class="metric-row"><span>ISCO Radius (r_isco):</span><span id="m-risco">6.00 M</span></div>
+          <div class="metric-row"><span>Doppler Boost (δ_max):</span><span id="m-doppler">3.42x</span></div>
+          <div class="metric-row"><span>Camera Inclination:</span><span id="m-inc">12.0°</span></div>
+          <div class="metric-row"><span>FPS / Render Steps:</span><span id="m-fps">60.0 • 85</span></div>
+        </div>
+      </div>
+
+      <div class="controls-hint">
+        Left-drag to Orbit • Scroll to Zoom • Right-drag to Pan
+      </div>
+    </div>
+
+    <!-- Sidebar Control Deck -->
+    <div class="sidebar">
+      <!-- 1. Presets -->
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span>Relativistic Presets</span>
+        </div>
+        <div class="preset-grid">
+          <button class="preset-btn active" onclick="loadPreset('gargantua')">Gargantua (Accretion)</button>
+          <button class="preset-btn" onclick="loadPreset('extreme_kerr')">Extreme Kerr (a=0.98)</button>
+          <button class="preset-btn" onclick="loadPreset('einstein_ring')">Einstein Ring</button>
+          <button class="preset-btn" onclick="loadPreset('metric_grid')">Spacetime Funnel</button>
+        </div>
+      </div>
+
+      <!-- 2. Black Hole Metric Parameters -->
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span>Metric & Spin Parameters</span>
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-label">Black Hole Mass (M):</span>
+            <span class="param-val" id="val-mass">1.00</span>
+          </div>
+          <input type="range" id="slider-mass" min="0.5" max="3.0" step="0.05" value="1.0">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-label">Kerr Spin Parameter (a / M):</span>
+            <span class="param-val" id="val-spin">0.00</span>
+          </div>
+          <input type="range" id="slider-spin" min="0.0" max="0.99" step="0.01" value="0.00">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-label">Accretion Disk Inner (r_in):</span>
+            <span class="param-val" id="val-rin">3.00 r_s</span>
+          </div>
+          <input type="range" id="slider-rin" min="1.0" max="5.0" step="0.1" value="3.0">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-label">Accretion Disk Outer (r_out):</span>
+            <span class="param-val" id="val-rout">9.00 r_s</span>
+          </div>
+          <input type="range" id="slider-rout" min="4.0" max="18.0" step="0.2" value="9.0">
+        </div>
+      </div>
+
+      <!-- 3. Relativistic Optics & Radiance -->
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span>Relativistic Optics & Doppler</span>
+        </div>
+
+        <div class="toggle-row" onclick="toggleOption('doppler')">
+          <span>Relativistic Doppler Beaming</span>
+          <div class="toggle-switch active" id="toggle-doppler"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleOption('redshift')">
+          <span>Gravitational Redshift</span>
+          <div class="toggle-switch active" id="toggle-redshift"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleOption('grid')">
+          <span>Equatorial Metric Grid</span>
+          <div class="toggle-switch" id="toggle-grid"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div class="toggle-row" onclick="toggleOption('photonring')">
+          <span>Enhance Photon Ring Glow</span>
+          <div class="toggle-switch active" id="toggle-photonring"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div class="param-group" style="margin-top: 12px;">
+          <div class="param-header">
+            <span class="param-label">Disk Luminosity / Opacity:</span>
+            <span class="param-val" id="val-lum">1.40</span>
+          </div>
+          <input type="range" id="slider-lum" min="0.2" max="3.0" step="0.05" value="1.40">
+        </div>
+
+        <div class="param-group">
+          <div class="param-header">
+            <span class="param-label">Raymarch Quality / Steps:</span>
+            <span class="param-val" id="val-steps">85 steps</span>
+          </div>
+          <input type="range" id="slider-steps" min="40" max="150" step="5" value="85">
+        </div>
+      </div>
+
+      <!-- 4. General Relativity Diagnostics -->
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span>Theoretical Physics Notes</span>
+        </div>
+
+        <div class="diag-card">
+          <div class="diag-title">Double Accretion Disk Lensing</div>
+          <div class="diag-desc">
+            Strong gravitational bending curls light paths from the rear of the accretion disk both <em>over</em> and <em>under</em> the event horizon, forming the iconic double-halo silhouette.
+          </div>
+        </div>
+
+        <div class="diag-card">
+          <div class="diag-title">Doppler Asymmetry & Relativistic Beaming</div>
+          <div class="diag-desc">
+            Plasma orbiting towards the camera at relativistic velocities ($v \sim 0.5c$) is blue-shifted and boosted in intensity by $\delta^4$, while plasma moving away is severely dimmed and red-shifted.
+          </div>
+        </div>
+
+        <div class="diag-card">
+          <div class="diag-title">Kerr Ergosphere & Frame Dragging</div>
+          <div class="diag-desc">
+            Spin parameter $a > 0$ breaks spherical symmetry, dragging spacetime itself and creating an oblate ergosphere where nothing can remain stationary relative to infinity.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Shaders for Curved Spacetime Geodesic Raymarching ---
+
+    const VS_SOURCE = `
+      attribute vec2 a_position;
+      varying vec2 v_uv;
+      void main() {
+        v_uv = a_position * 0.5 + 0.5;
+        gl_Position = vec4(a_position, 0.0, 1.0);
+      }
+    `;
+
+    const FS_SOURCE = `
+      precision highp float;
+      varying vec2 v_uv;
+
+      uniform vec2 u_resolution;
+      uniform float u_time;
+      uniform vec3 u_cameraPos;
+      uniform vec3 u_cameraTarget;
+      uniform float u_mass;
+      uniform float u_spin;
+      uniform float u_rin;
+      uniform float u_rout;
+      uniform float u_luminosity;
+      uniform int u_maxSteps;
+      uniform bool u_enableDoppler;
+      uniform bool u_enableRedshift;
+      uniform bool u_enableGrid;
+      uniform bool u_enhancePhotonRing;
+
+      // Mathematical constants
+      #define PI 3.14159265359
+
+      // Procedural pseudo-random hash
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+      }
+
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+      }
+
+      float fbm(vec2 p) {
+        float v = 0.0;
+        float a = 0.5;
+        for (int i = 0; i < 3; i++) {
+          v += a * noise(p);
+          p *= 2.1;
+          a *= 0.5;
+        }
+        return v;
+      }
+
+      // Background celestial starfield with Milky Way nebula dust
+      vec3 sampleStarfield(vec3 dir) {
+        // Celestial sphere coordinates
+        float u = 0.5 + atan(dir.z, dir.x) / (2.0 * PI);
+        float v = 0.5 - asin(clamp(dir.y, -1.0, 1.0)) / PI;
+
+        // Base cosmic deep space background
+        vec3 col = vec3(0.004, 0.007, 0.015);
+
+        // Nebula galactic band
+        float band = exp(-pow(dir.y * 3.5, 2.0));
+        float nebNoise = fbm(vec2(u * 12.0, v * 8.0));
+        vec3 nebCol = mix(vec3(0.12, 0.04, 0.25), vec3(0.04, 0.18, 0.35), nebNoise);
+        col += nebCol * band * 0.85;
+
+        // Pinpoint stars
+        vec2 starUv = vec2(u * 300.0, v * 150.0);
+        float star = hash(floor(starUv));
+        if (star > 0.985) {
+          float bright = pow((star - 0.985) / 0.015, 6.0);
+          vec3 starColor = mix(vec3(0.7, 0.85, 1.0), vec3(1.0, 0.9, 0.7), hash(floor(starUv) + 1.3));
+          col += starColor * bright * 2.5;
+        }
+
+        return col;
+      }
+
+      // Blackbody-like radiation colormap for accretion disk
+      vec3 blackbodyColormap(float temp) {
+        temp = clamp(temp, 0.0, 1.0);
+        // Cool dark red -> vibrant orange -> yellow -> white-blue
+        vec3 c1 = vec3(0.55, 0.08, 0.02); // Deep red
+        vec3 c2 = vec3(0.95, 0.45, 0.05); // Hot orange
+        vec3 c3 = vec3(1.00, 0.90, 0.40); // Yellow
+        vec3 c4 = vec3(0.85, 0.92, 1.00); // White-blue
+
+        if (temp < 0.33) {
+          return mix(c1, c2, temp / 0.33);
+        } else if (temp < 0.66) {
+          return mix(c2, c3, (temp - 0.33) / 0.33);
+        } else {
+          return mix(c3, c4, (temp - 0.66) / 0.34);
+        }
+      }
+
+      void main() {
+        vec2 st = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
+
+        // Camera ray setup with lookAt matrix
+        vec3 ro = u_cameraPos;
+        vec3 target = u_cameraTarget;
+        vec3 fwd = normalize(target - ro);
+        vec3 right = normalize(cross(fwd, vec3(0.0, 1.0, 0.0)));
+        vec3 up = cross(right, fwd);
+        vec3 rd = normalize(fwd * 1.8 + right * st.x + up * st.y);
+
+        // General Relativity constants
+        float M = u_mass;
+        float rs = 2.0 * M;
+        float a = u_spin * M;
+        // Event horizon for Kerr metric: r+ = M + sqrt(M^2 - a^2)
+        float r_plus = M + sqrt(max(0.001, M * M - a * a));
+        float r_isco = u_rin * rs;
+        float r_out = u_rout * rs;
+
+        // Geodesic raymarching variables
+        vec3 pos = ro;
+        vec3 vel = rd; // Initial light ray velocity
+        vec3 accumColor = vec3(0.0);
+        float transmittance = 1.0;
+
+        float h = 0.14; // Adaptive raymarch step size
+        bool swallowed = false;
+
+        // Raymarch loop through curved spacetime
+        for (int step = 0; step < 140; step++) {
+          if (step >= u_maxSteps) break;
+
+          float r = length(pos);
+
+          // Check if ray entered the event horizon
+          if (r <= r_plus) {
+            swallowed = true;
+            break;
+          }
+
+          // Ray escaped into deep space
+          if (r > 38.0) {
+            break;
+          }
+
+          // Curved Spacetime Gravitational Deflection
+          // 1. Classical Newtonian-like radial attraction
+          // 2. Relativistic 1.5 * rs * (r x v)^2 / r^5 angular momentum deflection
+          vec3 L = cross(pos, vel);
+          float L2 = dot(L, L);
+          vec3 accel = -(1.5 * rs * L2 / pow(r, 5.0)) * pos - (M / pow(r, 3.0)) * pos;
+
+          // Kerr Frame Dragging perturbation (around Z axis)
+          if (a > 0.001) {
+            vec3 zAxis = vec3(0.0, 1.0, 0.0);
+            vec3 frameDrag = (2.0 * M * a / pow(r, 5.0)) * cross(L, zAxis);
+            accel += frameDrag;
+          }
+
+          // Runge-Kutta / Euler predictor step
+          vec3 prevPos = pos;
+          vel += accel * h;
+          pos += vel * h;
+
+          // Normalize light ray speed to c = 1.0
+          vel = normalize(vel);
+
+          // Adaptive step size: smaller steps near photon sphere (r ~ 1.5 rs), larger far away
+          h = clamp(r * 0.05, 0.02, 0.45);
+
+          // Check intersection with equatorial accretion disk (Y = 0 plane)
+          if ((prevPos.y * pos.y) <= 0.0) {
+            // Find interpolation factor t where y = 0
+            float t = -prevPos.y / (pos.y - prevPos.y);
+            vec3 hitPos = mix(prevPos, pos, t);
+            float diskR = length(hitPos.xz);
+
+            if (diskR >= r_isco && diskR <= r_out) {
+              // Shakura-Sunyaev thin accretion disk temperature profile:
+              // T(r) ~ r^(-3/4) * (1 - sqrt(r_in / r))^(1/4)
+              float normR = (diskR - r_isco) / (r_out - r_isco);
+              float tProfile = pow(r_isco / diskR, 0.75) * pow(max(0.001, 1.0 - sqrt(r_isco / diskR)), 0.25);
+
+              // Azimuthal angle and Keplerian orbital velocity
+              float phi = atan(hitPos.z, hitPos.x);
+              // Plasma orbital speed: v/c = sqrt(M / diskR)
+              float vOrb = sqrt(clamp(M / diskR, 0.0, 0.85));
+              vec3 vDir = vec3(-sin(phi), 0.0, cos(phi));
+
+              // Line of sight velocity: plasma velocity dot photon arrival direction (-vel)
+              float vLos = dot(vDir, -vel) * vOrb;
+
+              // Relativistic Doppler beaming factor:
+              // delta = sqrt(1 - v^2) / (1 - v_los)
+              float gamma = 1.0 / sqrt(max(0.05, 1.0 - vOrb * vOrb));
+              float delta = 1.0;
+              if (u_enableDoppler) {
+                delta = 1.0 / (gamma * max(0.1, 1.0 - vLos));
+              }
+
+              // Gravitational redshift: g = sqrt(1 - rs / r)
+              float gRedshift = 1.0;
+              if (u_enableRedshift) {
+                gRedshift = sqrt(max(0.05, 1.0 - rs / diskR));
+              }
+
+              // Turbulent plasma noise across disk
+              float rotSpeed = u_time * 0.8 * sqrt(M / pow(diskR, 1.5));
+              vec2 diskCoord = vec2(diskR * 2.0, (phi + rotSpeed) * 3.0);
+              float turb = fbm(diskCoord);
+
+              // Temperature and radiance evaluation
+              float effectiveTemp = tProfile * delta * gRedshift * (0.8 + 0.4 * turb);
+              vec3 emitColor = blackbodyColormap(effectiveTemp * 1.5);
+
+              // Relativistic Doppler Intensity Boost I ~ delta^4
+              float boost = pow(delta, 3.2);
+              emitColor *= boost * u_luminosity;
+
+              // Grid overlay option
+              if (u_enableGrid) {
+                float rGrid = abs(fract(diskR * 1.0) - 0.5);
+                float phiGrid = abs(fract(phi * 4.0 / PI) - 0.5);
+                if (rGrid < 0.06 || phiGrid < 0.06) {
+                  emitColor += vec3(0.2, 0.8, 1.0) * 1.8;
+                }
+              }
+
+              // Optical thickness & alpha blending
+              float opacity = clamp(tProfile * 1.2 * (0.6 + 0.4 * turb), 0.0, 0.95);
+              accumColor += emitColor * opacity * transmittance;
+              transmittance *= (1.0 - opacity);
+
+              if (transmittance < 0.03) {
+                break;
+              }
+            }
+          }
+
+          // Secondary Photon Ring enhancement
+          if (u_enhancePhotonRing) {
+            float rPhoton = 1.5 * rs;
+            float drPhoton = abs(r - rPhoton);
+            if (drPhoton < 0.35) {
+              float glow = exp(-pow(drPhoton / 0.15, 2.0)) * 0.08 * u_luminosity;
+              accumColor += vec3(0.95, 0.85, 0.6) * glow * transmittance;
+            }
+          }
+        }
+
+        // Final composition: background starfield if light ray escaped
+        if (!swallowed) {
+          vec3 starfield = sampleStarfield(vel);
+          accumColor += starfield * transmittance;
+        }
+
+        // Vignette and tone mapping
+        float vig = 1.0 - dot(st, st) * 0.35;
+        accumColor *= vig;
+
+        // ACES-like filmic tone mapping
+        accumColor = (accumColor * (2.51 * accumColor + 0.03)) / (accumColor * (2.43 * accumColor + 0.59) + 0.14);
+
+        gl_FragColor = vec4(clamp(accumColor, 0.0, 1.0), 1.0);
+      }
+    `;
+
+    // --- WebGL Engine & App Architecture ---
+
+    let gl;
+    let program;
+    let uLocs = {};
+    let animId;
+
+    // Simulation Parameters
+    const params = {
+      mass: 1.0,
+      spin: 0.0,
+      rin: 3.0,
+      rout: 9.0,
+      luminosity: 1.4,
+      maxSteps: 85,
+      enableDoppler: true,
+      enableRedshift: true,
+      enableGrid: false,
+      enhancePhotonRing: true,
+      camDist: 18.0,
+      camAzimuth: 45.0,
+      camElevation: 14.0
+    };
+
+    // Camera Navigation State
+    let isDragging = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let isRightDrag = false;
+    let camTarget = [0.0, 0.0, 0.0];
+
+    // FPS Telemetry
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let currentFps = 60.0;
+
+    function initGL() {
+      const canvas = document.getElementById("glcanvas");
+      gl = canvas.getContext("webgl", { antialias: false, alpha: false });
+      if (!gl) {
+        alert("WebGL is required to run BlackHole Studio.");
+        return;
+      }
+
+      // Compile Shaders
+      const vs = compileShader(gl, gl.VERTEX_SHADER, VS_SOURCE);
+      const fs = compileShader(gl, gl.FRAGMENT_SHADER, FS_SOURCE);
+      program = gl.createProgram();
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error("Program link error:", gl.getProgramInfoLog(program));
+        return;
+      }
+
+      gl.useProgram(program);
+
+      // Fullscreen quad
+      const quadBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1,
+      ]), gl.STATIC_DRAW);
+
+      const aPos = gl.getAttribLocation(program, "a_position");
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      // Cache Uniform Locations
+      const uNames = [
+        "u_resolution", "u_time", "u_cameraPos", "u_cameraTarget",
+        "u_mass", "u_spin", "u_rin", "u_rout", "u_luminosity",
+        "u_maxSteps", "u_enableDoppler", "u_enableRedshift",
+        "u_enableGrid", "u_enhancePhotonRing"
+      ];
+      uNames.forEach(name => {
+        uLocs[name] = gl.getUniformLocation(program, name);
+      });
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+      setupEvents();
+      updateHUD();
+      requestAnimationFrame(renderLoop);
+    }
+
+    function compileShader(gl, type, source) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, source);
+      gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error("Shader compile error:", gl.getShaderInfoLog(s));
+      }
+      return s;
+    }
+
+    function resizeCanvas() {
+      const canvas = document.getElementById("glcanvas");
+      const vp = document.getElementById("viewport");
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const w = Math.floor(vp.clientWidth * dpr);
+      const h = Math.floor(vp.clientHeight * dpr);
+
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
+    }
+
+    function renderLoop(timeMs) {
+      const now = performance.now();
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      frameCount++;
+      if (frameCount % 15 === 0) {
+        currentFps = 0.8 * currentFps + 0.2 * (1.0 / Math.max(0.001, dt));
+        document.getElementById("m-fps").innerText = `${currentFps.toFixed(1)} • ${params.maxSteps}`;
+      }
+
+      const canvas = document.getElementById("glcanvas");
+      const timeSec = timeMs * 0.001;
+
+      // Compute Camera Position from Spherical Coordinates
+      const azRad = (params.camAzimuth * Math.PI) / 180.0;
+      const elRad = (params.camElevation * Math.PI) / 180.0;
+      const dHoriz = params.camDist * Math.cos(elRad);
+      const camX = camTarget[0] + dHoriz * Math.sin(azRad);
+      const camY = camTarget[1] + params.camDist * Math.sin(elRad);
+      const camZ = camTarget[2] + dHoriz * Math.cos(azRad);
+
+      gl.useProgram(program);
+
+      // Pass Uniforms
+      gl.uniform2f(uLocs.u_resolution, canvas.width, canvas.height);
+      gl.uniform1f(uLocs.u_time, timeSec);
+      gl.uniform3f(uLocs.u_cameraPos, camX, camY, camZ);
+      gl.uniform3f(uLocs.u_cameraTarget, camTarget[0], camTarget[1], camTarget[2]);
+      gl.uniform1f(uLocs.u_mass, params.mass);
+      gl.uniform1f(uLocs.u_spin, params.spin);
+      gl.uniform1f(uLocs.u_rin, params.rin);
+      gl.uniform1f(uLocs.u_rout, params.rout);
+      gl.uniform1f(uLocs.u_luminosity, params.luminosity);
+      gl.uniform1i(uLocs.u_maxSteps, params.maxSteps);
+      gl.uniform1i(uLocs.u_enableDoppler, params.enableDoppler ? 1 : 0);
+      gl.uniform1i(uLocs.u_enableRedshift, params.enableRedshift ? 1 : 0);
+      gl.uniform1i(uLocs.u_enableGrid, params.enableGrid ? 1 : 0);
+      gl.uniform1i(uLocs.u_enhancePhotonRing, params.enhancePhotonRing ? 1 : 0);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    function setupEvents() {
+      const vp = document.getElementById("viewport");
+
+      vp.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        isRightDrag = (e.button === 2);
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastMouseX;
+        const dy = e.clientY - lastMouseY;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+
+        if (isRightDrag) {
+          // Pan camera target
+          const panSpeed = params.camDist * 0.002;
+          const azRad = (params.camAzimuth * Math.PI) / 180.0;
+          camTarget[0] -= (Math.cos(azRad) * dx - Math.sin(azRad) * dy) * panSpeed;
+          camTarget[2] += (Math.sin(azRad) * dx + Math.cos(azRad) * dy) * panSpeed;
+        } else {
+          // Orbit camera
+          params.camAzimuth = (params.camAzimuth + dx * 0.4) % 360.0;
+          params.camElevation = Math.max(-85.0, Math.min(85.0, params.camElevation - dy * 0.3));
+          document.getElementById("m-inc").innerText = `${params.camElevation.toFixed(1)}°`;
+        }
+      });
+
+      window.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+
+      vp.addEventListener("contextmenu", (e) => e.preventDefault());
+
+      vp.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const factor = e.deltaY > 0 ? 1.08 : 0.92;
+        params.camDist = Math.max(4.0, Math.min(70.0, params.camDist * factor));
+      }, { passive: false });
+
+      // Connect Sliders
+      setupSlider("mass", (v) => {
+        params.mass = v;
+        document.getElementById("val-mass").innerText = v.toFixed(2);
+        updateHUD();
+      });
+
+      setupSlider("spin", (v) => {
+        params.spin = v;
+        document.getElementById("val-spin").innerText = v.toFixed(2);
+        updateHUD();
+      });
+
+      setupSlider("rin", (v) => {
+        params.rin = v;
+        document.getElementById("val-rin").innerText = `${v.toFixed(2)} r_s`;
+        updateHUD();
+      });
+
+      setupSlider("rout", (v) => {
+        params.rout = v;
+        document.getElementById("val-rout").innerText = `${v.toFixed(2)} r_s`;
+        updateHUD();
+      });
+
+      setupSlider("lum", (v) => {
+        params.luminosity = v;
+        document.getElementById("val-lum").innerText = v.toFixed(2);
+      });
+
+      setupSlider("steps", (v) => {
+        params.maxSteps = parseInt(v);
+        document.getElementById("val-steps").innerText = `${params.maxSteps} steps`;
+      });
+    }
+
+    function setupSlider(id, callback) {
+      const slider = document.getElementById(`slider-${id}`);
+      slider.addEventListener("input", (e) => callback(parseFloat(e.target.value)));
+    }
+
+    function toggleOption(id) {
+      if (id === "doppler") {
+        params.enableDoppler = !params.enableDoppler;
+        document.getElementById("toggle-doppler").classList.toggle("active", params.enableDoppler);
+      } else if (id === "redshift") {
+        params.enableRedshift = !params.enableRedshift;
+        document.getElementById("toggle-redshift").classList.toggle("active", params.enableRedshift);
+      } else if (id === "grid") {
+        params.enableGrid = !params.enableGrid;
+        document.getElementById("toggle-grid").classList.toggle("active", params.enableGrid);
+      } else if (id === "photonring") {
+        params.enhancePhotonRing = !params.enhancePhotonRing;
+        document.getElementById("toggle-photonring").classList.toggle("active", params.enhancePhotonRing);
+      }
+      updateHUD();
+    }
+
+    function updateHUD() {
+      const M = params.mass;
+      const a = params.spin * M;
+      const r_plus = M + Math.sqrt(Math.max(0.001, M * M - a * a));
+      const r_ph = 3.0 * M;
+      const r_isco = params.rin * (2.0 * M);
+
+      // Max line-of-sight Doppler boost estimation
+      const v_isco = Math.sqrt(Math.min(0.8, M / r_isco));
+      const gamma = 1.0 / Math.sqrt(Math.max(0.05, 1.0 - v_isco * v_isco));
+      const delta_max = 1.0 / (gamma * (1.0 - v_isco));
+      const boost_factor = params.enableDoppler ? Math.pow(delta_max, 3.2) : 1.0;
+
+      document.getElementById("m-rh").innerText = `${r_plus.toFixed(2)} M`;
+      document.getElementById("m-rph").innerText = `${r_ph.toFixed(2)} M`;
+      document.getElementById("m-risco").innerText = `${r_isco.toFixed(2)} M`;
+      document.getElementById("m-doppler").innerText = `${boost_factor.toFixed(2)}x`;
+      document.getElementById("m-inc").innerText = `${params.camElevation.toFixed(1)}°`;
+    }
+
+    // --- Curated Presets ---
+
+    const PRESETS = {
+      gargantua: {
+        mass: 1.0,
+        spin: 0.25,
+        rin: 3.0,
+        rout: 9.0,
+        luminosity: 1.5,
+        enableDoppler: true,
+        enableRedshift: true,
+        enableGrid: false,
+        enhancePhotonRing: true,
+        camDist: 18.0,
+        camAzimuth: 40.0,
+        camElevation: 12.0
+      },
+      extreme_kerr: {
+        mass: 1.0,
+        spin: 0.98,
+        rin: 1.6,
+        rout: 8.0,
+        luminosity: 1.8,
+        enableDoppler: true,
+        enableRedshift: true,
+        enableGrid: false,
+        enhancePhotonRing: true,
+        camDist: 14.0,
+        camAzimuth: 85.0,
+        camElevation: 8.0
+      },
+      einstein_ring: {
+        mass: 1.2,
+        spin: 0.0,
+        rin: 3.2,
+        rout: 10.0,
+        luminosity: 0.8,
+        enableDoppler: false,
+        enableRedshift: true,
+        enableGrid: false,
+        enhancePhotonRing: true,
+        camDist: 22.0,
+        camAzimuth: 0.0,
+        camElevation: 82.0
+      },
+      metric_grid: {
+        mass: 1.0,
+        spin: 0.5,
+        rin: 2.5,
+        rout: 12.0,
+        luminosity: 1.2,
+        enableDoppler: true,
+        enableRedshift: true,
+        enableGrid: true,
+        enhancePhotonRing: true,
+        camDist: 20.0,
+        camAzimuth: 45.0,
+        camElevation: 30.0
+      }
+    };
+
+    function loadPreset(key) {
+      const p = PRESETS[key];
+      if (!p) return;
+
+      Object.assign(params, p);
+
+      // Update UI Controls
+      document.getElementById("slider-mass").value = p.mass;
+      document.getElementById("val-mass").innerText = p.mass.toFixed(2);
+
+      document.getElementById("slider-spin").value = p.spin;
+      document.getElementById("val-spin").innerText = p.spin.toFixed(2);
+
+      document.getElementById("slider-rin").value = p.rin;
+      document.getElementById("val-rin").innerText = `${p.rin.toFixed(2)} r_s`;
+
+      document.getElementById("slider-rout").value = p.rout;
+      document.getElementById("val-rout").innerText = `${p.rout.toFixed(2)} r_s`;
+
+      document.getElementById("slider-lum").value = p.luminosity;
+      document.getElementById("val-lum").innerText = p.luminosity.toFixed(2);
+
+      document.getElementById("toggle-doppler").classList.toggle("active", p.enableDoppler);
+      document.getElementById("toggle-redshift").classList.toggle("active", p.enableRedshift);
+      document.getElementById("toggle-grid").classList.toggle("active", p.enableGrid);
+      document.getElementById("toggle-photonring").classList.toggle("active", p.enhancePhotonRing);
+
+      // Highlight active preset button
+      document.querySelectorAll(".preset-btn").forEach(btn => btn.classList.remove("active"));
+      event.target.classList.add("active");
+
+      updateHUD();
+    }
+
+    function captureSnapshot() {
+      const canvas = document.getElementById("glcanvas");
+      const link = document.createElement("a");
+      link.download = `blackhole_snapshot_${Date.now()}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    // Launch engine on page load
+    window.addEventListener("DOMContentLoaded", initGL);
+  </script>
+</body>
+</html>
