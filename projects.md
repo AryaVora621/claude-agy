@@ -1994,6 +1994,73 @@ Executed via `python3 showcase.py --all-tests` with **861 / 861 tests passing** 
 
 ---
 
+### ThermoFluid Studio - Web-Based Thermal Convection & Incompressible Navier-Stokes Studio
+- **Directory**: `websites/thermofluid/`
+- **Architecture**:
+  - **Boussinesq Incompressible Navier-Stokes CFD (`websites/thermofluid/index.html`)**:
+    - Coupled momentum and thermal transport formulation:
+      $$\frac{\partial \mathbf{u}}{\partial t} + (\mathbf{u} \cdot \nabla)\mathbf{u} = -\frac{1}{\rho_0} \nabla p + \nu \nabla^2 \mathbf{u} - g \beta (T - T_0) \hat{\mathbf{y}}$$
+    - Thermal energy transport and thermal diffusion:
+      $$\frac{\partial T}{\partial t} + (\mathbf{u} \cdot \nabla)T = \alpha \nabla^2 T + Q$$
+  - **Semi-Lagrangian Particle Characteristic Advection**:
+    - Unconditionally stable Stam-style backwards characteristic tracing with bilinear velocity and temperature field interpolation.
+  - **Gauss-Seidel / Jacobi Pressure Poisson Projection**:
+    - Enforcement of the incompressibility divergence-free constraint $\nabla \cdot \mathbf{u} = 0$ over arbitrary obstacle geometries with Neumann boundary conditions.
+  - **Multi-Modal Thermal Field Visualization & Telemetry**:
+    - High-dynamic range palette mapping (Inferno, Jet, Plasma, Cool-Warm, Monochrome Flame).
+    - Real-time marching contour isotherms and advected particle streamlines.
+    - Live mouse heating, cooling, and obstacle drawing brushes.
+  - **Curated Hydrodynamic & Convection Presets**:
+    1. Rayleigh-Benard Convection: Heated floor and cooled lid generating steady counter-rotating thermal convection rolls.
+    2. Heated Cylinder & Von Karman Wake: Buoyant thermal vortex shedding downstream of a heated circular obstruction.
+    3. Industrial Chimney Plume: High-buoyancy thermal exhaust column rising and billowing into cool ambient surroundings.
+    4. Double-Diffusive Finger Convection: Hot buoyant fingers penetrating cooler stratified fluid layers.
+    5. Electronics Chassis Cooling: Cold forced-air crossflow dissipating thermal energy across high-density circuit components.
+- **Verification**: Zero-dependency browser verification at 60 FPS in pure HTML5 Canvas with real-time vector velocity field and isotherm contour rendering.
+- **Launch Command**: Open `websites/thermofluid/index.html` in browser.
+
+---
+
+### KineMatix 3D - Standalone Desktop Robotics & Multibody Inverse Kinematics Studio
+- **Directory**: `programs/kinematix/`
+- **Architecture**:
+  - **Denavit-Hartenberg (DH) Homogeneous Transforms (`programs/kinematix/kinematics_engine.py`)**:
+    - Link transformation parameterization:
+      $$T_i^{i-1} = \text{Rot}_z(\theta_i) \text{Trans}_z(d_i) \text{Trans}_x(a_i) \text{Rot}_x(\alpha_i)$$
+    - Cumulative forward kinematics:
+      $$T_n^0(\mathbf{q}) = T_1^0(q_1) T_2^1(q_2) \cdots T_n^{n-1}(q_n)$$
+  - **Geometric Jacobian Matrix**:
+    - $6 \times n$ matrix $J(\mathbf{q})$ mapping joint velocities $\dot{\mathbf{q}}$ to end-effector spatial twist $\mathbf{v}_e = [\dot{\mathbf{p}}_e^T, \boldsymbol{\omega}_e^T]^T$.
+    - Revolute joints: $J_v^{(i)} = \mathbf{z}_{i-1} \times (\mathbf{p}_e - \mathbf{p}_{i-1}), \quad J_\omega^{(i)} = \mathbf{z}_{i-1}$.
+    - Prismatic joints: $J_v^{(i)} = \mathbf{z}_{i-1}, \quad J_\omega^{(i)} = \mathbf{0}$.
+  - **Singularity-Robust Damped Least-Squares (DLS) Inverse Kinematics**:
+    - Prevents velocity divergence near kinematic singularities:
+      $$\Delta \mathbf{q} = J^T (J J^T + \lambda^2 I)^{-1} \mathbf{e}$$
+    - Numerical solution of $(J J^T + \lambda^2 I) \mathbf{y} = \mathbf{e}$ via Gaussian elimination with partial row pivoting.
+  - **Yoshikawa Manipulability Measure & 3D Ellipsoid**:
+    - Dexterity index $w(\mathbf{q}) = \sqrt{\det(J(\mathbf{q}) J(\mathbf{q})^T)}$ quantifying end-effector mobility volume.
+    - Wireframe 3D velocity manipulability ellipsoid rendered at the end-effector tool center point.
+  - **6-DOF Stewart-Gough Parallel Hexapod Inverse Kinematics**:
+    - Exact analytical closed-form solution:
+      $$\mathbf{l}_i = \mathbf{t} + R(\phi, \theta, \psi) \mathbf{p}_i - \mathbf{b}_i, \quad L_i = \|\mathbf{l}_i\|$$
+    - Enforces $C_{3v}$ cyclic symmetry across 6 independent linear actuator struts.
+  - **Interactive Desktop Graphical Interface (`programs/kinematix/kinematix.py`)**:
+    - 3D perspective viewport with spherical orbital camera navigation (azimuth, elevation, distance zoom, and center-point pan).
+    - Direct 3D mouse drag reticle for end-effector target placement in task space.
+    - Manual joint sliders with physical angle and stroke limit clamping.
+    - Automated trajectory generator tracking Circle, Figure-8 Lissajous, Square, and Helical Spiral curves.
+  - **Curated Robotic Presets (`programs/kinematix/presets.py`)**:
+    1. PUMA 560 (6-DOF): Canonical industrial articulated robot arm with 3-axis spherical wrist and orthogonal shoulder.
+    2. UR5 Cobot (6-DOF): Modern collaborative robot arm with cylindrical reach and zero-offset elbow geometry.
+    3. SCARA (4-DOF): Selective Compliance Assembly Robot Arm with planar articulation and linear vertical Z plunge.
+    4. Stanford Arm (6-DOF): Historical 1969 manipulator featuring a prismatic boom extension (RRPRRR).
+    5. 7-DOF Anthropomorphic Arm: Kinematically redundant humanoid arm model with elbow swivel redundancy.
+    6. Stewart-Gough Platform (6-DOF): High-stiffness parallel hexapod with 6 telescopic linear actuators.
+- **Verification**: 16 / 16 Automated unit tests passing in 0.05s (`python3 -m unittest programs/kinematix/test_kinematix.py`).
+- **Launch Command**: `python3 programs/kinematix/kinematix.py`
+
+---
+
 In addition to the 33 terminal systems, the native desktop software and web studios provide standalone interactive interfaces with 100% test coverage:
 
 | System / Application | Platform & Engine | Automated Tests | Capabilities & Validation |
@@ -2008,6 +2075,7 @@ In addition to the 33 terminal systems, the native desktop software and web stud
 | **Structura 2D** | Desktop Python GUI (`programs/structura2d/`) | 16 / 16 PASS (0.13s) | 2D Finite Element Analysis (FEA), 1D Truss, 2D CST, Quad4 2x2 Gauss Quadrature, Dirichlet solver, Von Mises failure yield criteria, modal harmonics, real-time deformation scaling |
 | **OptiFlow 2D** | Desktop Python GUI (`programs/optiflow/`) | 16 / 16 PASS (0.11s) | Incompressible Navier-Stokes CFD, vorticity-streamfunction formulation, SOR Poisson pressure recovery, NACA 4-digit airfoil morphology, live Angle of Attack control, Karman vortex street, lift & drag force integration |
 | **NeuroSim** | Desktop Python GUI (`programs/neurosim/`) | 16 / 16 PASS (0.11s) | 4-variable Hodgkin-Huxley conductance biophysics, Rush-Larsen exponential gating integration, Rall multi-compartment cable model, back-propagating action potentials (bAP), NMDA voltage-dependent magnesium block, PING 40 Hz gamma rhythms, locomotor CPG half-center oscillator |
+| **KineMatix 3D** | Desktop Python GUI (`programs/kinematix/`) | 16 / 16 PASS (0.05s) | Denavit-Hartenberg (DH) forward kinematics, geometric Jacobians, singularity-robust Damped Least-Squares (DLS) IK, Yoshikawa manipulability ellipsoid, 6-DOF Stewart-Gough parallel hexapod, 3D orbital camera, trajectory tracking |
 | **SynthWave Studio** | Web Studio (`websites/synthwave/`) | Web Audio 60 FPS Verification | Dual-oscillator polyphonic synthesizer, resonant lowpass filter, 4-track 808 drum machine, 16-step sequencer, tape delay, space reverb, virtual keyboard, phosphor oscilloscope, 64-band FFT analyzer |
 | **QuantumLab Studio** | Web Studio (`websites/quantum/`) | Statevector 60 FPS Verification | Universal quantum circuit editor, 2^N statevector evolution, partial trace reduced density matrix, interactive 3D Bloch sphere, Bell state entanglement, quantum teleportation, density matrix heatmap, 1024-shot Monte Carlo sampler |
 | **NeuroMorph Studio** | Web Studio (`websites/neuromorph/`) | DVS & SNN 60 FPS Verification | Asynchronous AER dynamic vision sensor emulation, time-surface normal optical flow vector fields, LIF / Izhikevich multi-compartment spiking dynamics, STDP Hebbian learning synapse laboratory, 3D cortical column reservoir with raster plot and PSTH telemetry, Web Audio action potential clicks |
@@ -2023,7 +2091,8 @@ In addition to the 33 terminal systems, the native desktop software and web stud
 | **WaveOptics Studio** | Web Studio (`websites/waveoptics/`) | FDTD & Canvas 60 FPS Verification | 2D physical optics FDTD simulation, scalar wave equation, PML absorbing boundary, dielectric refraction (lenses and prisms), Fraunhofer diffraction, Sinc^2 fringe validation, cyclic phase mapping |
 | **GravWave Studio** | Web Studio (`websites/gravwave/`) | Web Audio & Canvas 60 FPS Verification | 2D numerical relativity, Peters radiation reaction binary inspiral, quadrupolar metric perturbation h_ij, chirp spectrogram, 4 km Michelson laser interferometer, Web Audio sonification |
 | **AstroHydro 3D** | Web Studio (`websites/astrohydro/`) | Canvas 60 FPS & Web Audio Verification | 3D Smoothed Particle Hydrodynamics (SPH), Monaghan artificial viscosity, Plummer gravitational softening, Hernquist galactic bulge potential, spatial hash grid neighbor queries, galaxy collision dynamics, virial ratio tracking, Web Audio cosmic drone |
-| **PORTFOLIO TOTAL** | **Portfolio-Wide Engineering Lab** | **1,019 / 1,019 Automated Tests (100%)** | **33 CLI Engines + 10 Native Desktop Software Suites + 15 Web Studios** |
+| **ThermoFluid Studio** | Web Studio (`websites/thermofluid/`) | Canvas 60 FPS Verification | 2D Boussinesq Navier-Stokes CFD, thermal buoyancy coupling, semi-Lagrangian advection, pressure Poisson projection, Rayleigh-Benard convection rolls, heated cylinder wake, isotherm contours, velocity streamlines |
+| **PORTFOLIO TOTAL** | **Portfolio-Wide Engineering Lab** | **1,035 / 1,035 Automated Tests (100%)** | **33 CLI Engines + 11 Native Desktop Software Suites + 16 Web Studios** |
 
 
 

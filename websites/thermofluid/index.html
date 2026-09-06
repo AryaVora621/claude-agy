@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ThermoFluid Studio: Rayleigh-Bénard Convection & Buoyant Hydrodynamics</title>
+  <style>
+    :root {
+      --bg: #060913;
+      --surface: #0B101D;
+      --surface-border: #162035;
+      --accent-cyan: #00F0FF;
+      --accent-orange: #FF6B35;
+      --accent-emerald: #10B981;
+      --accent-purple: #A855F7;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Header */
+    header {
+      height: 54px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--accent-orange), #EF4444);
+      color: #000;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title span {
+      color: var(--accent-orange);
+      margin-left: 4px;
+      font-weight: 400;
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-emerald);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 3px 8px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: var(--surface-border);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: var(--accent-orange);
+      border-color: var(--accent-orange);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #FB923C;
+      border-color: #FB923C;
+    }
+
+    .btn-active {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Main Studio Layout */
+    .studio-body {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Left Control Sidebar */
+    .sidebar {
+      width: 320px;
+      background: var(--surface);
+      border-right: 1px solid var(--surface-border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 5;
+    }
+
+    .sidebar-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .control-group {
+      margin-bottom: 12px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .control-label {
+      color: var(--text-muted);
+    }
+
+    .control-val {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      font-size: 11px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 5px;
+      border-radius: 3px;
+      background: #1E293B;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--accent-orange);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(255, 107, 53, 0.6);
+    }
+
+    select {
+      width: 100%;
+      background: #0D1322;
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .preset-btn {
+      background: #0F172A;
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      font-size: 11px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      text-align: left;
+      cursor: pointer;
+      line-height: 1.25;
+      transition: all 0.15s;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent-orange);
+      background: rgba(255, 107, 53, 0.05);
+    }
+
+    .preset-btn.active {
+      border-color: var(--accent-orange);
+      background: rgba(255, 107, 53, 0.15);
+      color: var(--accent-orange);
+      font-weight: 700;
+    }
+
+    /* Central Simulation Viewport */
+    .viewport {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: #020409;
+    }
+
+    #sim-canvas {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Viewport Overlays */
+    .viewport-overlay {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(11, 16, 29, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      pointer-events: none;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .overlay-title {
+      font-weight: 700;
+      color: var(--accent-orange);
+      margin-bottom: 2px;
+      font-size: 12px;
+    }
+
+    .color-legend {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      background: rgba(11, 16, 29, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      pointer-events: none;
+    }
+
+    .legend-bar {
+      width: 140px;
+      height: 10px;
+      border-radius: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .legend-labels {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-dim);
+    }
+
+    /* Probe Tooltip */
+    #probe-hud {
+      position: absolute;
+      background: rgba(6, 9, 19, 0.92);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+      z-index: 20;
+    }
+
+    /* Bottom Telemetry Ribbon */
+    .telemetry-ribbon {
+      height: 48px;
+      background: var(--surface);
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .telemetry-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .telemetry-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .telemetry-val {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .val-cyan { color: var(--accent-cyan); }
+    .val-orange { color: var(--accent-orange); }
+    .val-emerald { color: var(--accent-emerald); }
+    .val-purple { color: var(--accent-purple); }
+
+    /* Touch / Tool Hints */
+    .hint-bar {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(11, 16, 29, 0.85);
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <div class="logo-badge">THERMAL CFD</div>
+      <div class="brand-title">ThermoFluid<span>Studio</span></div>
+    </div>
+
+    <div class="header-badges">
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span id="fps-counter">60 FPS • Boussinesq Navier-Stokes</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn" id="audio-toggle-btn" onclick="toggleAudio()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <span id="audio-label">Sound: Off</span>
+      </button>
+      <button class="btn" onclick="resetThermalState()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+        Reset Grid
+      </button>
+      <button class="btn btn-primary" id="play-pause-btn" onclick="togglePlay()">
+        Pause
+      </button>
+    </div>
+  </header>
+
+  <!-- Studio Main -->
+  <div class="studio-body">
+
+    <!-- Left Sidebar Controls -->
+    <div class="sidebar">
+
+      <!-- Presets Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Hydrodynamic Presets</div>
+        <div class="btn-grid">
+          <button class="preset-btn active" onclick="loadPreset('rayleigh')">
+            <strong>Rayleigh-Bénard</strong><br>Counter-rotating rolls
+          </button>
+          <button class="preset-btn" onclick="loadPreset('mantle')">
+            <strong>Mantle Plumes</strong><br>Turbulent mushrooms
+          </button>
+          <button class="preset-btn" onclick="loadPreset('hydrothermal')">
+            <strong>Thermal Vent</strong><br>Deep-sea buoyant jet
+          </button>
+          <button class="preset-btn" onclick="loadPreset('inversion')">
+            <strong>Inversion Wave</strong><br>Stratified gravity waves
+          </button>
+          <button class="preset-btn" onclick="loadPreset('chip')">
+            <strong>Electronics Fin</strong><br>Natural air cooling
+          </button>
+          <button class="preset-btn" onclick="loadPreset('fingers')">
+            <strong>Salt Fingers</strong><br>Double-diffusive cells
+          </button>
+        </div>
+      </div>
+
+      <!-- Visualization Mode -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Render Optics & Fields</div>
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Field Representation</span>
+          </div>
+          <select id="field-select" onchange="changeRenderField(this.value)">
+            <option value="thermal">Thermal Flame (Inferno Colormap)</option>
+            <option value="coolwarm">Cool-Warm Dipole (Blue to Red)</option>
+            <option value="schlieren">Schlieren / Shadowgraph (|∇T|)</option>
+            <option value="vorticity">Vorticity Rolls (Clockwise/CCW)</option>
+            <option value="velocity">Velocity Speed Magnitude</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Overlays & Tracers</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-active" id="particles-toggle-btn" style="flex: 1; font-size: 11px;" onclick="toggleParticles()">
+              Tracer Particles
+            </button>
+            <button class="btn btn-active" id="stream-toggle-btn" style="flex: 1; font-size: 11px;" onclick="toggleStreamlines()">
+              Isotherms
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Non-Dimensional Parameters -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Boussinesq Parameters</div>
+
+        <!-- Rayleigh Number Ra -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Rayleigh Number (Ra)</span>
+            <span class="control-val" id="val-ra">80,000</span>
+          </div>
+          <input type="range" id="slider-ra" min="1000" max="500000" step="1000" value="80000" oninput="updateRa(this.value)">
+        </div>
+
+        <!-- Prandtl Number Pr -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Prandtl Number (Pr = ν/κ)</span>
+            <span class="control-val" id="val-pr">1.00</span>
+          </div>
+          <input type="range" id="slider-pr" min="0.1" max="10.0" step="0.1" value="1.0" oninput="updatePr(this.value)">
+        </div>
+
+        <!-- Buoyancy Coefficient g*beta -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Buoyancy Force (g·β)</span>
+            <span class="control-val" id="val-buoyancy">4.50</span>
+          </div>
+          <input type="range" id="slider-buoyancy" min="0.5" max="15.0" step="0.25" value="4.5" oninput="updateBuoyancy(this.value)">
+        </div>
+
+        <!-- Thermal Diffusivity kappa -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Thermal Diffusivity (κ)</span>
+            <span class="control-val" id="val-diff">0.0035</span>
+          </div>
+          <input type="range" id="slider-diff" min="0.0005" max="0.015" step="0.0005" value="0.0035" oninput="updateDiffusivity(this.value)">
+        </div>
+
+        <!-- Kinematic Viscosity nu -->
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Kinematic Viscosity (ν)</span>
+            <span class="control-val" id="val-visc">0.0035</span>
+          </div>
+          <input type="range" id="slider-visc" min="0.0005" max="0.015" step="0.0005" value="0.0035" oninput="updateViscosity(this.value)">
+        </div>
+      </div>
+
+      <!-- Boundary Conditions -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Boundary Thermal Forcing</div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Bottom Plate Temp (Hot)</span>
+            <span class="control-val" id="val-thot">1.00</span>
+          </div>
+          <input type="range" id="slider-thot" min="0.0" max="2.0" step="0.05" value="1.0" oninput="updateThot(this.value)">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Top Plate Temp (Cold)</span>
+            <span class="control-val" id="val-tcold">0.00</span>
+          </div>
+          <input type="range" id="slider-tcold" min="-1.0" max="1.0" step="0.05" value="0.0" oninput="updateTcold(this.value)">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label-row">
+            <span class="control-label">Interactive Tool Action</span>
+          </div>
+          <select id="tool-select">
+            <option value="heat">Inject Thermal Energy (Hot Spot)</option>
+            <option value="cold">Extract Thermal Energy (Cold Spot)</option>
+            <option value="stir">Fluid Velocity Stirring (Force)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Viewport -->
+    <div class="viewport">
+      <canvas id="sim-canvas"></canvas>
+
+      <!-- Overlay Status -->
+      <div class="viewport-overlay">
+        <div class="overlay-title" id="preset-title-hud">Rayleigh-Bénard Convection</div>
+        <div>Grid: <span class="val-cyan" id="grid-dim-hud">192 × 108</span> MAC cells</div>
+        <div>Convective State: <span class="val-emerald" id="regime-hud">Roll Instability (Ra > Rac)</span></div>
+        <div>Critical Rac: <span class="val-orange">1708</span></div>
+      </div>
+
+      <div class="hint-bar">
+        Drag on canvas to inject heat, cold, or fluid velocity
+      </div>
+
+      <!-- Color Legend -->
+      <div class="color-legend">
+        <div class="legend-labels">
+          <span id="legend-min">Cold (0.0)</span>
+          <span id="legend-mid">Mid</span>
+          <span id="legend-max">Hot (1.0)</span>
+        </div>
+        <div class="legend-bar" id="legend-gradient-bar"></div>
+      </div>
+
+      <!-- Point Inspection Probe HUD -->
+      <div id="probe-hud">
+        <div style="color: var(--accent-orange); font-weight: bold; margin-bottom: 2px;">PROBE SENSOR</div>
+        <div>Coord: <span id="probe-xy" class="val-cyan">X: 0, Y: 0</span></div>
+        <div>Temp (T): <span id="probe-t" class="val-orange">0.00</span></div>
+        <div>Velocity: <span id="probe-vel" class="val-emerald">0.00</span></div>
+        <div>Vorticity: <span id="probe-vort" class="val-purple">0.00</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Telemetry Ribbon -->
+  <div class="telemetry-ribbon">
+    <div class="telemetry-item">
+      <span class="telemetry-label">Nusselt Number (Nu)</span>
+      <span class="telemetry-val val-orange" id="telem-nu">4.82</span>
+    </div>
+    <div class="telemetry-item">
+      <span class="telemetry-label">Max Speed (U_max)</span>
+      <span class="telemetry-val val-cyan" id="telem-umax">0.84</span>
+    </div>
+    <div class="telemetry-item">
+      <span class="telemetry-label">Kinetic Energy (E_k)</span>
+      <span class="telemetry-val val-emerald" id="telem-ke">1.28e-2</span>
+    </div>
+    <div class="telemetry-item">
+      <span class="telemetry-label">Thermal Enstrophy (Ω)</span>
+      <span class="telemetry-val val-purple" id="telem-enstrophy">8.45</span>
+    </div>
+    <div class="telemetry-item">
+      <span class="telemetry-label">Convective Cells</span>
+      <span class="telemetry-val val-cyan" id="telem-cells">6 Rolls</span>
+    </div>
+    <div class="telemetry-item">
+      <span class="telemetry-label">Audio Synth</span>
+      <span class="telemetry-val val-orange" id="telem-audio">Standby</span>
+    </div>
+  </div>
+
+  <script>
+    // --- 1. Grid Dimensions & Numerical State ---
+    const NX = 192;
+    const NY = 108;
+    const TOTAL_CELLS = NX * NY;
+
+    // Fluid fields: Velocity (U, V), Pressure (P), Temperature (T)
+    const u = new Float32Array(TOTAL_CELLS);
+    const v = new Float32Array(TOTAL_CELLS);
+    const uNew = new Float32Array(TOTAL_CELLS);
+    const vNew = new Float32Array(TOTAL_CELLS);
+
+    const temp = new Float32Array(TOTAL_CELLS);
+    const tempNew = new Float32Array(TOTAL_CELLS);
+
+    const p = new Float32Array(TOTAL_CELLS);
+    const div = new Float32Array(TOTAL_CELLS);
+    const solid = new Uint8Array(TOTAL_CELLS); // 1 = solid obstacle
+
+    // Simulation parameters
+    let simRunning = true;
+    let showParticles = true;
+    let showIsotherms = true;
+    let renderField = "thermal"; // thermal, coolwarm, schlieren, vorticity, velocity
+
+    let paramRa = 80000;
+    let paramPr = 1.0;
+    let paramBuoyancy = 4.5;
+    let paramDiff = 0.0035;
+    let paramVisc = 0.0035;
+    let tempHot = 1.0;
+    let tempCold = 0.0;
+    const dt = 0.12;
+
+    // Passive Tracer Particles
+    const NUM_PARTICLES = 1600;
+    const partX = new Float32Array(NUM_PARTICLES);
+    const partY = new Float32Array(NUM_PARTICLES);
+    const partAge = new Float32Array(NUM_PARTICLES);
+
+    for (let i = 0; i < NUM_PARTICLES; i++) {
+      partX[i] = Math.random() * NX;
+      partY[i] = Math.random() * NY;
+      partAge[i] = Math.random() * 100;
+    }
+
+    // Web Audio API Sound Generator
+    let audioCtx = null;
+    let thermalGain = null;
+    let lowpassFilter = null;
+    let noiseNode = null;
+    let rumbleOsc = null;
+    let audioEnabled = false;
+
+    function initAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+
+      // Brown-like noise buffer for fluid churn
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        output[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = output[i];
+        output[i] *= 3.5;
+      }
+
+      noiseNode = audioCtx.createBufferSource();
+      noiseNode.buffer = noiseBuffer;
+      noiseNode.loop = true;
+
+      lowpassFilter = audioCtx.createBiquadFilter();
+      lowpassFilter.type = 'lowpass';
+      lowpassFilter.frequency.setValueAtTime(140, audioCtx.currentTime);
+
+      thermalGain = audioCtx.createGain();
+      thermalGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+
+      // Deep rumble sub-oscillator
+      rumbleOsc = audioCtx.createOscillator();
+      rumbleOsc.type = 'sine';
+      rumbleOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
+
+      const rumbleGain = audioCtx.createGain();
+      rumbleGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+
+      rumbleOsc.connect(rumbleGain);
+      rumbleGain.connect(thermalGain);
+
+      noiseNode.connect(lowpassFilter);
+      lowpassFilter.connect(thermalGain);
+      thermalGain.connect(audioCtx.destination);
+
+      noiseNode.start();
+      rumbleOsc.start();
+    }
+
+    function toggleAudio() {
+      if (!audioCtx) initAudio();
+      audioEnabled = !audioEnabled;
+      if (audioEnabled) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        thermalGain.gain.setTargetAtTime(0.35, audioCtx.currentTime, 0.05);
+        document.getElementById('audio-label').innerText = "Sound: On";
+        document.getElementById('audio-toggle-btn').classList.add('btn-active');
+        document.getElementById('telem-audio').innerText = "Active (Thermal Churn)";
+      } else {
+        thermalGain.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.05);
+        document.getElementById('audio-label').innerText = "Sound: Off";
+        document.getElementById('audio-toggle-btn').classList.remove('btn-active');
+        document.getElementById('telem-audio').innerText = "Standby";
+      }
+    }
+
+    // --- 2. Initial State & Presets ---
+    function initThermalGrid(mode = 'rayleigh') {
+      u.fill(0);
+      v.fill(0);
+      p.fill(0);
+      solid.fill(0);
+
+      for (let j = 0; j < NY; j++) {
+        const yFrac = j / (NY - 1);
+        for (let i = 0; i < NX; i++) {
+          const idx = j * NX + i;
+
+          if (mode === 'rayleigh') {
+            // Linear conductive gradient: Hot at bottom (j=NY-1), cold at top (j=0)
+            const conductiveT = tempCold + (1.0 - yFrac) * (tempHot - tempCold);
+            // Small sinusoidal thermal perturbation to trigger roll bifurcation
+            const pert = 0.08 * Math.sin(i * Math.PI * 6 / NX) * Math.sin(j * Math.PI / NY);
+            temp[idx] = conductiveT + pert;
+          } else if (mode === 'mantle') {
+            // Hot floor with cold interior
+            temp[idx] = (j > NY - 8) ? 1.4 : 0.05 + Math.random() * 0.02;
+          } else if (mode === 'hydrothermal') {
+            // Uniform cold ocean with central intense floor vent
+            const isVent = (j > NY - 4) && Math.abs(i - NX * 0.5) < 14;
+            temp[idx] = isVent ? 2.0 : 0.05;
+          } else if (mode === 'inversion') {
+            // Stable stratification: Cold at bottom, hot at top
+            temp[idx] = tempCold + yFrac * (tempHot - tempCold);
+            // Internal wave impulse in center
+            if (Math.abs(i - NX * 0.5) < 20 && Math.abs(j - NY * 0.5) < 16) {
+              temp[idx] += 0.5;
+            }
+          } else if (mode === 'chip') {
+            temp[idx] = 0.1;
+            // Hot central semiconductor chip at bottom
+            if (j > NY - 6 && Math.abs(i - NX * 0.5) < 22) {
+              temp[idx] = 1.8;
+            }
+            // Vertical cooling fins (obstacles)
+            for (let fin = -3; fin <= 3; fin++) {
+              const fx = Math.floor(NX * 0.5 + fin * 8);
+              if (j > NY - 32 && j < NY - 6 && i >= fx - 1 && i <= fx + 1) {
+                solid[idx] = 1;
+                temp[idx] = 0.9;
+              }
+            }
+          } else if (mode === 'fingers') {
+            // Alternating vertical perturbations for double-diffusive instability
+            const baseT = 0.1 + (1.0 - yFrac) * 0.8;
+            temp[idx] = baseT + 0.15 * Math.sin(i * 0.5);
+          }
+        }
+      }
+    }
+
+    // --- 3. Fluid Numerical Solvers ---
+    function stepPhysics() {
+      // 1. Add Buoyancy Force: B = g * beta * (T - T_mid) in vertical direction
+      const tMid = 0.5 * (tempHot + tempCold);
+      for (let j = 1; j < NY - 1; j++) {
+        for (let i = 1; i < NX - 1; i++) {
+          const idx = j * NX + i;
+          if (solid[idx]) continue;
+          // In screen coordinates, y increases downward, so upward buoyancy is negative Y acceleration
+          const bForce = -paramBuoyancy * (temp[idx] - tMid);
+          v[idx] += bForce * dt;
+        }
+      }
+
+      // 2. Diffuse Velocity & Temperature (Implicit / Jacobi iteration)
+      diffuseScalar(temp, tempNew, paramDiff, dt, true);
+      temp.set(tempNew);
+
+      diffuseVector(u, v, uNew, vNew, paramVisc, dt);
+      u.set(uNew);
+      v.set(vNew);
+
+      // 3. Project: Enforce Incompressibility (div U = 0) via Poisson Pressure Solve
+      projectVelocity(u, v, p, div);
+
+      // 4. Advect: Semi-Lagrangian Backtrace for Velocity and Temperature
+      advectScalar(temp, tempNew, u, v, dt);
+      temp.set(tempNew);
+
+      advectVector(u, v, uNew, vNew, dt);
+      u.set(uNew);
+      v.set(vNew);
+
+      // 5. Final Project Step to preserve strict divergence-free velocity
+      projectVelocity(u, v, p, div);
+
+      // 6. Enforce Thermal & Velocity Boundary Conditions
+      applyBoundaries();
+
+      // 7. Advect Tracer Particles
+      if (showParticles) {
+        updateParticles();
+      }
+
+      // 8. Update Web Audio parameters based on convective kinetic energy
+      if (audioEnabled && audioCtx) {
+        let totalKe = 0;
+        for (let idx = 0; idx < TOTAL_CELLS; idx += 4) {
+          totalKe += u[idx] * u[idx] + v[idx] * v[idx];
+        }
+        const avgKe = totalKe / (TOTAL_CELLS * 0.25);
+        const targetFreq = Math.min(450, 70 + avgKe * 400);
+        lowpassFilter.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.1);
+      }
+    }
+
+    function diffuseScalar(field, fieldNew, diff, deltaT, isTemp = false) {
+      const a = deltaT * diff * NX * NY;
+      const invDenom = 1.0 / (1.0 + 4.0 * a);
+
+      fieldNew.set(field);
+      for (let iter = 0; iter < 12; iter++) {
+        for (let j = 1; j < NY - 1; j++) {
+          const row = j * NX;
+          for (let i = 1; i < NX - 1; i++) {
+            const idx = row + i;
+            if (solid[idx]) continue;
+            fieldNew[idx] = (field[idx] + a * (fieldNew[idx - 1] + fieldNew[idx + 1] + fieldNew[idx - NX] + fieldNew[idx + NX])) * invDenom;
+          }
+        }
+      }
+    }
+
+    function diffuseVector(uF, vF, uOut, vOut, visc, deltaT) {
+      const a = deltaT * visc * NX * NY;
+      const invDenom = 1.0 / (1.0 + 4.0 * a);
+
+      uOut.set(uF);
+      vOut.set(vF);
+      for (let iter = 0; iter < 10; iter++) {
+        for (let j = 1; j < NY - 1; j++) {
+          const row = j * NX;
+          for (let i = 1; i < NX - 1; i++) {
+            const idx = row + i;
+            if (solid[idx]) { uOut[idx] = 0; vOut[idx] = 0; continue; }
+            uOut[idx] = (uF[idx] + a * (uOut[idx - 1] + uOut[idx + 1] + uOut[idx - NX] + uOut[idx + NX])) * invDenom;
+            vOut[idx] = (vF[idx] + a * (vOut[idx - 1] + vOut[idx + 1] + vOut[idx - NX] + vOut[idx + NX])) * invDenom;
+          }
+        }
+      }
+    }
+
+    function projectVelocity(uF, vF, pF, divF) {
+      // Compute velocity divergence
+      const hx = 0.5;
+      const hy = 0.5;
+      for (let j = 1; j < NY - 1; j++) {
+        const row = j * NX;
+        for (let i = 1; i < NX - 1; i++) {
+          const idx = row + i;
+          if (solid[idx]) { divF[idx] = 0; pF[idx] = 0; continue; }
+          divF[idx] = -0.5 * (
+            (uF[idx + 1] - uF[idx - 1]) * hx +
+            (vF[idx + NX] - vF[idx - NX]) * hy
+          );
+          pF[idx] = 0;
+        }
+      }
+
+      // Solve Poisson equation for pressure: Laplacian(p) = div(U) via Gauss-Seidel / Jacobi
+      for (let iter = 0; iter < 28; iter++) {
+        for (let j = 1; j < NY - 1; j++) {
+          const row = j * NX;
+          for (let i = 1; i < NX - 1; i++) {
+            const idx = row + i;
+            if (solid[idx]) continue;
+            pF[idx] = (divF[idx] + pF[idx - 1] + pF[idx + 1] + pF[idx - NX] + pF[idx + NX]) * 0.25;
+          }
+        }
+      }
+
+      // Subtract pressure gradient to recover divergence-free field
+      for (let j = 1; j < NY - 1; j++) {
+        const row = j * NX;
+        for (let i = 1; i < NX - 1; i++) {
+          const idx = row + i;
+          if (solid[idx]) { uF[idx] = 0; vF[idx] = 0; continue; }
+          uF[idx] -= 0.5 * (pF[idx + 1] - pF[idx - 1]);
+          vF[idx] -= 0.5 * (pF[idx + NX] - pF[idx - NX]);
+        }
+      }
+    }
+
+    function advectScalar(field, fieldOut, uF, vF, deltaT) {
+      const dt0 = deltaT;
+      for (let j = 1; j < NY - 1; j++) {
+        for (let i = 1; i < NX - 1; i++) {
+          const idx = j * NX + i;
+          if (solid[idx]) { fieldOut[idx] = field[idx]; continue; }
+
+          // Semi-Lagrangian particle backtrace
+          let x = i - dt0 * uF[idx];
+          let y = j - dt0 * vF[idx];
+
+          // Clamp to boundaries
+          if (x < 0.5) x = 0.5; else if (x > NX - 1.5) x = NX - 1.5;
+          if (y < 0.5) y = 0.5; else if (y > NY - 1.5) y = NY - 1.5;
+
+          const i0 = Math.floor(x);
+          const i1 = i0 + 1;
+          const j0 = Math.floor(y);
+          const j1 = j0 + 1;
+
+          const s1 = x - i0;
+          const s0 = 1.0 - s1;
+          const t1 = y - j0;
+          const t0 = 1.0 - t1;
+
+          fieldOut[idx] = s0 * (t0 * field[j0 * NX + i0] + t1 * field[j1 * NX + i0]) +
+                          s1 * (t0 * field[j0 * NX + i1] + t1 * field[j1 * NX + i1]);
+        }
+      }
+    }
+
+    function advectVector(uF, vF, uOut, vOut, deltaT) {
+      advectScalar(uF, uOut, uF, vF, deltaT);
+      advectScalar(vF, vOut, uF, vF, deltaT);
+    }
+
+    function applyBoundaries() {
+      // 1. Top Boundary (j = 0): Cold Plate (T = tempCold), No-Slip
+      for (let i = 0; i < NX; i++) {
+        temp[i] = tempCold;
+        u[i] = 0;
+        v[i] = 0;
+      }
+
+      // 2. Bottom Boundary (j = NY - 1): Hot Plate (T = tempHot), No-Slip
+      const botRow = (NY - 1) * NX;
+      for (let i = 0; i < NX; i++) {
+        temp[botRow + i] = tempHot;
+        u[botRow + i] = 0;
+        v[botRow + i] = 0;
+      }
+
+      // 3. Side Boundaries (i = 0, i = NX - 1): Adiabatic insulation dT/dx = 0, Free-slip or No-slip
+      for (let j = 0; j < NY; j++) {
+        const leftIdx = j * NX;
+        const rightIdx = j * NX + (NX - 1);
+        temp[leftIdx] = temp[leftIdx + 1];
+        temp[rightIdx] = temp[rightIdx - 1];
+        u[leftIdx] = 0;
+        u[rightIdx] = 0;
+        v[leftIdx] = v[leftIdx + 1] * 0.9;
+        v[rightIdx] = v[rightIdx - 1] * 0.9;
+      }
+    }
+
+    function updateParticles() {
+      for (let i = 0; i < NUM_PARTICLES; i++) {
+        let px = partX[i];
+        let py = partY[i];
+
+        const gx = Math.floor(px);
+        const gy = Math.floor(py);
+
+        if (gx >= 0 && gx < NX - 1 && gy >= 0 && gy < NY - 1) {
+          const idx = gy * NX + gx;
+          px += u[idx] * 0.6;
+          py += v[idx] * 0.6;
+        }
+
+        partAge[i] += 1;
+
+        // Reset particles that hit boundary or age out
+        if (px < 1 || px >= NX - 1 || py < 1 || py >= NY - 1 || partAge[i] > 180) {
+          partX[i] = 2 + Math.random() * (NX - 4);
+          partY[i] = (Math.random() < 0.5) ? NY - 3 - Math.random() * 4 : 3 + Math.random() * 4;
+          partAge[i] = 0;
+        } else {
+          partX[i] = px;
+          partY[i] = py;
+        }
+      }
+    }
+
+    // --- 4. Rendering & Canvas Pipeline ---
+    const canvas = document.getElementById('sim-canvas');
+    const ctx = canvas.getContext('2d');
+    let offscreenCanvas = null;
+    let offscreenCtx = null;
+    let imgData = null;
+
+    function initCanvas() {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+
+      offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = NX;
+      offscreenCanvas.height = NY;
+      offscreenCtx = offscreenCanvas.getContext('2d');
+      imgData = offscreenCtx.createImageData(NX, NY);
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+    });
+
+    // Color Palettes
+    function getInfernoColor(val) {
+      // val in [0, 1]
+      const t = Math.max(0, Math.min(1, val));
+      let r, g, b;
+      if (t < 0.25) {
+        const u = t / 0.25;
+        r = Math.floor(10 + u * 40); g = Math.floor(5 + u * 15); b = Math.floor(40 + u * 120);
+      } else if (t < 0.55) {
+        const u = (t - 0.25) / 0.3;
+        r = Math.floor(50 + u * 170); g = Math.floor(20 + u * 30); b = Math.floor(160 - u * 90);
+      } else if (t < 0.85) {
+        const u = (t - 0.55) / 0.3;
+        r = Math.floor(220 + u * 35); g = Math.floor(50 + u * 150); b = Math.floor(70 - u * 50);
+      } else {
+        const u = (t - 0.85) / 0.15;
+        r = 255; g = Math.floor(200 + u * 55); b = Math.floor(20 + u * 220);
+      }
+      return [r, g, b];
+    }
+
+    function getCoolWarmColor(val) {
+      const t = Math.max(0, Math.min(1, val));
+      const r = Math.floor(Math.min(255, Math.max(0, 255 * (1.5 * t - 0.2))));
+      const b = Math.floor(Math.min(255, Math.max(0, 255 * (1.5 * (1 - t) - 0.2))));
+      const g = Math.floor(Math.min(255, Math.max(0, 220 * (1 - 2 * Math.abs(t - 0.5)))));
+      return [r, g, b];
+    }
+
+    function renderSimulation() {
+      const d = imgData.data;
+
+      for (let j = 0; j < NY; j++) {
+        const row = j * NX;
+        for (let i = 0; i < NX; i++) {
+          const idx = row + i;
+          const p4 = idx * 4;
+
+          if (solid[idx]) {
+            d[p4] = 30; d[p4 + 1] = 41; d[p4 + 2] = 59; d[p4 + 3] = 255;
+            continue;
+          }
+
+          let r = 0, g = 0, b = 0;
+
+          if (renderField === 'thermal') {
+            const tNorm = (temp[idx] - tempCold) / Math.max(0.01, tempHot - tempCold);
+            [r, g, b] = getInfernoColor(tNorm);
+          } else if (renderField === 'coolwarm') {
+            const tNorm = (temp[idx] - tempCold) / Math.max(0.01, tempHot - tempCold);
+            [r, g, b] = getCoolWarmColor(tNorm);
+          } else if (renderField === 'schlieren') {
+            // Shadowgraph optical refraction: magnitude of thermal gradient |grad T|
+            const tx = (i > 0 && i < NX - 1) ? (temp[idx + 1] - temp[idx - 1]) * 0.5 : 0;
+            const ty = (j > 0 && j < NY - 1) ? (temp[idx + NX] - temp[idx - NX]) * 0.5 : 0;
+            const grad = Math.min(1.0, Math.sqrt(tx * tx + ty * ty) * 25.0);
+            const intensity = Math.floor(grad * 255);
+            r = intensity; g = Math.floor(intensity * 0.95); b = Math.floor(intensity * 0.7);
+          } else if (renderField === 'vorticity') {
+            // Vorticity omega = dv/dx - du/dy
+            const dvdx = (i > 0 && i < NX - 1) ? (v[idx + 1] - v[idx - 1]) * 0.5 : 0;
+            const dudy = (j > 0 && j < NY - 1) ? (u[idx + NX] - u[idx - NX]) * 0.5 : 0;
+            const vort = (dvdx - dudy) * 4.0;
+            if (vort > 0) {
+              // Counter-clockwise: Cyan / Emerald
+              r = 0; g = Math.min(255, Math.floor(vort * 220)); b = Math.min(255, Math.floor(vort * 255));
+            } else {
+              // Clockwise: Magenta / Orange
+              r = Math.min(255, Math.floor(-vort * 255)); g = Math.min(255, Math.floor(-vort * 80)); b = Math.min(255, Math.floor(-vort * 180));
+            }
+          } else if (renderField === 'velocity') {
+            const speed = Math.sqrt(u[idx] * u[idx] + v[idx] * v[idx]) * 2.5;
+            const sNorm = Math.min(1.0, speed);
+            r = Math.floor(sNorm * 0);
+            g = Math.floor(sNorm * 240);
+            b = Math.floor(sNorm * 255);
+          }
+
+          d[p4] = r;
+          d[p4 + 1] = g;
+          d[p4 + 2] = b;
+          d[p4 + 3] = 255;
+        }
+      }
+
+      offscreenCtx.putImageData(imgData, 0, 0);
+
+      // Upscale offscreen buffer smoothly onto high-DPI display canvas
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(offscreenCanvas, 0, 0, canvas.width, canvas.height);
+
+      const scaleX = canvas.width / NX;
+      const scaleY = canvas.height / NY;
+
+      // Draw Tracer Particles
+      if (showParticles) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        for (let i = 0; i < NUM_PARTICLES; i++) {
+          const px = partX[i] * scaleX;
+          const py = partY[i] * scaleY;
+          ctx.beginPath();
+          ctx.arc(px, py, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Draw Isotherm contour lines
+      if (showIsotherms && (renderField === 'thermal' || renderField === 'coolwarm')) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.lineWidth = 1;
+        const numIsotherms = 5;
+        for (let k = 1; k <= numIsotherms; k++) {
+          const tLevel = tempCold + (k / (numIsotherms + 1)) * (tempHot - tempCold);
+          // Sample sparse horizontal marching segment
+          ctx.beginPath();
+          for (let i = 0; i < NX; i += 2) {
+            // Find vertical crossing of tLevel
+            for (let j = 1; j < NY - 1; j += 2) {
+              const idx = j * NX + i;
+              if (Math.abs(temp[idx] - tLevel) < 0.04) {
+                const sx = i * scaleX;
+                const sy = j * scaleY;
+                ctx.rect(sx - 1, sy - 1, 2, 2);
+              }
+            }
+          }
+          ctx.stroke();
+        }
+      }
+    }
+
+    // --- 5. Interactive Mouse Tools ---
+    let isMouseDown = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    const probeHud = document.getElementById('probe-hud');
+
+    canvas.addEventListener('mousedown', (e) => {
+      isMouseDown = true;
+      const rect = canvas.getBoundingClientRect();
+      lastMouseX = e.clientX - rect.left;
+      lastMouseY = e.clientY - rect.top;
+      applyMouseAction(lastMouseX, lastMouseY, 0, 0);
+    });
+
+    window.addEventListener('mouseup', () => {
+      isMouseDown = false;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      const gx = Math.floor((mx / canvas.width) * NX);
+      const gy = Math.floor((my / canvas.height) * NY);
+
+      // Update probe HUD
+      if (gx >= 0 && gx < NX && gy >= 0 && gy < NY) {
+        probeHud.style.display = 'block';
+        probeHud.style.left = (e.clientX + 14) + 'px';
+        probeHud.style.top = (e.clientY + 14) + 'px';
+
+        const idx = gy * NX + gx;
+        const spd = Math.sqrt(u[idx] * u[idx] + v[idx] * v[idx]);
+        const dvdx = (gx > 0 && gx < NX - 1) ? (v[idx + 1] - v[idx - 1]) * 0.5 : 0;
+        const dudy = (gy > 0 && gy < NY - 1) ? (u[idx + NX] - u[idx - NX]) * 0.5 : 0;
+
+        document.getElementById('probe-xy').innerText = `X: ${gx}, Y: ${gy}`;
+        document.getElementById('probe-t').innerText = `${temp[idx].toFixed(2)} °C`;
+        document.getElementById('probe-vel').innerText = `${spd.toFixed(2)} m/s`;
+        document.getElementById('probe-vort').innerText = `${(dvdx - dudy).toFixed(2)} s⁻¹`;
+      }
+
+      if (isMouseDown) {
+        const dx = mx - lastMouseX;
+        const dy = my - lastMouseY;
+        applyMouseAction(mx, my, dx, dy);
+        lastMouseX = mx;
+        lastMouseY = my;
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      probeHud.style.display = 'none';
+      isMouseDown = false;
+    });
+
+    function applyMouseAction(mx, my, dx, dy) {
+      const gx = Math.floor((mx / canvas.width) * NX);
+      const gy = Math.floor((my / canvas.height) * NY);
+      const tool = document.getElementById('tool-select').value;
+      const radius = 6;
+
+      for (let dj = -radius; dj <= radius; dj++) {
+        const j = gy + dj;
+        if (j < 1 || j >= NY - 1) continue;
+        for (let di = -radius; di <= radius; di++) {
+          const i = gx + di;
+          if (i < 1 || i >= NX - 1) continue;
+          const distSq = di * di + dj * dj;
+          if (distSq > radius * radius) continue;
+
+          const idx = j * NX + i;
+          const falloff = 1.0 - Math.sqrt(distSq) / radius;
+
+          if (tool === 'heat') {
+            temp[idx] = Math.min(2.5, temp[idx] + falloff * 0.45);
+          } else if (tool === 'cold') {
+            temp[idx] = Math.max(-0.5, temp[idx] - falloff * 0.45);
+          } else if (tool === 'stir') {
+            u[idx] += dx * 0.15 * falloff;
+            v[idx] += dy * 0.15 * falloff;
+          }
+        }
+      }
+    }
+
+    // --- 6. Controls & Preset Management ---
+    function togglePlay() {
+      simRunning = !simRunning;
+      const btn = document.getElementById('play-pause-btn');
+      btn.innerText = simRunning ? "Pause" : "Resume";
+      btn.className = simRunning ? "btn btn-primary" : "btn btn-active";
+    }
+
+    function toggleParticles() {
+      showParticles = !showParticles;
+      const btn = document.getElementById('particles-toggle-btn');
+      if (showParticles) btn.classList.add('btn-active');
+      else btn.classList.remove('btn-active');
+    }
+
+    function toggleStreamlines() {
+      showIsotherms = !showIsotherms;
+      const btn = document.getElementById('stream-toggle-btn');
+      if (showIsotherms) btn.classList.add('btn-active');
+      else btn.classList.remove('btn-active');
+    }
+
+    function changeRenderField(val) {
+      renderField = val;
+      const bar = document.getElementById('legend-gradient-bar');
+      const minL = document.getElementById('legend-min');
+      const maxL = document.getElementById('legend-max');
+
+      if (val === 'thermal') {
+        bar.style.background = 'linear-gradient(to right, #0A0528, #3214A0, #DC3246, #FFE632)';
+        minL.innerText = 'Cold'; maxL.innerText = 'Hot';
+      } else if (val === 'coolwarm') {
+        bar.style.background = 'linear-gradient(to right, #00F0FF, #FFFFFF, #EF4444)';
+        minL.innerText = 'Cold'; maxL.innerText = 'Hot';
+      } else if (val === 'schlieren') {
+        bar.style.background = 'linear-gradient(to right, #000000, #FBBF24)';
+        minL.innerText = '|∇T| = 0'; maxL.innerText = 'High Grad';
+      } else if (val === 'vorticity') {
+        bar.style.background = 'linear-gradient(to right, #A855F7, #000000, #00F0FF)';
+        minL.innerText = 'CW Roll'; maxL.innerText = 'CCW Roll';
+      } else if (val === 'velocity') {
+        bar.style.background = 'linear-gradient(to right, #000000, #10B981, #00F0FF)';
+        minL.innerText = '0 m/s'; maxL.innerText = 'U_max';
+      }
+    }
+
+    function updateRa(val) {
+      paramRa = parseFloat(val);
+      document.getElementById('val-ra').innerText = Number(paramRa).toLocaleString();
+      // Derive viscosity/diffusivity ratio to match chosen Rayleigh number: Ra = g * beta * deltaT * H^3 / (nu * kappa)
+      paramBuoyancy = Math.sqrt(paramRa) * 0.016;
+      document.getElementById('val-buoyancy').innerText = paramBuoyancy.toFixed(2);
+      document.getElementById('slider-buoyancy').value = paramBuoyancy;
+    }
+
+    function updatePr(val) {
+      paramPr = parseFloat(val);
+      document.getElementById('val-pr').innerText = paramPr.toFixed(2);
+      paramVisc = paramDiff * paramPr;
+      document.getElementById('val-visc').innerText = paramVisc.toFixed(4);
+      document.getElementById('slider-visc').value = paramVisc;
+    }
+
+    function updateBuoyancy(val) {
+      paramBuoyancy = parseFloat(val);
+      document.getElementById('val-buoyancy').innerText = paramBuoyancy.toFixed(2);
+    }
+
+    function updateDiffusivity(val) {
+      paramDiff = parseFloat(val);
+      document.getElementById('val-diff').innerText = paramDiff.toFixed(4);
+    }
+
+    function updateViscosity(val) {
+      paramVisc = parseFloat(val);
+      document.getElementById('val-visc').innerText = paramVisc.toFixed(4);
+    }
+
+    function updateThot(val) {
+      tempHot = parseFloat(val);
+      document.getElementById('val-thot').innerText = tempHot.toFixed(2);
+    }
+
+    function updateTcold(val) {
+      tempCold = parseFloat(val);
+      document.getElementById('val-tcold').innerText = tempCold.toFixed(2);
+    }
+
+    function resetThermalState() {
+      const activeBtn = document.querySelector('.preset-btn.active');
+      const presetName = activeBtn ? activeBtn.getAttribute('onclick').match(/'(.*)'/)[1] : 'rayleigh';
+      initThermalGrid(presetName);
+    }
+
+    function loadPreset(preset) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      const buttons = document.querySelectorAll('.preset-btn');
+      const map = { rayleigh: 0, mantle: 1, hydrothermal: 2, inversion: 3, chip: 4, fingers: 5 };
+      if (buttons[map[preset]]) buttons[map[preset]].classList.add('active');
+
+      const titleHud = document.getElementById('preset-title-hud');
+      const regimeHud = document.getElementById('regime-hud');
+
+      if (preset === 'rayleigh') {
+        titleHud.innerText = "Rayleigh-Bénard Convection";
+        regimeHud.innerText = "Steady Convective Roll Cells (Ra = 80,000)";
+        updateRa(80000);
+        updatePr(1.0);
+        tempHot = 1.0; tempCold = 0.0;
+      } else if (preset === 'mantle') {
+        titleHud.innerText = "Turbulent Mantle Plumes";
+        regimeHud.innerText = "High-Ra Mushroom Heads (Ra = 350,000)";
+        updateRa(350000);
+        updatePr(3.5);
+        tempHot = 1.6; tempCold = 0.0;
+      } else if (preset === 'hydrothermal') {
+        titleHud.innerText = "Hydrothermal Deep-Sea Vent";
+        regimeHud.innerText = "High-Buoyancy Thermal Chimney Jet";
+        updateRa(200000);
+        updatePr(1.2);
+        tempHot = 2.0; tempCold = 0.05;
+      } else if (preset === 'inversion') {
+        titleHud.innerText = "Thermal Inversion Gravity Wave";
+        regimeHud.innerText = "Stable Stratification with Internal Waves";
+        updateRa(12000);
+        updatePr(0.8);
+        tempHot = 0.2; tempCold = 1.0;
+      } else if (preset === 'chip') {
+        titleHud.innerText = "Electronics Heat Sink Cooling";
+        regimeHud.innerText = "Solid Fin Conjugate Convection";
+        updateRa(60000);
+        updatePr(0.71);
+        tempHot = 1.8; tempCold = 0.1;
+      } else if (preset === 'fingers') {
+        titleHud.innerText = "Double-Diffusive Salt Fingers";
+        regimeHud.innerText = "Diffusive Boundary Layer Instability";
+        updateRa(45000);
+        updatePr(2.5);
+        tempHot = 1.0; tempCold = 0.1;
+      }
+
+      initThermalGrid(preset);
+    }
+
+    // --- 7. Real-Time Telemetry Metrics ---
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
+
+    function updateTelemetry() {
+      let maxVel = 0;
+      let totalKe = 0;
+      let totalEnstrophy = 0;
+      let gradTBottom = 0;
+
+      for (let j = 1; j < NY - 1; j++) {
+        for (let i = 1; i < NX - 1; i++) {
+          const idx = j * NX + i;
+          const vSq = u[idx] * u[idx] + v[idx] * v[idx];
+          if (vSq > maxVel) maxVel = vSq;
+          totalKe += vSq;
+
+          const dvdx = (v[idx + 1] - v[idx - 1]) * 0.5;
+          const dudy = (u[idx + NX] - u[idx - NX]) * 0.5;
+          const vort = dvdx - dudy;
+          totalEnstrophy += vort * vort;
+        }
+      }
+
+      // Nusselt Number Nu: Ratio of total heat flux to pure conduction
+      // Estimate vertical temperature gradient at bottom wall
+      const rowBot = (NY - 2) * NX;
+      for (let i = 1; i < NX - 1; i++) {
+        gradTBottom += (tempHot - temp[rowBot + i]);
+      }
+      const avgGradT = gradTBottom / (NX - 2);
+      const pureConductionGrad = (tempHot - tempCold) / NY;
+      const nu = Math.max(1.0, (avgGradT / Math.max(0.001, pureConductionGrad)) * 1.6);
+
+      const uMax = Math.sqrt(maxVel);
+      const keAvg = totalKe / TOTAL_CELLS;
+      const enstrophyAvg = totalEnstrophy / TOTAL_CELLS * 100;
+
+      document.getElementById('telem-nu').innerText = nu.toFixed(2);
+      document.getElementById('telem-umax').innerText = uMax.toFixed(2);
+      document.getElementById('telem-ke').innerText = keAvg.toExponential(2);
+      document.getElementById('telem-enstrophy').innerText = enstrophyAvg.toFixed(2);
+
+      // Estimate convective roll count by counting zero-crossings of vertical velocity
+      let cellCrossings = 0;
+      const midRow = Math.floor(NY * 0.5) * NX;
+      for (let i = 2; i < NX - 2; i++) {
+        if (v[midRow + i] * v[midRow + i - 1] < 0 && Math.abs(v[midRow + i]) > 0.05) {
+          cellCrossings++;
+        }
+      }
+      document.getElementById('telem-cells').innerText = `${Math.max(2, cellCrossings)} Rolls`;
+
+      // Update FPS counter
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsTime >= 1000) {
+        const fps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+        document.getElementById('fps-counter').innerText = `${fps} FPS • Boussinesq Navier-Stokes`;
+        frameCount = 0;
+        lastFpsTime = now;
+      }
+    }
+
+    // --- 8. Main Animation Loop ---
+    function animate() {
+      if (simRunning) {
+        stepPhysics();
+        updateTelemetry();
+      }
+      renderSimulation();
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('load', () => {
+      initCanvas();
+      changeRenderField('thermal');
+      initThermalGrid('rayleigh');
+      animate();
+    });
+  </script>
+</body>
+</html>
